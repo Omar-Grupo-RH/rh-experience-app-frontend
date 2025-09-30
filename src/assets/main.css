@@ -1,0 +1,140 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+
+html {
+  scroll-behavior: smooth;
+}
+
+@font-face {
+  font-family: "Thugolatz";
+  src: url("/fonts/thugolatz.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "Lefitica";
+  src: url("/fonts/Lefitica.otf") format("opentype");
+}
+
+/* ULTRALIGHT (200) */
+@font-face {
+  font-family: "Luxe";
+  src: url("/fonts/luxe/LuxeUno-UltraLight.otf") format("opentype");
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Luxe";
+  src: url("/fonts/luxe/LuxeUno-UltraLightItalic.otf") format("opentype");
+  font-weight: 200;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* THIN (100) */
+@font-face {
+  font-family: "Luxe";
+  src: url("/fonts/luxe/LuxeUno-Thin.otf") format("opentype");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Luxe";
+  src: url("/fonts/luxe/LuxeUno-ThinItalic.otf") format("opentype");
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* LIGHT (300) */
+@font-face {
+  font-family: "Luxe";
+  src: url("/fonts/luxe/LuxeUno-Light.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Luxe";
+  src: url("/fonts/luxe/LuxeUno-LightItalic.otf") format("opentype");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* REGULAR (400) */
+@font-face {
+  font-family: "Luxe";
+  src: url("/fonts/luxe/LuxeUno-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Luxe";
+  src: url("/fonts/luxe/LuxeUno-Italic.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* SEMIBOLD (600) */
+@font-face {
+  font-family: "Luxe";
+  src: url("/fonts/luxe/LuxeUno-SemiBold.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Luxe";
+  src: url("/fonts/luxe/LuxeUno-SemiBoldItalic.otf") format("opentype");
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* BOLD (700) */
+@font-face {
+  font-family: "Luxe";
+  src: url("/fonts/luxe/LuxeUno-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Luxe";
+  src: url("/fonts/luxe/LuxeUno-BoldItalic.otf") format("opentype");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* HEAVY (800) */
+@font-face {
+  font-family: "Luxe";
+  src: url("/fonts/luxe/LuxeUno-Heavy.otf") format("opentype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Luxe";
+  src: url("/fonts/luxe/LuxeUno-HeavyItalic.otf") format("opentype");
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+@theme {
+  --font-luxe: "Luxe", ui-sans-serif, system-ui, sans-serif;
+  --font-thugolatz: "Thugolatz", ui-sans-serif, system-ui, sans-serif;
+  --font-lefitica: "Lefitica", ui-sans-serif, system-ui, sans-serif;
+  --color-experience-blue: #2c5da7;
+  --color-experience-pink: #d94a93;
+  --color-experience-yellow: #feec82;
+  --color-experience-aqua: #69c2be;
+  --color-experience-white: #ece7e3;
+  --color-experience-green: #88bf73;
+}
