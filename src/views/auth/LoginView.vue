@@ -1,5 +1,24 @@
 <script setup>
 import { RouterLink } from "vue-router";
+import { inject } from "vue";
+import { reset } from "@formkit/vue";
+import AuthAPI from "@/api/AuthAPI";
+
+const toast = inject("toast");
+
+const handleSubmit = async (formData) => {
+  try {
+    const {
+      data: { token },
+    } = await AuthAPI.login(formData);
+    localStorage.setItem("AUTH_TOKEN", token);
+  } catch (error) {
+    toast.open({
+      message: error.response.data.message,
+      type: "error",
+    });
+  }
+};
 </script>
 
 <template>

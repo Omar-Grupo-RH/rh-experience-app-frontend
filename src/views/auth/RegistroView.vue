@@ -19,7 +19,7 @@ const handleSubmit = async (formData) => {
     response.data.errors.forEach((msg) => {
       toast.open({
         message: msg,
-        type: "warning",
+        type: "error",
       });
     });
   }
