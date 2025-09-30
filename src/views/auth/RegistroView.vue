@@ -3,17 +3,27 @@ import { inject } from "vue";
 import { RouterLink } from "vue-router";
 import { reset } from "@formkit/vue";
 import AuthAPI from "@/api/AuthAPI";
+import { useAuth } from "@/composables/useAuth";
 
 const toast = inject("toast");
+const { login } = useAuth();
 
 const handleSubmit = async (formData) => {
   try {
-    const { data } = await AuthAPI.register(formData);
-    toast.open({
-      message: data.message,
-      type: "success",
-    });
+    // 1) Registrar
+    const { data: reg } = await AuthAPI.register(formData);
+    toast.open({ message: reg.message || "Registro exitoso", type: "success" });
     reset("registerForm");
+
+    // 2) Iniciar sesión con las mismas credenciales
+    const credentials = { email: formData.email, password: formData.password };
+    const {
+      data: { token, first_name, email },
+    } = await AuthAPI.login(credentials);
+
+    // 3) Crear el objeto perfil y pasar a login()
+    const profile = { name: first_name, email };
+    await login(token, profile); // ← esto te redirige a home
   } catch (error) {
     const { response } = error;
     response.data.errors.forEach((msg) => {

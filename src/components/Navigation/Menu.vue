@@ -1,26 +1,50 @@
+<!-- src/components/NavBar.vue -->
 <script setup>
-import Link from './Link.vue';
+import { useAuth } from "@/composables/useAuth";
+import Link from "./Link.vue";
+
+const { isAuthenticated, user, logout } = useAuth();
 
 </script>
 
 <template>
-    <nav class="w-full bg-experience-pink text-white flex justify-between items-center h-16">
-        <div class="ml-16">
-            <Link to="home">
-                    <img src="/logos/Recurso9.svg" class="w-9" alt="">
-                </Link>
-        </div>
+  <nav
+    class="w-full bg-experience-pink text-white flex justify-between items-center h-16"
+  >
+    <div class="ml-16">
+      <Link to="home">
+        <img src="/logos/Recurso9.svg" class="w-9" alt="" />
+      </Link>
+    </div>
 
-        <ul class="flex flex-col gap-3 md:flex-row md:gap-5">
+    <ul class="flex flex-col gap-3 md:flex-row md:gap-5">
+      <!-- Si NO hay sesión -->
+      <li
+        v-if="!isAuthenticated"
+        class="cursor-pointer h-16 px-5 flex justify-center items-center bg-experience-blue"
+      >
+        <Link to="login">Iniciar sesión</Link>
+      </li>
 
-            <li class="cursor-pointer h-16 px-5 flex justify-center items-center bg-experience-blue">
-                <Link to="login">
-                    Iniciar sesion
-                </Link>
-            </li>
-        </ul>
-    </nav>
+      <!-- Si SÍ hay sesión -->
+      <template v-else>
+        <li class="h-16 px-5 flex items-center">
+          <span class="text-sm md:text-base opacity-90 capitalize font-bold"
+            >Hola, {{ user?.name }}</span
+          >
+        </li>
+
+        <li class="cursor-pointer h-16 px-5 flex justify-center items-center">
+          <Link to="me">Mi perfil</Link>
+        </li>
+
+        <li
+          @click="logout"
+          class="cursor-pointer h-16 px-5 flex justify-center items-center bg-experience-blue hover:opacity-90"
+        >
+          Cerrar sesión
+        </li>
+      </template>
+    </ul>
+  </nav>
 </template>
-
-
-

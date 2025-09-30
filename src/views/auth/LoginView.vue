@@ -1,20 +1,25 @@
 <script setup>
-import { RouterLink } from "vue-router";
+import { RouterLink, useRoute } from "vue-router";
 import { inject } from "vue";
 import { reset } from "@formkit/vue";
 import AuthAPI from "@/api/AuthAPI";
+import { useAuth } from "@/composables/useAuth";
 
 const toast = inject("toast");
+const { login } = useAuth(); // <- usamos el composable
+const route = useRoute(); // opcional si quieres leer ?next en UI
 
 const handleSubmit = async (formData) => {
   try {
     const {
-      data: { token },
+      data: { token, first_name, email },
     } = await AuthAPI.login(formData);
-    localStorage.setItem("AUTH_TOKEN", token);
+    await login(token, { name: first_name, email });
+    reset("loginForm");
+    toast?.open?.({ message: `¡Bienvenido! ${first_name}`, type: "success" });
   } catch (error) {
-    toast.open({
-      message: error.response.data.message,
+    toast?.open?.({
+      message: error?.response?.data?.message || "Error al iniciar sesión",
       type: "error",
     });
   }
