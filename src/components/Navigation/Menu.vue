@@ -1,10 +1,9 @@
-<!-- src/components/NavBar.vue -->
 <script setup>
 import { useAuth } from "@/composables/useAuth";
 import Link from "./Link.vue";
 
-const { isAuthenticated, user, logout } = useAuth();
-
+const auth = useAuth();
+const { user, isAuthenticated, logout } = auth;
 </script>
 
 <template>
@@ -30,7 +29,7 @@ const { isAuthenticated, user, logout } = useAuth();
       <template v-else>
         <li class="h-16 px-5 flex items-center">
           <span class="text-sm md:text-base opacity-90 capitalize font-bold"
-            >Hola, {{ user?.name }}</span
+            >Hola, {{ user?.first_name }}</span
           >
         </li>
 

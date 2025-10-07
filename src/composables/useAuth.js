@@ -1,6 +1,6 @@
-// useAuth.js
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
+import { useReservaStore } from "@/stores/reservaStore";
 
 const STORAGE_KEY = "AUTH_TOKEN";
 const STORAGE_USER = "AUTH_USER";
@@ -11,13 +11,8 @@ const user = ref(JSON.parse(localStorage.getItem(STORAGE_USER) || "null"));
 function decodeJwtPayload(jwt) {
   try {
     const [, payload] = jwt.split(".");
-    let b64 = payload.replace(/-/g, "+").replace(/_/g, "/");
-    const pad = b64.length % 4;
-    if (pad) b64 += "=".repeat(4 - pad);
-    const json = atob(b64);
-    const bytes = Uint8Array.from(json, (c) => c.charCodeAt(0));
-    const text = new TextDecoder().decode(bytes);
-    return JSON.parse(text);
+    const decoded = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    return JSON.parse(decoded);
   } catch {
     return null;
   }
@@ -29,6 +24,7 @@ function hydrateFromToken() {
     localStorage.removeItem(STORAGE_USER);
     return;
   }
+
   const payload = decodeJwtPayload(token.value);
   if (!payload) {
     token.value = null;
@@ -37,6 +33,7 @@ function hydrateFromToken() {
     localStorage.removeItem(STORAGE_USER);
     return;
   }
+
   const now = Math.floor(Date.now() / 1000);
   if (payload.exp && payload.exp < now) {
     token.value = null;
@@ -46,19 +43,17 @@ function hydrateFromToken() {
     return;
   }
 
-  // Si el JWT trae datos, úsalos; si no, conserva los del STORAGE_USER
   const base = user.value || {};
+
   user.value = {
     id: payload.sub || payload.id || base.id || null,
-    name:
-      payload.name ||
-      payload.username ||
-      payload.email ||
-      base.name ||
-      "Usuario",
-    email: payload.email || base.email || null,
+    first_name: payload.first_name || base.first_name,
+    last_name: payload.last_name || base.last_name,
+    email: payload.email || base.email,
+    phone: payload.phone || base.phone,
     raw: payload,
   };
+
   localStorage.setItem(STORAGE_USER, JSON.stringify(user.value));
 }
 hydrateFromToken();
@@ -66,26 +61,30 @@ hydrateFromToken();
 export function useAuth() {
   const router = useRouter();
   const isAuthenticated = computed(() => !!token.value && !!user.value);
+  const storeReserva = useReservaStore();
 
   async function login(jwt, profile) {
     token.value = jwt;
     localStorage.setItem(STORAGE_KEY, jwt);
 
-    // 1) hidrata desde el token
     hydrateFromToken();
 
-    // 2) si el backend devolvió datos fuera del token, mézclalos aquí
     if (profile) {
       user.value = {
         ...user.value,
-        // mapea primero_name -> name
-        name:
-          profile.name ?? profile.first_name ?? user.value?.name ?? "Usuario",
-        email: profile.email ?? user.value?.email ?? null,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        email: profile.email,
+        phone: profile.phone,
         id: profile.id ?? user.value?.id ?? null,
       };
       localStorage.setItem(STORAGE_USER, JSON.stringify(user.value));
     }
+
+    storeReserva.form.first_name = user.value.first_name;
+    storeReserva.form.last_name = user.value.last_name;
+    storeReserva.form.email = user.value.email;
+    storeReserva.form.phone = user.value.phone;
 
     const url = new URL(window.location.href);
     const next = url.searchParams.get("next");
@@ -97,8 +96,11 @@ export function useAuth() {
     user.value = null;
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(STORAGE_USER);
-    router.push({ name: "home" });
+
+    // Recarga directamente la página principal
+    window.location.href = "/";
   }
+
 
   return { token, user, isAuthenticated, login, logout, hydrateFromToken };
 }

@@ -11,11 +11,15 @@ const { login } = useAuth(); // <- usamos el composable
 const handleSubmit = async (formData) => {
   try {
     const {
-      data: { token, first_name, email },
+      data: { token, first_name, email, last_name, phone },
     } = await AuthAPI.login(formData);
-    await login(token, { name: first_name, email });
+
+    await login(token, { first_name, email, last_name, phone });
     reset("loginForm");
-    toast?.open?.({ message: `¡Bienvenido! ${first_name}`, type: "success" });
+    toast?.open?.({
+      message: `¡Bienvenido! ${first_name} ${last_name}`,
+      type: "success",
+    });
   } catch (error) {
     toast?.open?.({
       message: error?.response?.data?.message || "Error al iniciar sesión",
