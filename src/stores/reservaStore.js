@@ -24,7 +24,9 @@ export const useReservaStore = defineStore("reserva", () => {
     step.value = 1;
     selectedSeats.value = [];
     date.value = null;
-    form.value = { first_name: "", last_name: "", email: "", phone: "" };
+    if (!localStorage.getItem("AUTH_USER")) {
+      form.value = { first_name: "", last_name: "", email: "", phone: "" };
+    }
   }
 
   function setDate(d) {

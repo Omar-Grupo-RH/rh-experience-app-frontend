@@ -129,12 +129,12 @@ async function startCheckout() {
               class="bg-white p-4 rounded-lg w-full shadow-sm space-y-4"
             >
               <div class="flex justify-between lg:gap-10">
-                <div class="w-1/2">
+                <div class="w-2/3">
                   <p class="xl:text-lg font-medium mb-5">Selecciona tu fecha</p>
                   <Calendar />
                 </div>
 
-                <div v-if="store.date" class="w-1/2">
+                <div v-if="store.date" class="w-1/3">
                   <p class="xl:text-lg font-medium mb-5">
                     Selecciona tus asientos
                   </p>
