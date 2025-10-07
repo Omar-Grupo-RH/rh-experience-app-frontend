@@ -7,7 +7,6 @@ import { useAuth } from "@/composables/useAuth";
 
 const toast = inject("toast");
 const { login } = useAuth(); // <- usamos el composable
-const route = useRoute(); // opcional si quieres leer ?next en UI
 
 const handleSubmit = async (formData) => {
   try {

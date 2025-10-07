@@ -4,6 +4,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import { plugin, defaultConfig } from "@formkit/vue";
 import { useToast } from "vue-toast-notification";
+
 import config from "../formkit.config";
 
 import router from "./router";
