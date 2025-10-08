@@ -7,17 +7,22 @@ const { user, isAuthenticated, logout } = auth;
 </script>
 
 <template>
-  <aside class="h-dvh sticky top-0 bg-experience-pink p-5">
-    <nav class="h-full flex flex-col justify-between gap-5">
-      <div>
-        <Link to="dashboard">Dashboard</Link>
-        <Link to="dashboard">Clientes</Link>
-        <Link to="dashboard">Tours</Link>
+  <aside class="lg:h-dvh sticky top-0 bg-experience-blue">
+    <nav class="lg:h-full flex flex-col justify-between px-3 py-10">
+      <div class="space-y-2">
+        <Link to="dashboard">Panel de Control</Link>
+        <Link to="clients">Clientes</Link>
+        <Link to="tours">Mi Agenda</Link>
         <Link to="coupons">Cupones</Link>
       </div>
-
-      <div>
-        <Link to="home">Regresar</Link>
+      <div class="space-y-2">
+        <Link to="home">Pagina de Inicio</Link>
+        <button
+          @click="logout"
+          class="block w-full py-2 px-4 text-left rounded cursor-pointer lg:text-xl text-white hover:bg-experience-white/20"
+        >
+          Cerrar Sesion
+        </button>
       </div>
     </nav>
   </aside>

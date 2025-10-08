@@ -45,6 +45,18 @@ const router = createRouter({
           component: () => import("@/views/admin/DashboardView.vue"),
         },
         {
+          path: "clientes",
+          name: "clients",
+          meta: { title: "Clientes", adminOnly: true }, // 👈
+          component: () => import("@/views/admin/ClientsView.vue"),
+        },
+        {
+          path: "viajes",
+          name: "tours",
+          meta: { title: "Viajes", adminOnly: true }, // 👈
+          component: () => import("@/views/admin/ToursView.vue"),
+        },
+        {
           path: "cupones",
           name: "coupons",
           meta: { title: "Cupones", adminOnly: true }, // 👈
