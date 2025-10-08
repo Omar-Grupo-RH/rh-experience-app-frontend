@@ -92,9 +92,13 @@ watch(
   width: 100% !important;
 }
 
-
 /* 🔹 Mejora visual opcional: marcar los días con evento */
 .fc-day-has-event {
   cursor: pointer !important;
+}
+
+.fc-button {
+  background-color: #d94a93 !important;
+  border: none !important;
 }
 </style>
