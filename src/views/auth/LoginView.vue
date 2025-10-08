@@ -11,10 +11,11 @@ const { login } = useAuth(); // <- usamos el composable
 const handleSubmit = async (formData) => {
   try {
     const {
-      data: { token, first_name, email, last_name, phone },
+      data: { token, first_name, email, last_name, phone, admin },
     } = await AuthAPI.login(formData);
+    await login(token, { first_name, email, last_name, phone, admin });
 
-    await login(token, { first_name, email, last_name, phone });
+
     reset("loginForm");
     toast?.open?.({
       message: `¡Bienvenido! ${first_name} ${last_name}`,

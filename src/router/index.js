@@ -32,15 +32,36 @@ const router = createRouter({
       meta: { requiresAuth: true, title: "Mi Perfil" },
       component: () => import("@/views/MyTripsView.vue"),
     },
+    {
+      path: "/admin",
+      name: "admin",
+      meta: { adminOnly: true }, // 👈
+      component: () => import("@/views/admin/AdminLayout.vue"),
+      children: [
+        {
+          path: "panel",
+          name: "dashboard",
+          meta: { title: "Dashboard", adminOnly: true }, // 👈
+          component: () => import("@/views/admin/DashboardView.vue"),
+        },
+        {
+          path: "cupones",
+          name: "coupons",
+          meta: { title: "Cupones", adminOnly: true }, // 👈
+          component: () => import("@/views/admin/CouponsView.vue"),
+        },
+      ],
+    },
   ],
 });
 
 router.beforeEach((to) => {
-  const { isAuthenticated, hydrateFromToken } = useAuth();
+  const { isAuthenticated, user, hydrateFromToken } = useAuth();
   hydrateFromToken();
 
   const requiresAuth = to.matched.some((r) => r.meta?.requiresAuth);
   const guestOnly = to.matched.some((r) => r.meta?.guestOnly);
+  const adminOnly = to.matched.some((r) => r.meta?.adminOnly);
 
   // Si requiere auth y NO está logueado → a login
   if (requiresAuth && !isAuthenticated.value) {
@@ -53,6 +74,11 @@ router.beforeEach((to) => {
     return typeof next === "string"
       ? { path: next, replace: true }
       : { ...next, replace: true };
+  }
+
+  // rutas solo para admin
+  if (adminOnly && (!user.value || !user.value.admin)) {
+    return { name: "home", replace: true }; // o una vista 403
   }
 });
 

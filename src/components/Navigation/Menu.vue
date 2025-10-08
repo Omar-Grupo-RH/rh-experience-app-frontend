@@ -26,15 +26,25 @@ const { user, isAuthenticated, logout } = auth;
       </li>
 
       <!-- Si SÍ hay sesión -->
-      <template v-else>
+      <template v-else-if="isAuthenticated">
         <li class="h-16 px-5 flex items-center">
           <span class="text-sm md:text-base opacity-90 capitalize font-bold"
             >Hola, {{ user?.first_name }}</span
           >
         </li>
 
-        <li class="cursor-pointer h-16 px-5 flex justify-center items-center">
+        <li
+          v-if="isAuthenticated && !user?.admin"
+          class="cursor-pointer h-16 px-5 flex justify-center items-center"
+        >
           <Link to="me">Mi perfil</Link>
+        </li>
+
+        <li
+          v-if="isAuthenticated && user?.admin"
+          class="cursor-pointer h-16 px-5 flex justify-center items-center"
+        >
+          <Link to="dashboard">Administrar</Link>
         </li>
 
         <li
