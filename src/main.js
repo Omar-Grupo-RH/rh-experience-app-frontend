@@ -12,6 +12,9 @@ import App from "./App.vue";
 
 import "vue-toast-notification/dist/theme-sugar.css";
 
+import VueSweetalert2 from "vue-sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
+
 const $toast = useToast({
   duration: 5000,
   position: "top-right",
@@ -33,6 +36,7 @@ const app = createApp(App);
 app.provide("toast", $toast);
 app.use(createPinia());
 app.use(plugin, defaultConfig(config));
+app.use(VueSweetalert2);
 
 app.use(router);
 

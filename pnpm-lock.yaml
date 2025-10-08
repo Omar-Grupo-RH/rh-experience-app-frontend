@@ -44,6 +44,9 @@ importers:
       pinia:
         specifier: ^3.0.3
         version: 3.0.3(vue@3.5.21)
+      sweetalert2:
+        specifier: ^11.25.0
+        version: 11.25.0
       tailwindcss:
         specifier: ^4.1.13
         version: 4.1.13
@@ -56,6 +59,9 @@ importers:
       vue-router:
         specifier: ^4.5.1
         version: 4.5.1(vue@3.5.21)
+      vue-sweetalert2:
+        specifier: ^5.0.11
+        version: 5.0.11(vue@3.5.21)
       vue-tailwind-datepicker:
         specifier: ^1.7.4
         version: 1.7.4(dayjs@1.11.18)(tailwindcss@4.1.13)(vite@7.1.7(jiti@2.6.0)(lightningcss@1.30.1)(sass@1.93.2))(vue@3.5.21)
@@ -1456,6 +1462,12 @@ packages:
     resolution: {integrity: sha512-5JRxVqC8I8NuOUjzBbvVJAKNM8qoVuH0O77h4WInc/qC2q5IreqKxYwgkga3PfA22OayK2ikceb/B26dztPl+Q==}
     engines: {node: '>=16'}
 
+  sweetalert2@11.25.0:
+    resolution: {integrity: sha512-9eDRscWO7SpuTsaFJ1Q0hd3e7MYhYjAE6RmK/cVj3utPekr5ZKLNkV3OWiTmkWJpfaK8LMbx1aYuCoUPPxDVNQ==}
+
+  sweetalert2@11.4.4:
+    resolution: {integrity: sha512-9yYWQuRT1v9JNI/paPTSYV+68MHwe9C+HQ/I2jtfaFzoJgYRftWXOs4JqmDSjT7m2m4r8ebMMn8LcxD1Wq9B/w==}
+
   tailwindcss@4.1.13:
     resolution: {integrity: sha512-i+zidfmTqtwquj4hMEwdjshYYgMbOrPzb9a0M3ZgNa0JMoZeFC6bxZvO8yr8ozS6ix2SDz0+mvryPeBs2TFE+w==}
 
@@ -1593,6 +1605,11 @@ packages:
     resolution: {integrity: sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw==}
     peerDependencies:
       vue: ^3.2.0
+
+  vue-sweetalert2@5.0.11:
+    resolution: {integrity: sha512-agujdlcNeLb4Fj0/V3qgR7bEVBN8IzWFoDBP/vrSgbEGl9pjMmxnv32V3lxB0SZtQh6tL6R/UZ+C3q8tzsJbNg==}
+    peerDependencies:
+      vue: '*'
 
   vue-tailwind-datepicker@1.7.4:
     resolution: {integrity: sha512-vJqDbv2MOFv4Iw9Xr4iMfkLVaFBwtOZc6TODHM3tkJ7aM7PKO9R0MTgaoVvwSuSn79ZGTzCVv01kjyqX2HkipQ==}
@@ -2946,6 +2963,10 @@ snapshots:
     dependencies:
       copy-anything: 3.0.5
 
+  sweetalert2@11.25.0: {}
+
+  sweetalert2@11.4.4: {}
+
   tailwindcss@4.1.13: {}
 
   tapable@2.2.3: {}
@@ -3072,6 +3093,11 @@ snapshots:
   vue-router@4.5.1(vue@3.5.21):
     dependencies:
       '@vue/devtools-api': 6.6.4
+      vue: 3.5.21
+
+  vue-sweetalert2@5.0.11(vue@3.5.21):
+    dependencies:
+      sweetalert2: 11.4.4
       vue: 3.5.21
 
   vue-tailwind-datepicker@1.7.4(dayjs@1.11.18)(tailwindcss@4.1.13)(vite@7.1.7(jiti@2.6.0)(lightningcss@1.30.1)(sass@1.93.2))(vue@3.5.21):
