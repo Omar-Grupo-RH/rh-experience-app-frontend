@@ -1,9 +1,19 @@
 <script setup>
-const title = "Cupones";
+import CouponsTable from "@/components/admin/Coupons/CouponsTable.vue";
+import { RouterLink } from "vue-router";
 </script>
 
 <template>
-  <div>
-    {{ title }}
+  <div class="max-w-7xl mx-auto p-5 space-y-10">
+    <div class="flex justify-between items-center">
+      <div class="space-y-1">
+        <h2 class="text-4xl font-semibold">Gestión de Cupones</h2>
+        <p class="text-gray-400">Administra los cupones de descuento aqui.</p>
+      </div>
+    </div>
+
+    <div class="rounded-lg shadow bg-white p-5">
+      <CouponsTable />
+    </div>
   </div>
 </template>

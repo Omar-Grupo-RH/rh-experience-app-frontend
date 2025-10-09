@@ -1,8 +1,10 @@
 <script setup>
 import { ref } from "vue";
-
+import { useRegisterClient } from "@/composables/useRegisterClient";
+import { useClientStore } from "@/stores/clientStore";
+const store = useClientStore();
 const emit = defineEmits(["close", "create"]);
-
+const { registerClient, isLoading } = useRegisterClient();
 
 const form = ref({
   first_name: "",
@@ -12,17 +14,22 @@ const form = ref({
   password: "",
 });
 
-function handleSubmit() {
-  emit("create", {
-    name: `${form.value.first_name} ${form.value.last_name}`,
-    email: form.value.email,
-    phone: form.value.phone,
-  });
+async function handleSubmit() {
+  try {
+    const newClient = await registerClient(form.value, "registerForm");
+
+    store.clients.push(newClient); // Actualiza el store solo con el resultado real
+    store.showCreateModal = false; // Cierra el modal
+  } catch (error) {
+    console.error("Error al crear cliente:", error);
+  }
 }
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div
+    class="fixed inset-0 flex items-center justify-center z-50 bg-black/40 backdrop-blur-sm"
+  >
     <div class="bg-white rounded-lg shadow p-6 w-full max-w-lg">
       <h2 class="text-xl font-bold mb-4">Crear nuevo cliente</h2>
 
@@ -107,4 +114,3 @@ function handleSubmit() {
     </div>
   </div>
 </template>
-

@@ -13,7 +13,14 @@ const store = useReservaStore();
 const selectedDate = ref(store.date);
 
 // 🔹 Lista reactiva de eventos
-const events = ref([]);
+const events = ref([
+  {
+    id: String(Date.now()),
+    title: "RH EXPERIENCE",
+    start: "2025-10-08",
+    allDay: true,
+  },
+]);
 
 // 🔹 Referencia al calendario (para forzar actualización si hace falta)
 const calendarRef = ref(null);
@@ -77,7 +84,7 @@ const calendarOptions = ref({
           "success"
         );
       } else {
-        Swal.fire("⚠️ Ya tienes un tour agendado ese día.", "", "info");
+        Swal.fire("Ya tienes un tour agendado ese día.", "", "info");
       }
     }
   },

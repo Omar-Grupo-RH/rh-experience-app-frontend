@@ -28,7 +28,7 @@ function handleSubmit() {
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
     <div class="bg-white rounded-lg shadow p-6 w-full max-w-lg">
       <h2 class="text-xl font-bold mb-4">Editar cliente</h2>
 
