@@ -22,7 +22,7 @@ const handleSubmit = async (formData) => {
     } = await AuthAPI.login(credentials);
 
     // 3) Crear el objeto perfil y pasar a login()
-    const profile = { name: first_name, email };
+    const profile = { first_name, email };
     await login(token, profile); // ← esto te redirige a home
   } catch (error) {
     const { response } = error;

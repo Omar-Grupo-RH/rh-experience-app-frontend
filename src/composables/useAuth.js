@@ -92,7 +92,7 @@ export function useAuth() {
   async function login(jwt, profile) {
     token.value = jwt;
     localStorage.setItem(STORAGE_KEY, jwt);
-
+    
     hydrateFromToken();
 
     if (profile) {
