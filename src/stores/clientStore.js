@@ -1,37 +1,25 @@
+import { useAdminAPI } from "@/composables/useAdmin";
 import { defineStore } from "pinia";
 import Swal from "sweetalert2";
 import { ref } from "vue";
 
 export const useClientStore = defineStore("clients", () => {
+  const { getAllClients } = useAdminAPI();
+
   const showCreateModal = ref(false);
   const showEditModal = ref(false);
   const selectedClient = ref(null);
+  const isLoading = ref(false);
 
-  const clients = ref([
-    {
-      id: "1",
-      first_name: "María González",
-      email: "maria.gonzalez@email.com",
-      phone: "6123456789",
-      toursBooked: 3,
-      joinDate: "2025-09-29",
-    },
-    {
-      id: "2",
-      first_name: "Carlos Ruiz",
-      email: "carlos.ruiz@email.com",
-      phone: "6234567890",
-      toursBooked: 5,
-      joinDate: "2025-10-05",
-    },
-  ]);
+  const clients = ref([]);
 
-  function getTodayForDB() {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+  async function getClients() {
+    isLoading.value = true;
+    try {
+      clients.value = await getAllClients();
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   // Abrir modal de edición
@@ -79,5 +67,6 @@ export const useClientStore = defineStore("clients", () => {
     openEditModal,
     deleteClient,
     updateClient,
+    getClients,
   };
 });

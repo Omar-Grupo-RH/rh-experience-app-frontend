@@ -37,21 +37,6 @@ function goToPago() {
 async function startCheckout() {
   isProcessing.value = true;
   try {
-    // const res = await fetch("/create-checkout-session", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({
-    //     date: store.date,
-    //     seats: store.selectedSeats,
-    //     first_name: store.form.first_name,
-    //     last_name: store.form.last_name,
-    //     phone: store.form.phone,
-    //     email: store.form.email,
-    //     unit_price: store.pricePerSeat,
-    //   }),
-    // });
-    // const data = await res.json();
-    // if (data.url) window.location.href = data.url;
     console.log(
       JSON.stringify({
         date: store.date,

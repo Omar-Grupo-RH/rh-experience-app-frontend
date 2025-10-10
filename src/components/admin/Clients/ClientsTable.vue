@@ -3,8 +3,13 @@ import ModalCreateClient from "@/components/admin/Clients/ModalCreateClient.vue"
 import ModalEditClient from "@/components/admin/Clients/ModalEditClient.vue";
 import { useClientStore } from "@/stores/clientStore";
 import { formatDateToSpanish } from "@/utils/formatDate";
+import { onMounted } from "vue";
 
 const store = useClientStore();
+
+onMounted(() => {
+  store.getClients();
+});
 </script>
 
 <template>
@@ -41,7 +46,7 @@ const store = useClientStore();
               <div>{{ client.phone }}</div>
             </td>
             <td class="p-3">{{ client.toursBooked }}</td>
-            <td class="p-3">{{ formatDateToSpanish(client.joinDate) }}</td>
+            <td class="p-3">{{ formatDateToSpanish(client.created_at) }}</td>
             <td class="p-3">
               <button
                 class="text-experience-blue hover:underline cursor-pointer"

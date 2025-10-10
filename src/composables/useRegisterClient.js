@@ -4,7 +4,7 @@ import { reset } from "@formkit/vue";
 import AuthAPI from "@/api/AuthAPI";
 
 export function useRegisterClient() {
-  const toast = inject("toast"); // Para mostrar mensajes
+  const toast = inject("toast"); 
   const isLoading = ref(false);
   const errors = ref([]);
 
