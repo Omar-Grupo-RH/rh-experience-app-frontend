@@ -35,7 +35,7 @@ const store = useClientStore();
             :key="client.id"
             class="border-b border-gray-200 hover:bg-gray-50 text-center"
           >
-            <td class="p-3 font-medium">{{ client.name }}</td>
+            <td class="p-3 font-medium">{{ client.first_name }}</td>
             <td class="p-3 text-sm text-gray-600">
               <div>{{ client.email }}</div>
               <div>{{ client.phone }}</div>
