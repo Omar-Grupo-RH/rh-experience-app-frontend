@@ -14,6 +14,7 @@ const { user, isAuthenticated, logout } = auth;
         <Link to="clients">Clientes</Link>
         <Link to="tours">Mi Agenda</Link>
         <Link to="coupons">Cupones</Link>
+        <Link to="earnings">Ingresos</Link>
       </div>
       <div class="space-y-2">
         <Link to="home">Pagina de Inicio</Link>

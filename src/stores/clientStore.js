@@ -31,7 +31,7 @@ export const useClientStore = defineStore("clients", () => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`; // 👉 "2025-10-21"
+    return `${year}-${month}-${day}`;
   }
 
   // Abrir modal de edición
@@ -43,7 +43,7 @@ export const useClientStore = defineStore("clients", () => {
   // Eliminar cliente
   function deleteClient(client) {
     Swal.fire({
-      title: `¿Eliminar a ${client.name}?`,
+      title: `¿Eliminar a ${client.first_name}?`,
       text: "Esta acción no se puede deshacer.",
       icon: "warning",
       showCancelButton: true,
@@ -54,7 +54,11 @@ export const useClientStore = defineStore("clients", () => {
     }).then((result) => {
       if (result.isConfirmed) {
         clients.value = clients.value.filter((c) => c.id !== client.id);
-        Swal.fire("Eliminado", `${client.name} ha sido eliminado.`, "success");
+        Swal.fire(
+          "Eliminado",
+          `${client.first_name} ha sido eliminado.`,
+          "success"
+        );
       }
     });
   }
