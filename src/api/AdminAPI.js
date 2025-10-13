@@ -18,4 +18,8 @@ export default {
   deleteClient(id) {
     return api.post("/client/destroy", id);
   },
+  
+  addTour(tourData) {
+    return api.post("/trip/create", tourData);
+  }
 };

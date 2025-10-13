@@ -30,11 +30,13 @@ export function useAdminAPI() {
     return data;
   };
 
+
   return {
     getAllClients,
     storeClient,
     destroyClient,
     getClientById,
     updateClient,
+    
   };
 }

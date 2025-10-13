@@ -1,24 +1,65 @@
+import { useCalendarAPI } from "@/composables/useCalendar";
 import { defineStore } from "pinia";
 import { ref } from "vue";
-
+import Swal from "sweetalert2";
+import { formatDateToSpanish } from "@/utils/formatDate";
 export const useCalendarStore = defineStore("calendar", () => {
-    
-  const events = ref([
-    {
-      id: String(Date.now()),
-      title: "RH EXPERIENCE",
-      start: "2025-10-08",
-      allDay: true,
-    },
-  ]);
+  const { createEvent } = useCalendarAPI();
+
+  const events = ref([]);
   const selectedDate = ref(null);
 
-  function setEvents(newEvents) {
-    events.value = newEvents;
-  }
+  async function addEvent(evt) {
+    const { dateStr } = evt;
+    const today = new Date().toISOString().split("T")[0];
+    if (dateStr < today) {
+      Swal.fire("No puedes agendar en una fecha pasada.", "", "warning");
+      return;
+    }
+    const formData = {
+      trip_date: dateStr,
+      total_seat: 15,
+      title: "RH EXPERIENCE",
+    };
 
-  function addEvent(event) {
-    events.value.push(event);
+    const result = await Swal.fire({
+      title: "¿Agendar tour?",
+      text: `¿Deseas agendar "RH EXPERIENCE" el ${formatDateToSpanish(
+        formData.trip_date
+      )}?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Sí, agendar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d94a93",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const resp = await createEvent(formData);
+      const created = resp?.data;
+      if (!created) throw new Error("Respuesta sin data");
+
+      events.value.push({
+        id: String(created.id),
+        title: created.title,
+        start: created.trip_date,
+        allDay: true,
+        extendedProps: { total_seat: created.total_seat },
+      });
+
+      Swal.fire({
+        title: `Tour Agendado`,
+        text: `RH EXPERIENCE agendado para el ${formatDateToSpanish(
+          created.trip_date
+        )}`,
+        icon: "success",
+        timer: 2000,
+      });
+    } catch (error) {
+      Swal.fire("Error", `${error.response.data.errors}`, "error");
+    }
   }
 
   function updateEvent(id, newData) {
@@ -34,7 +75,6 @@ export const useCalendarStore = defineStore("calendar", () => {
   return {
     events,
     selectedDate,
-    setEvents,
     addEvent,
     updateEvent,
     removeEvent,
