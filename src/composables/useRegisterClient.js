@@ -1,10 +1,9 @@
-// composables/useRegisterClient.js
 import { ref, inject } from "vue";
 import { reset } from "@formkit/vue";
-import AuthAPI from "@/api/AuthAPI";
+import AdminAPI from "@/api/AdminAPI";
 
 export function useRegisterClient() {
-  const toast = inject("toast"); 
+  const toast = inject("toast");
   const isLoading = ref(false);
   const errors = ref([]);
 
@@ -13,27 +12,23 @@ export function useRegisterClient() {
     errors.value = [];
 
     try {
-      // Llamada al backend
-      const { data } = await AuthAPI.register(formData);
+      // Llamada al backend (a través de ClientsAPI)
+      const { data } = await AdminAPI.addClient(formData);
 
-      // Feedback
       toast?.open({
         message: data.message || "Cliente registrado correctamente",
         type: "success",
       });
 
-      // Reset del formulario FormKit
       reset(formId);
 
-      return data.data; // Devuelve el usuario creado
+      return data.data;
     } catch (error) {
       const { response } = error;
       errors.value = response?.data?.errors || ["Error desconocido"];
-
-      errors.value.forEach((msg) => {
-        toast?.open({ message: msg, type: "error" });
-      });
-
+      errors.value.forEach((msg) =>
+        toast?.open({ message: msg, type: "error" })
+      );
       throw error;
     } finally {
       isLoading.value = false;

@@ -1,37 +1,34 @@
-import { useAdminAPI } from "@/composables/useAdmin";
+// src/stores/clientStore.js
 import { defineStore } from "pinia";
-import Swal from "sweetalert2";
 import { ref } from "vue";
+import Swal from "sweetalert2";
+import { useAdminAPI } from "@/composables/useAdmin";
 
 export const useClientStore = defineStore("clients", () => {
-  const { getAllClients } = useAdminAPI();
-
-  const showCreateModal = ref(false);
-  const showEditModal = ref(false);
-  const selectedClient = ref(null);
+  const { getAllClients, destroyClient } = useAdminAPI();
   const isLoading = ref(false);
-
   const clients = ref([]);
 
   async function getClients() {
     isLoading.value = true;
     try {
-      clients.value = await getAllClients();
+      const list = await getAllClients();
+      clients.value = list.map((client) => ({
+        ...client,
+        allergies: client.allergies ? JSON.parse(client.allergies) : [],
+      }));
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Abrir modal de edición
-  function openEditModal(client) {
-    selectedClient.value = { ...client };
-    showEditModal.value = true;
-  }
+  async function deleteClient(clientId) {
+    const prev = [...clients.value];
+    const target = clients.value.find((c) => c.id === clientId);
+    if (!target) return;
 
-  // Eliminar cliente
-  function deleteClient(client) {
-    Swal.fire({
-      title: `¿Eliminar a ${client.first_name}?`,
+    const { isConfirmed } = await Swal.fire({
+      title: `¿Eliminar a ${target.first_name}?`,
       text: "Esta acción no se puede deshacer.",
       icon: "warning",
       showCancelButton: true,
@@ -39,34 +36,27 @@ export const useClientStore = defineStore("clients", () => {
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        clients.value = clients.value.filter((c) => c.id !== client.id);
-        Swal.fire(
-          "Eliminado",
-          `${client.first_name} ha sido eliminado.`,
-          "success"
-        );
-      }
     });
-  }
+    if (!isConfirmed) return;
 
-  // Actualizar cliente después de editar
-  function updateClient(updated) {
-    const index = clients.value.findIndex((c) => c.id === updated.id);
-    if (index !== -1) clients.value[index] = updated;
-    showEditModal.value = false;
-    Swal.fire("Actualizado", `Cliente Modificado Correctamente.`, "success");
+    clients.value = clients.value.filter((c) => c.id !== clientId);
+    try {
+      await destroyClient(clientId);
+      Swal.fire(
+        "Eliminado",
+        `${target.first_name} ha sido eliminado.`,
+        "success"
+      );
+    } catch (e) {
+      console.error(e);
+      clients.value = prev; // rollback
+      Swal.fire("Error", "No se pudo eliminar el cliente.", "error");
+    }
   }
 
   return {
     clients,
-    showCreateModal,
-    showEditModal,
-    selectedClient,
-    openEditModal,
     deleteClient,
-    updateClient,
     getClients,
   };
 });
