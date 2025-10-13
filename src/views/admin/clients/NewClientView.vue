@@ -99,7 +99,7 @@ const handleSubmit = async (formData) => {
       <div class="space-y-0.5">
         <h2 class="text-4xl font-semibold">Agregar Nuevo Cliente</h2>
         <p class="text-gray-400">
-          Administra tu base de clientes: agregar, editar o eliminar registros
+          Llena el formulario para agregar un nuevo cliente
         </p>
       </div>
       <RouterLink
@@ -115,7 +115,7 @@ const handleSubmit = async (formData) => {
         <FormKit
           type="form"
           submit-label="Crear cuenta"
-          id="registerForm"
+          id="new-client-form"
           :actions="false"
           incomplete-message="No se pudo enviar, revisa las notificaciones"
           @submit="handleSubmit"

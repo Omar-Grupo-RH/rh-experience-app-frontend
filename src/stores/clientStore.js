@@ -5,9 +5,17 @@ import Swal from "sweetalert2";
 import { useAdminAPI } from "@/composables/useAdmin";
 
 export const useClientStore = defineStore("clients", () => {
-  const { getAllClients, destroyClient, storeClient } = useAdminAPI();
+  const {
+    getAllClients,
+    destroyClient,
+    storeClient,
+    updateClient,
+    getClientById,
+  } = useAdminAPI();
+
   const isLoading = ref(false);
   const clients = ref([]);
+  const client = ref(null);
 
   async function getClients() {
     isLoading.value = true;
@@ -17,6 +25,17 @@ export const useClientStore = defineStore("clients", () => {
         ...client,
         allergies: client.allergies ? JSON.parse(client.allergies) : [],
       }));
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  async function getClient(id) {
+    isLoading.value = true;
+    try {
+      client.value = await getClientById(id);
+
+      return client.value;
     } finally {
       isLoading.value = false;
     }
@@ -86,11 +105,56 @@ export const useClientStore = defineStore("clients", () => {
     }
   }
 
+  const toArray = (a) =>
+    Array.isArray(a)
+      ? a
+      : typeof a === "string"
+      ? JSON.parse(a || "[]") || []
+      : [];
+
+  async function modifyClient(clientData) {
+    isLoading.value = true;
+    try {
+      const updated = await updateClient(clientData); // payload { id, ... }
+      if (!updated) throw new Error("No se recibió un cliente actualizado.");
+
+      // normaliza
+      const normalized = { ...updated, allergies: toArray(updated.allergies) };
+
+      // actualiza listado y el seleccionado si corresponde
+      const idx = clients.value.findIndex((c) => +c.id === +normalized.id);
+      if (idx !== -1) clients.value[idx] = normalized;
+      if (client.value && +client.value.id === +normalized.id)
+        client.value = normalized;
+
+      Swal.fire({
+        title: `${normalized.first_name} actualizado correctamente`,
+        text: "Los datos del cliente han sido actualizados.",
+        icon: "success",
+        timer: 2000,
+      });
+
+      return normalized;
+    } catch (e) {
+      const msgs = e?.response?.data?.errors ?? [
+        e.message ?? "Error desconocido",
+      ];
+      msgs.forEach((msg) =>
+        Swal.fire({ title: msg, icon: "error", timer: 2000 })
+      );
+      throw e;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   return {
     clients,
     deleteClient,
     getClients,
     isLoading,
     addClient,
+    getClient,
+    modifyClient,
   };
 });

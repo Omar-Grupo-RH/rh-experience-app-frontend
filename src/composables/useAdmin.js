@@ -8,8 +8,20 @@ export function useAdminAPI() {
     return data;
   }
 
+  const getClientById = async (id) => {
+    const {
+      data: { data },
+    } = await AdminAPI.getClientById(id);
+    return data ?? null;
+  };
+
   const storeClient = async (payload) => {
     const { data } = await AdminAPI.addClient(payload);
+    return data?.data ?? null;
+  };
+
+  const updateClient = async (payload) => {
+    const { data } = await AdminAPI.updateClient(payload);
     return data?.data ?? null;
   };
 
@@ -22,5 +34,7 @@ export function useAdminAPI() {
     getAllClients,
     storeClient,
     destroyClient,
+    getClientById,
+    updateClient,
   };
 }

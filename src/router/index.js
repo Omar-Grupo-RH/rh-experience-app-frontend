@@ -57,6 +57,12 @@ const router = createRouter({
           component: () => import("@/views/admin/clients/NewClientView.vue"),
         },
         {
+          path: "editar-cliente/:id",
+          name: "update-client",
+          meta: { title: "Clientes - Editar", adminOnly: true },
+          component: () => import("@/views/admin/clients/EditClientView.vue"),
+        },
+        {
           path: "viajes",
           name: "tours",
           meta: { title: "Viajes", adminOnly: true },

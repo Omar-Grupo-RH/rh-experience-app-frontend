@@ -65,12 +65,12 @@ onMounted(() => {
 
             <td class="p-3">{{ formatDateToSpanish(client.created_at) }}</td>
             <td class="p-3">
-              <button
+              <RouterLink
                 class="text-experience-blue hover:underline cursor-pointer"
-                @click="store.openEditModal(client)"
+                :to="{ name: 'update-client', params: { id: client.id } }"
               >
                 Editar
-              </button>
+              </RouterLink>
               |
               <button
                 class="text-red-500 hover:underline cursor-pointer"
