@@ -35,31 +35,37 @@ const router = createRouter({
     {
       path: "/admin",
       name: "admin",
-      meta: { adminOnly: true }, // 👈
+      meta: { adminOnly: true },
       component: () => import("@/views/admin/AdminLayout.vue"),
       children: [
         {
           path: "panel",
           name: "dashboard",
-          meta: { title: "Dashboard", adminOnly: true }, // 👈
+          meta: { title: "Dashboard", adminOnly: true },
           component: () => import("@/views/admin/DashboardView.vue"),
         },
         {
           path: "clientes",
           name: "clients",
-          meta: { title: "Clientes", adminOnly: true }, // 👈
-          component: () => import("@/views/admin/ClientsView.vue"),
+          meta: { title: "Clientes", adminOnly: true },
+          component: () => import("@/views/admin/clients/ClientsView.vue"),
+        },
+        {
+          path: "agregar-cliente",
+          name: "new-client",
+          meta: { title: "Clientes - Agregar", adminOnly: true },
+          component: () => import("@/views/admin/clients/NewClientView.vue"),
         },
         {
           path: "viajes",
           name: "tours",
-          meta: { title: "Viajes", adminOnly: true }, // 👈
+          meta: { title: "Viajes", adminOnly: true },
           component: () => import("@/views/admin/ToursView.vue"),
         },
         {
           path: "cupones",
           name: "coupons",
-          meta: { title: "Cupones", adminOnly: true }, // 👈
+          meta: { title: "Cupones", adminOnly: true },
           component: () => import("@/views/admin/CouponsView.vue"),
         },
         {

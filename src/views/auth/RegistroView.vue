@@ -120,8 +120,9 @@ const handleSubmit = async (formData) => {
               length: 'La contraseña debe contener al menos 8 caracteres',
             }"
           />
-
-          <FormKit type="submit">Crear Cuenta</FormKit>
+          <FormKit type="submit" :disabled="clientStore.isLoading">
+            {{ clientStore.isLoading ? "Guardando..." : "Guardar Cliente" }}
+          </FormKit>
         </FormKit>
 
         <div class="mt-5">

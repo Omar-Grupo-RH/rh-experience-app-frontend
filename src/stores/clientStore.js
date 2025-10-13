@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 import { useAdminAPI } from "@/composables/useAdmin";
 
 export const useClientStore = defineStore("clients", () => {
-  const { getAllClients, destroyClient } = useAdminAPI();
+  const { getAllClients, destroyClient, storeClient } = useAdminAPI();
   const isLoading = ref(false);
   const clients = ref([]);
 
@@ -54,9 +54,43 @@ export const useClientStore = defineStore("clients", () => {
     }
   }
 
+  async function addClient(clientData) {
+    isLoading.value = true;
+    try {
+      const newClient = await storeClient(clientData);
+      if (newClient) {
+        clients.value.push({
+          ...newClient,
+          allergies: newClient.allergies ? JSON.parse(newClient.allergies) : [],
+        });
+        Swal.fire({
+          title: `${newClient.first_name} agregado correctamente`,
+          text: "El cliente ha sido registrado.",
+          icon: "success",
+          timer: 2000,
+        });
+      } else {
+        throw new Error("No se recibió un nuevo cliente.");
+      }
+    } catch (e) {
+      // protege por si no viene errors
+      const msgs = e?.response?.data?.errors ?? [
+        e.message ?? "Error desconocido",
+      ];
+      msgs.forEach((msg) =>
+        Swal.fire({ title: msg, icon: "error", timer: 2000 })
+      );
+      throw e; // re-lanza si quieres manejar arriba
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   return {
     clients,
     deleteClient,
     getClients,
+    isLoading,
+    addClient,
   };
 });

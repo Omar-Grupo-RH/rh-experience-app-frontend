@@ -1,6 +1,5 @@
 <script setup>
 import ClientsTable from "@/components/admin/Clients/ClientsTable.vue";
-import { RouterLink } from "vue-router";
 </script>
 
 <template>

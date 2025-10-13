@@ -2,6 +2,7 @@
 import { useClientStore } from "@/stores/clientStore";
 import { formatDateToSpanish } from "@/utils/formatDate";
 import { onMounted } from "vue";
+import { RouterLink } from "vue-router";
 
 const store = useClientStore();
 
@@ -14,12 +15,12 @@ onMounted(() => {
   <div>
     <div class="space-y-5" v-if="store.clients.length > 0">
       <div class="flex justify-end">
-        <button
-          
+        <RouterLink
+          :to="{ name: 'new-client' }"
           class="bg-experience-pink text-white px-4 py-2 rounded cursor-pointer shadow"
         >
           + Nuevo cliente
-        </button>
+        </RouterLink>
       </div>
 
       <table class="w-full">
@@ -86,11 +87,12 @@ onMounted(() => {
     <div v-else>
       <p class="text-center text-gray-500">No hay clientes registrados.</p>
       <div class="flex justify-end mt-4">
-        <button
+        <RouterLink
+          :to="{ name: 'new-client' }"
           class="bg-experience-pink text-white px-4 py-2 rounded cursor-pointer shadow"
         >
           + Nuevo cliente
-        </button>
+        </RouterLink>
       </div>
     </div>
   </div>
