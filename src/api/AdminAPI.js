@@ -7,8 +7,8 @@ export default {
   getClientById(id) {
     return api.get("/client", { params: { id } });
   },
-  addClient(clientData) {
-    return api.post("/client/create", clientData);
+  addClient(payload) {
+    return api.post("/client/create", payload);
   },
 
   updateClient(payload) {
@@ -24,8 +24,11 @@ export default {
   getTripById(id) {
     return api.get("/trip", { params: { id } });
   },
-  addTour(tourData) {
-    return api.post("/trip/create", tourData);
+  addTour(payload) {
+    return api.post("/trip/create", payload);
+  },
+  updateTrip(payload) {
+    return api.post("/trip/update", payload);
   },
   deleteTrip(id) {
     return api.post("/trip/destroy", { id });

@@ -5,46 +5,9 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { ref, onMounted, watch } from "vue";
 import { useCalendarStore } from "@/stores/calendarStore";
-import Swal from "sweetalert2";
-import { formatDateToSpanish } from "@/utils/formatDate";
-import { useCalendarAPI } from "@/composables/useCalendar";
 
 const store = useCalendarStore();
 const calendarRef = ref(null);
-const { getTrip } = useCalendarAPI();
-
-function isPast(isoDate) {
-  const today = new Date().toISOString().split("T")[0];
-  return isoDate < today;
-}
-
-async function handleEventClick(info) {
-  const { id } = info.event;
-  const trip = await getTrip(id);
-  const { title, total_seats, trip_date } = trip;
-  const soloCerrar = isPast(trip_date);
-
-  const res = await Swal.fire({
-    title: title || "Evento",
-    html: `
-      <div style="text-align:center">
-        <p><strong>Fecha:</strong> ${formatDateToSpanish(trip_date)}</p>
-        <p><strong>Lugares Disponibles:</strong> ${total_seats}</p>
-      </div>
-    `,
-    icon: "info",
-    showCancelButton: true,
-    cancelButtonText: "Cerrar",
-    confirmButtonText: soloCerrar ? "OK" : "Eliminar",
-    confirmButtonColor: soloCerrar ? "#3085d6" : "#d94a93",
-    focusCancel: true,
-  });
-
-  if (!res.isConfirmed || soloCerrar) return;
-
-  //Eliminar
-  await store.removeEvent(id);
-}
 
 const calendarOptions = ref({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
@@ -61,8 +24,8 @@ const calendarOptions = ref({
   locale: "es",
   events: [],
   dateClick: store.addEvent,
-  eventClick: handleEventClick,
-  // eventDrop: handleEventDrop,
+  eventClick: store.handleEventClick,
+  eventDrop: store.handleEventDrop,   
   eventDidMount(info) {
     const today = new Date().toISOString().split("T")[0];
     if (info.event.startStr < today) {
@@ -80,11 +43,10 @@ function syncCalendar() {
 }
 
 onMounted(async () => {
-  await store.loadEvents(); // ← traer de la API
+  await store.loadEvents();
   syncCalendar();
 });
 
-// cada vez que cambie el array de eventos, repintamos
 watch(
   () => store.events,
   () => syncCalendar(),

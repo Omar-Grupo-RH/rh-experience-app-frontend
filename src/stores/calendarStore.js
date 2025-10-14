@@ -3,24 +3,31 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import Swal from "sweetalert2";
 import { formatDateToSpanish } from "@/utils/formatDate";
+
 export const useCalendarStore = defineStore("calendar", () => {
-  const { createEvent, listEvents, destroyEvent } = useCalendarAPI();
+  const { createEvent, listEvents, destroyEvent, getTrip, updateEvent } =
+    useCalendarAPI();
 
   const events = ref([]);
   const selectedDate = ref(null);
   const isLoading = ref(false);
 
+  // Mover función de utilidad al store
+  function isPast(isoDate) {
+    const today = new Date().toISOString().split("T")[0];
+    return isoDate < today;
+  }
+
   async function loadEvents() {
     isLoading.value = true;
     try {
       const list = await listEvents();
-      // list: [{ id, title, trip_date, total_seat }]
       events.value = list.map((t) => ({
         id: String(t.id),
         title: t.title,
         start: t.trip_date,
         allDay: true,
-        extendedProps: { total_seat: t.total_seat },
+        total_seats: t.total_seats,
       }));
     } catch (e) {
       Swal.fire("Error", "No se pudieron cargar los eventos", "error");
@@ -66,7 +73,7 @@ export const useCalendarStore = defineStore("calendar", () => {
         title: created.title,
         start: created.trip_date,
         allDay: true,
-        extendedProps: { total_seat: created.total_seat },
+        total_seat: created.total_seat,
       });
 
       Swal.fire({
@@ -82,17 +89,11 @@ export const useCalendarStore = defineStore("calendar", () => {
     }
   }
 
-  function updateEvent(id, newData) {
-    const index = events.value.findIndex((e) => e.id === id);
-    if (index !== -1)
-      events.value[index] = { ...events.value[index], ...newData };
-  }
-
   async function removeEvent(id) {
-    
     const prev = [...events.value];
     const target = events.value.find((trip) => trip.id === id);
     if (!target) return;
+
     const { isConfirmed } = await Swal.fire({
       title: `¿Eliminar a ${target.title}?`,
       text: "Esta acción no se puede deshacer.",
@@ -103,6 +104,7 @@ export const useCalendarStore = defineStore("calendar", () => {
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
     });
+
     if (!isConfirmed) return;
 
     events.value = events.value.filter((e) => e.id !== id);
@@ -117,12 +119,89 @@ export const useCalendarStore = defineStore("calendar", () => {
     }
   }
 
+  // NUEVO: Mover handleEventDrop al store
+  async function handleEventDrop(info) {
+    const today = new Date().toISOString().split("T")[0];
+    const newDate = info.event.startStr;
+
+    if (newDate < today) {
+      info.revert();
+      Swal.fire(
+        "No puedes reagendar el tour a una fecha pasada.",
+        "",
+        "warning"
+      );
+      return;
+    }
+
+    const { id } = info.event;
+    try {
+      const trip = await getTrip(id);
+      const updateTrip = { ...trip };
+      updateTrip.trip_date = info.event.startStr;
+
+      const resp = await updateEvent(updateTrip);
+      const updated = resp.data;
+
+      // Actualizar el evento en el store
+      const eventIndex = events.value.findIndex((event) => event.id === id);
+      if (eventIndex !== -1) {
+        events.value[eventIndex].start = updated.trip_date;
+      }
+
+      Swal.fire({
+        title: `Tour Reagendado`,
+        text: `RH EXPERIENCE agendado para el ${formatDateToSpanish(
+          updateTrip.trip_date
+        )}`,
+        icon: "success",
+        timer: 2000,
+      });
+    } catch (error) {
+      console.log(error);
+      info.revert();
+      const msg = error?.response?.data?.message || "Error inesperado";
+      Swal.fire("Error", msg, "error");
+    }
+  }
+
+  // NUEVO: También puedes mover handleEventClick si quieres
+  async function handleEventClick(info) {
+    const { id } = info.event;
+    const trip = await getTrip(id);
+    const { title, total_seats, trip_date } = trip;
+    const soloCerrar = isPast(trip_date);
+
+    const res = await Swal.fire({
+      title: title || "Evento",
+      html: `
+        <div style="text-align:center">
+          <p><strong>Fecha:</strong> ${formatDateToSpanish(trip_date)}</p>
+          <p><strong>Lugares Disponibles:</strong> ${total_seats}</p>
+        </div>
+      `,
+      icon: "info",
+      showCancelButton: true,
+      cancelButtonText: "Cerrar",
+      confirmButtonText: soloCerrar ? "OK" : "Eliminar",
+      confirmButtonColor: soloCerrar ? "#3085d6" : "#d94a93",
+      focusCancel: true,
+    });
+
+    if (!res.isConfirmed || soloCerrar) return;
+
+    await removeEvent(id);
+  }
+
   return {
     events,
     selectedDate,
+    isLoading,
     addEvent,
-    updateEvent,
     removeEvent,
     loadEvents,
+    handleEventDrop, // ← Exportar la nueva función
+    handleEventClick, // ← Opcional: también mover el click
+    isPast, // ← Exportar si se necesita en el componente
   };
 });

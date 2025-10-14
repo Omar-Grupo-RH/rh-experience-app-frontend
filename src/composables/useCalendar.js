@@ -18,9 +18,9 @@ export function useCalendarAPI() {
     const { data } = await AdminAPI.addTour(payload);
     return data ?? null;
   };
-  const updateEvent = async (id, payload) => {
-    const { data } = await AdminAPI.update(id, payload);
-    return data?.data ?? null;
+  const updateEvent = async (payload) => {
+    const { data } = await AdminAPI.updateTrip(payload);
+    return data ?? null;
   };
   const destroyEvent = async (id) => {
     const { data } = await AdminAPI.deleteTrip(id);
