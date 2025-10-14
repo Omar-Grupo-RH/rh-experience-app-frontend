@@ -4,10 +4,30 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import { formatDateToSpanish } from "@/utils/formatDate";
 export const useCalendarStore = defineStore("calendar", () => {
-  const { createEvent } = useCalendarAPI();
+  const { createEvent, listEvents } = useCalendarAPI();
 
   const events = ref([]);
   const selectedDate = ref(null);
+  const isLoading = ref(false);
+
+  async function loadEvents() {
+    isLoading.value = true;
+    try {
+      const list = await listEvents();
+      // list: [{ id, title, trip_date, total_seat }]
+      events.value = list.map((t) => ({
+        id: String(t.id),
+        title: t.title,
+        start: t.trip_date,
+        allDay: true,
+        extendedProps: { total_seat: t.total_seat },
+      }));
+    } catch (e) {
+      Swal.fire("Error", "No se pudieron cargar los eventos", "error");
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   async function addEvent(evt) {
     const { dateStr } = evt;
@@ -78,5 +98,6 @@ export const useCalendarStore = defineStore("calendar", () => {
     addEvent,
     updateEvent,
     removeEvent,
+    loadEvents,
   };
 });
