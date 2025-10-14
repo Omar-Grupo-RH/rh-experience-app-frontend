@@ -42,27 +42,8 @@ async function handleEventClick(info) {
 
   if (!res.isConfirmed || soloCerrar) return;
 
-  // Confirmar eliminación
-  const res2 = await Swal.fire({
-    title: "¿Eliminar tour?",
-    text: `Se eliminará el evento del ${formatDateToSpanish(trip_date)}.`,
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Sí, eliminar",
-    cancelButtonText: "Cancelar",
-    confirmButtonColor: "#d94a93",
-  });
-  if (!res2.isConfirmed) return;
-
-  // 👉 si aún no tienes backend, usa:
-  store.removeEvent(id);
-
-  if (ok) {
-    info.event.remove(); // quita de FullCalendar (además del store)
-    Swal.fire("Eliminado", "El evento fue eliminado.", "success");
-  } else {
-    Swal.fire("Error", "No se pudo eliminar el evento.", "error");
-  }
+  //Eliminar
+  await store.removeEvent(id);
 }
 
 const calendarOptions = ref({

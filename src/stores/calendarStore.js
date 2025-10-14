@@ -4,7 +4,7 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import { formatDateToSpanish } from "@/utils/formatDate";
 export const useCalendarStore = defineStore("calendar", () => {
-  const { createEvent, listEvents } = useCalendarAPI();
+  const { createEvent, listEvents, destroyEvent } = useCalendarAPI();
 
   const events = ref([]);
   const selectedDate = ref(null);
@@ -88,8 +88,33 @@ export const useCalendarStore = defineStore("calendar", () => {
       events.value[index] = { ...events.value[index], ...newData };
   }
 
-  function removeEvent(id) {
+  async function removeEvent(id) {
+    
+    const prev = [...events.value];
+    const target = events.value.find((trip) => trip.id === id);
+    if (!target) return;
+    const { isConfirmed } = await Swal.fire({
+      title: `¿Eliminar a ${target.title}?`,
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+    if (!isConfirmed) return;
+
     events.value = events.value.filter((e) => e.id !== id);
+
+    try {
+      await destroyEvent(id);
+      Swal.fire("Eliminado", `El Tour ha sido eliminado.`, "success");
+    } catch (e) {
+      console.error(e);
+      events.value = prev; // rollback
+      Swal.fire("Error", "No se pudo eliminar el tour.", "error");
+    }
   }
 
   return {

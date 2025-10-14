@@ -22,10 +22,9 @@ export function useCalendarAPI() {
     const { data } = await AdminAPI.update(id, payload);
     return data?.data ?? null;
   };
-  const removeEvent = async (id) => {
-    const { data } = await AdminAPI.remove(id);
-
-    return data?.success ?? false;
+  const destroyEvent = async (id) => {
+    const { data } = await AdminAPI.deleteTrip(id);
+    return data ?? false;
   };
-  return { listEvents, createEvent, updateEvent, removeEvent, getTrip };
+  return { listEvents, createEvent, updateEvent, destroyEvent, getTrip };
 }

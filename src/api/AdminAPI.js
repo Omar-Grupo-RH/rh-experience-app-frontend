@@ -14,10 +14,10 @@ export default {
   updateClient(payload) {
     return api.post("/client/update", payload);
   },
-
   deleteClient(id) {
     return api.post("/client/destroy", id);
   },
+
   allTrips() {
     return api.get("/trips");
   },
@@ -26,5 +26,8 @@ export default {
   },
   addTour(tourData) {
     return api.post("/trip/create", tourData);
+  },
+  deleteTrip(id) {
+    return api.post("/trip/destroy", { id });
   },
 };
