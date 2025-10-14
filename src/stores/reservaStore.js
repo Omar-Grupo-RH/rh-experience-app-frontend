@@ -1,7 +1,10 @@
+import { useReservation } from "@/composables/useReservation";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
 export const useReservaStore = defineStore("reserva", () => {
+  const { listEvents } = useReservation();
+
   const step = ref(1);
   const selectedSeats = ref([]);
   const date = ref(null);
@@ -11,8 +14,9 @@ export const useReservaStore = defineStore("reserva", () => {
     email: "",
     phone: "",
   });
+  const events = ref([]);
 
-  const pricePerSeat = ref(100);
+  const pricePerSeat = ref(2100);
 
   function next() {
     if (step.value < 3) step.value++;
@@ -42,6 +46,21 @@ export const useReservaStore = defineStore("reserva", () => {
     return selectedSeats.value.length * pricePerSeat.value;
   }
 
+  async function loadEvents() {
+    try {
+      const list = await listEvents();
+      events.value = list.map((t) => ({
+        id: String(t.id),
+        title: t.title,
+        start: t.trip_date,
+        allDay: true,
+        total_seats: t.total_seats,
+      }));
+    } catch (error) {
+      Swal.fire("Error", "No se pudieron cargar los eventos", "error");
+    }
+  }
+
   return {
     step,
     selectedSeats,
@@ -52,7 +71,9 @@ export const useReservaStore = defineStore("reserva", () => {
     prev,
     reset,
     setDate,
+    loadEvents,
     toggleSeat,
     total,
+    events,
   };
 });

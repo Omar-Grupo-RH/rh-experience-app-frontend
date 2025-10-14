@@ -4,20 +4,15 @@ import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, computed } from "vue";
 import esLocale from "@fullcalendar/core/locales/es";
+import Swal from "sweetalert2";
 
 const store = useReservaStore();
 const selectedDate = ref(store.date);
+const calendarRef = ref(null);
+const events = computed(() => store.events);
 
-// 🔹 Tus eventos
-const events = ref([
-  { title: "Tour disponible", start: "2025-10-10" },
-  { title: "Tour disponible", start: "2025-10-17" },
-  { title: "Tour disponible", start: "2025-10-24" },
-]);
-
-// Configuración del calendario
 const calendarOptions = ref({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   initialView: "dayGridMonth",
@@ -34,13 +29,44 @@ const calendarOptions = ref({
   dateClick(info) {
     const clickedDate = info.dateStr;
     const hasEvent = events.value.some((event) => event.start === clickedDate);
-    if (!hasEvent) return;
+    if (!hasEvent) {
+      Swal.fire({
+        title: `Opps!`,
+        text: "Solamente puedes seleccionar los dias donde hay RH EXPERIENCE",
+        icon: "warning",
+        timer: 3000,
+      });
+      return;
+    }
 
-    selectDay(info.dayEl, clickedDate);
+    // info.dayEl ya viene bien aquí, pero podemos normalizar:
+    const dayEl =
+      info.dayEl || info.jsEvent?.target?.closest?.(".fc-daygrid-day");
+    if (dayEl) selectDay(dayEl, clickedDate);
+  },
+
+  eventClick(info) {
+    // info.jsEvent.target es el elemento real que recibió el click
+    const clickTarget = info.jsEvent?.target || info.el || null;
+
+    // Busca la celda de día contenedora (funciona si el usuario clickeó el título, hora, etc.)
+    const dayEl = clickTarget ? clickTarget.closest(".fc-daygrid-day") : null;
+
+    // Fallback: intenta usar info.el (dependiendo de la versión de FullCalendar)
+    const usedDayEl =
+      dayEl ||
+      (info.el && info.el.closest ? info.el.closest(".fc-daygrid-day") : null);
+
+    if (usedDayEl) {
+      selectDay(usedDayEl, info.event.startStr);
+    } else {
+      // si no encontramos dayEl, aún podemos seleccionar por la fecha
+      selectedDate.value = info.event.startStr;
+      store.setDate(info.event.startStr);
+    }
   },
 });
 
-// 🔹 Función reutilizable para marcar y guardar fecha
 function selectDay(dayEl, dateStr) {
   document.querySelectorAll(".fc-daygrid-day").forEach((day) => {
     day.classList.remove("fc-day-selected");
@@ -50,35 +76,49 @@ function selectDay(dayEl, dateStr) {
   store.setDate(dateStr);
 }
 
-// 🔹 Detectar clics en eventos también
-onMounted(() => {
-  // Esperamos un tick para que el calendario esté montado
+function syncCalendar() {
+  const api = calendarRef.value?.getApi?.();
+  if (!api) return;
+
+  api.removeAllEvents();
+  if (events.value.length > 0) {
+    events.value.forEach((ev) => api.addEvent(ev));
+  }
+}
+
+onMounted(async () => {
+  await store.loadEvents();
+
   setTimeout(() => {
-    document.addEventListener("click", (e) => {
-      const eventEl = e.target.closest(".fc-event");
-      if (eventEl) {
-        const cell = eventEl.closest(".fc-daygrid-day");
-        const dateStr = cell?.dataset?.date;
-        const hasEvent = events.value.some((ev) => ev.start === dateStr);
-        if (hasEvent && cell) {
-          selectDay(cell, dateStr);
-        }
-      }
-    });
-  }, 500);
+    syncCalendar();
+  }, 100);
 });
+
+watch(
+  events,
+  (newEvents) => {
+    if (newEvents.length > 0) {
+      setTimeout(() => {
+        syncCalendar();
+      }, 100);
+    }
+  },
+  { deep: true }
+);
 
 watch(
   () => store.date,
   (newDate) => {
-    if (newDate !== selectedDate.value) selectedDate.value = newDate;
+    if (newDate !== selectedDate.value) {
+      selectedDate.value = newDate;
+    }
   }
 );
 </script>
 
 <template>
   <div>
-    <FullCalendar :options="calendarOptions" />
+    <FullCalendar ref="calendarRef" :options="calendarOptions" />
   </div>
 </template>
 
@@ -92,7 +132,6 @@ watch(
   width: 100% !important;
 }
 
-/* 🔹 Mejora visual opcional: marcar los días con evento */
 .fc-day-has-event {
   cursor: pointer !important;
 }

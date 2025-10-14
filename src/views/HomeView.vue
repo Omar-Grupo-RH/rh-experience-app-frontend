@@ -2,7 +2,7 @@
 import Menu from "@/components/Navigation/Menu.vue";
 import { ref, computed } from "vue";
 import { reset } from "@formkit/vue";
-import TourAPI from "@/api/TourAPI";
+import TourAPI from "@/api/ReservationAPI";
 import { useReservaStore } from "@/stores/reservaStore";
 import BusSeatSelector from "@/components/Reservation/BusSeatSelector.vue";
 import Calendar from "@/components/Reservation/Calendar.vue";
@@ -113,13 +113,13 @@ async function startCheckout() {
               v-if="store.step === 1"
               class="bg-white p-4 rounded-lg w-full shadow-sm space-y-4"
             >
-              <div class="flex justify-between lg:gap-10">
-                <div class="w-2/3">
+              <div class="flex justify-between lg:gap-5">
+                <div class="lg:w-[70%]">
                   <p class="xl:text-lg font-medium mb-5">Selecciona tu fecha</p>
                   <Calendar />
                 </div>
 
-                <div v-if="store.date" class="w-1/3">
+                <div v-if="store.date" class="lg:w-[25%]">
                   <p class="xl:text-lg font-medium mb-5">
                     Selecciona tus asientos
                   </p>
@@ -134,13 +134,13 @@ async function startCheckout() {
                         <span v-else class="text-gray-400">— ninguno —</span>
                       </p>
                       <p class="text-xs text-gray-500">
-                        Precio por asiento: <strong>100 MXN</strong>
+                        Precio por asiento: <strong>2,100 MXN</strong>
                       </p>
                     </div>
                     <div class="text-right">
-                      <p class="text-lg font-semibold">{{ totalFormatted }}</p>
+                      <p class="text-lg font-semibold">{{ totalFormatted }} MXN</p>
                       <p class="text-xs text-gray-500">
-                        {{ store.selectedSeats.length }} × 100 MXN
+                        {{ store.selectedSeats.length }} × 2,100 MXN
                       </p>
                     </div>
                   </div>
