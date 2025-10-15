@@ -1,6 +1,10 @@
 <script setup>
+import { useCouponStore } from "@/stores/couponStore";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+
+const couponStore = useCouponStore();
+const router = useRouter();
 
 const formData = ref({
   code: "",
@@ -13,12 +17,17 @@ const formData = ref({
 });
 
 const handleSubmit = async (formData) => {
-  const submitData = {
+  const payload = {
     ...formData,
     is_active: formData.is_active ? 1 : 0,
   };
 
-  console.log("Datos a enviar:", submitData);
+  try {
+    await couponStore.createCoupon(payload);
+    router.push({ name: "coupons" });
+  } catch (error) {
+    console.log(error);
+  }
 };
 </script>
 
