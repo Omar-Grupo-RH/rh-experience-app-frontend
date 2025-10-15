@@ -9,6 +9,10 @@ const config = {
         message: "text-red-500 text-sm",
         input: "border-none bg-gray-50 rounded-lg w-full",
       },
+      checkbox: {
+        input: "$reset rounded-sm outline-none border-experience-blue size-5",
+        wrapper: '$reset flex items-center gap-2'
+      },
       submit: {
         message: "$reset text-red-500 text-sm font-bold",
         outer: "$reset mb-1",

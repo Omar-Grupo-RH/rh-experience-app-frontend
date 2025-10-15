@@ -19,7 +19,6 @@ export function useRegisterClient() {
         message: data.message || "Cliente registrado correctamente",
         type: "success",
       });
-
       reset(formId);
 
       return data.data;

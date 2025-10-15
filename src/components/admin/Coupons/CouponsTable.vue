@@ -1,47 +1,35 @@
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useCouponStore } from "@/stores/couponStore";
-import FormCoupon from "@/components/admin/Coupons/FormCoupon.vue";
 import { formatDateToSpanish } from "@/utils/formatDate";
 const store = useCouponStore();
 
-const showForm = ref(false);
-const selectedCoupon = ref(null);
-const mode = ref("create");
-
-function openCreate() {
-  mode.value = "create";
-  selectedCoupon.value = null;
-  showForm.value = true;
-}
-
-function openEdit(coupon) {
-  mode.value = "edit";
-  selectedCoupon.value = coupon;
-  showForm.value = true;
-}
+onMounted(async () => {
+  await store.getCoupons();
+});
 </script>
 
 <template>
   <div>
-    <div class="space-y-5" v-if="store.coupons.length > 0">
+    <div class="space-y-5" v-if="store.hasCoupons">
       <div class="flex justify-end">
-        <button
-          @click="openCreate"
-          class="bg-experience-pink text-white px-4 py-2 rounded shadow"
+        <RouterLink
+          :to="{ name: 'new-coupon' }"
+          class="bg-experience-pink text-white px-4 py-2 rounded cursor-pointer shadow"
         >
-          + Nuevo cupón
-        </button>
+          + Nuevo cupon
+        </RouterLink>
       </div>
 
       <table class="w-full">
         <thead>
           <tr class="border-b border-gray-200">
             <th class="text-center p-3 font-normal">Código</th>
-            <th class="text-center p-3 font-normal">Descuento</th>
+            <th class="text-center p-3 font-normal">Descripcion</th>
+            <th class="text-center p-3 font-normal">Descuento(%)</th>
             <th class="text-center p-3 font-normal">Uso</th>
             <th class="text-center p-3 font-normal">Expira</th>
-            <th class="text-center p-3 font-normal">Activo</th>
+            <th class="text-center p-3 font-normal">Estado</th>
             <th class="text-center p-3 font-normal">Acciones</th>
           </tr>
         </thead>
@@ -51,31 +39,29 @@ function openEdit(coupon) {
             :key="coupon.id"
             class="border-b border-gray-200 hover:bg-gray-50 text-center"
           >
-            <td class="p-3 font-medium">{{ coupon.code }}</td>
-            <td class="p-3">{{ coupon.discount }}%</td>
-            <td class="p-3">{{ coupon.usageLimit }}</td>
-            <td class="p-3">
-              {{ formatDateToSpanish(coupon.expirationDate) }}
+            <td class="p-3 text-sm font-medium">{{ coupon.code }}</td>
+            <td class="p-3 text-sm font-medium">{{ coupon.description }}</td>
+            <td class="p-3 text-sm">{{ coupon.discount }}%</td>
+            <td class="p-3 text-sm">{{ coupon.usage_limit }}</td>
+            <td class="p-3 text-sm">
+              {{ formatDateToSpanish(coupon.expiry_date) }}
             </td>
-            <td class="p-3">
-              <span
-                :class="coupon.isActive ? 'text-green-600' : 'text-red-500'"
-              >
-                {{ coupon.isActive ? "Sí" : "No" }}
-              </span>
-            </td>
-            <td class="p-3">
+            <td class="p-3 text-sm">
               <button
-                class="text-blue-600 hover:underline mr-2"
-                @click="openEdit(coupon)"
+                class="inline-flex rounded-full px-2 text-xs font-semibold leading-5 cursor-pointer"
+                :class="[
+                  store.statusCoupon(coupon.id)
+                    ? 'bg-green-100 text-green-500'
+                    : 'bg-red-100 text-red-500',
+                ]"
               >
-                Editar
+                {{ store.statusCoupon(coupon.id) ? "Activo" : "Inactivo" }}
               </button>
+            </td>
+            <td class="p-3 text-sm">
+              <button class="text-blue-600 hover:underline mr-2">Editar</button>
               |
-              <button
-                class="text-red-500 hover:underline cursor-pointer"
-                @click="store.deleteCoupon(coupon)"
-              >
+              <button class="text-red-500 hover:underline cursor-pointer">
                 Eliminar
               </button>
             </td>
@@ -87,21 +73,13 @@ function openEdit(coupon) {
     <div v-else>
       <p class="text-center text-gray-500">No hay cupones registrados.</p>
       <div class="flex justify-end mt-4">
-        <button
-          @click="openCreate"
+        <RouterLink
+          :to="{ name: 'new-coupon' }"
           class="bg-experience-pink text-white px-4 py-2 rounded cursor-pointer shadow"
         >
-          + Nuevo cliente
-        </button>
+          + Nuevo cupon
+        </RouterLink>
       </div>
     </div>
-
-    <!-- Modal con formulario -->
-    <FormCoupon
-      v-if="showForm"
-      :mode="mode"
-      :coupon="selectedCoupon"
-      @close="showForm = false"
-    />
   </div>
 </template>

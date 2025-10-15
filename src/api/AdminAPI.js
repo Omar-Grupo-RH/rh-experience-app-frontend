@@ -33,4 +33,5 @@ export default {
   deleteTrip(id) {
     return api.post("/trip/destroy", { id });
   },
+  
 };

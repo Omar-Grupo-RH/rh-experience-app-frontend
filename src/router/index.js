@@ -72,7 +72,13 @@ const router = createRouter({
           path: "cupones",
           name: "coupons",
           meta: { title: "Cupones", adminOnly: true },
-          component: () => import("@/views/admin/CouponsView.vue"),
+          component: () => import("@/views/admin/coupons/CouponsView.vue"),
+        },
+        {
+          path: "agregar-cupon",
+          name: "new-coupon",
+          meta: { title: "Cupones - Agregar", adminOnly: true },
+          component: () => import("@/views/admin/coupons/NewCouponView.vue"),
         },
         {
           path: "ingresos",

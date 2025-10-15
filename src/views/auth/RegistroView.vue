@@ -23,7 +23,7 @@ const handleSubmit = async (formData) => {
 
     // 3) Crear el objeto perfil y pasar a login()
     const profile = { first_name, email };
-    await login(token, profile); // ← esto te redirige a home
+    await login(token, profile);
   } catch (error) {
     const { response } = error;
     response.data.errors.forEach((msg) => {
@@ -120,8 +120,8 @@ const handleSubmit = async (formData) => {
               length: 'La contraseña debe contener al menos 8 caracteres',
             }"
           />
-          <FormKit type="submit" :disabled="clientStore.isLoading">
-            {{ clientStore.isLoading ? "Guardando..." : "Guardar Cliente" }}
+          <FormKit type="submit">
+            Crear Cuenta
           </FormKit>
         </FormKit>
 
