@@ -11,9 +11,14 @@ export function useCoupon() {
     const { data } = await CouponAPI.addCoupon(payload);
     return data ?? [];
   };
+  const destroyCoupon = async (payload) => {
+    const { data } = await CouponAPI.deleteCoupon(payload);
+    return data ?? [];
+  };
 
   return {
     listCoupons,
     storeCoupon,
+    destroyCoupon,
   };
 }

@@ -62,7 +62,10 @@ onMounted(async () => {
             <td class="p-3 text-sm">
               <button class="text-blue-600 hover:underline mr-2">Editar</button>
               |
-              <button class="text-red-500 hover:underline cursor-pointer">
+              <button
+                class="text-red-500 hover:underline cursor-pointer"
+                @click="store.deleteCoupon(coupon.id)"
+              >
                 Eliminar
               </button>
             </td>

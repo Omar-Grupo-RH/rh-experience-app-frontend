@@ -58,7 +58,6 @@ export const useClientStore = defineStore("clients", () => {
     });
     if (!isConfirmed) return;
 
-    clients.value = clients.value.filter((c) => c.id !== clientId);
     try {
       await destroyClient(clientId);
       Swal.fire(
@@ -66,6 +65,7 @@ export const useClientStore = defineStore("clients", () => {
         `${target.first_name} ha sido eliminado.`,
         "success"
       );
+      clients.value = clients.value.filter((c) => c.id !== clientId);
     } catch (e) {
       console.error(e);
       clients.value = prev; // rollback

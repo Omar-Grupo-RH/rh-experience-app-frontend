@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import Swal from "sweetalert2";
 import { useCoupon } from "@/composables/useCoupon";
 export const useCouponStore = defineStore("coupons", () => {
-  const { listCoupons, storeCoupon } = useCoupon();
+  const { listCoupons, storeCoupon, destroyCoupon } = useCoupon();
 
   const coupons = ref([]);
 
@@ -50,6 +50,40 @@ export const useCouponStore = defineStore("coupons", () => {
     }
   }
 
+  async function deleteCoupon(couponId) {
+    const prev = [...coupons.value];
+    const couponToDelete = coupons.value.find((c) => c.id === couponId);
+    if (!couponToDelete) return;
+    const { isConfirmed } = await Swal.fire({
+      title: `¿Eliminar a ${couponToDelete.code}?`,
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+    if (!isConfirmed) return;
+
+    try {
+      await destroyCoupon(couponId);
+      Swal.fire({
+        title: "Eliminado",
+        text: `${couponToDelete.code} eliminado correctamente`,
+        icon: "success",
+        timer: 2000,
+      });
+      coupons.value = coupons.value.filter((c) => c.id !== couponId);
+    } catch (error) {
+      console.error(error);
+      coupons.value = prev;
+      Swal.fire("Error", "No se pudo eliminar el cupon.", "error");
+    }
+  }
+
+
+  
   return {
     coupons,
     isExpiredOrUsedUp,
@@ -57,5 +91,6 @@ export const useCouponStore = defineStore("coupons", () => {
     createCoupon,
     getCoupons,
     statusCoupon,
+    deleteCoupon,
   };
 });

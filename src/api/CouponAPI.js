@@ -7,4 +7,7 @@ export default {
   addCoupon(payload) {
     return api.post("/coupon", payload);
   },
+  deleteCoupon(id) {
+    return api.post("/coupon/destroy", { id });
+  },
 };
