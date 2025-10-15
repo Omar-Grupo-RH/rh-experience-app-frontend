@@ -81,6 +81,12 @@ const router = createRouter({
           component: () => import("@/views/admin/coupons/NewCouponView.vue"),
         },
         {
+          path: "editar-cupon/:id",
+          name: "update-coupon",
+          meta: { title: "Cupones - Editar", adminOnly: true },
+          component: () => import("@/views/admin/coupons/EditCouponView.vue"),
+        },
+        {
           path: "ingresos",
           name: "earnings",
           meta: { title: "Ingresos", adminOnly: true }, // 👈

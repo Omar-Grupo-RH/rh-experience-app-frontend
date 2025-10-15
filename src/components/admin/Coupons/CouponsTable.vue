@@ -50,6 +50,7 @@ onMounted(async () => {
             <td class="p-3 text-sm">
               <button
                 class="inline-flex rounded-full px-2 text-xs font-semibold leading-5 cursor-pointer"
+                @click="store.updateStatus(coupon)"
                 :class="[
                   store.statusCoupon(coupon.id)
                     ? 'bg-green-100 text-green-500'
@@ -60,7 +61,12 @@ onMounted(async () => {
               </button>
             </td>
             <td class="p-3 text-sm">
-              <button class="text-blue-600 hover:underline mr-2">Editar</button>
+              <RouterLink
+                class="text-experience-blue hover:underline cursor-pointer"
+                :to="{ name: 'update-coupon', params: { id: coupon.id } }"
+              >
+                Editar
+              </RouterLink>
               |
               <button
                 class="text-red-500 hover:underline cursor-pointer"
