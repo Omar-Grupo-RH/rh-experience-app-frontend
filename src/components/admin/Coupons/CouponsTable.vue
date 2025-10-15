@@ -17,7 +17,7 @@ onMounted(async () => {
           :to="{ name: 'new-coupon' }"
           class="bg-experience-pink text-white px-4 py-2 rounded cursor-pointer shadow"
         >
-          + Nuevo cupon
+          + Nuevo cupón
         </RouterLink>
       </div>
 
@@ -25,7 +25,7 @@ onMounted(async () => {
         <thead>
           <tr class="border-b border-gray-200">
             <th class="text-center p-3 font-normal">Código</th>
-            <th class="text-center p-3 font-normal">Descripcion</th>
+            <th class="text-center p-3 font-normal">Descripción</th>
             <th class="text-center p-3 font-normal">Descuento(%)</th>
             <th class="text-center p-3 font-normal">Uso</th>
             <th class="text-center p-3 font-normal">Expira</th>
@@ -77,7 +77,7 @@ onMounted(async () => {
           :to="{ name: 'new-coupon' }"
           class="bg-experience-pink text-white px-4 py-2 rounded cursor-pointer shadow"
         >
-          + Nuevo cupon
+          + Nuevo cupón
         </RouterLink>
       </div>
     </div>

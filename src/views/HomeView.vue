@@ -199,7 +199,7 @@ async function startCheckout() {
 
                 <FormKit
                   type="email"
-                  label="Correo electronico"
+                  label="Correo electrónico"
                   name="email"
                   placeholder="Ingresa tu correo electronico"
                   validation="required|email"
@@ -213,7 +213,7 @@ async function startCheckout() {
 
                 <FormKit
                   type="tel"
-                  label="Telefono"
+                  label="Teléfono"
                   name="phone"
                   placeholder="Ingresa tu numero telefonico"
                   validation="required|matches:/^[0-9]{10}$/"

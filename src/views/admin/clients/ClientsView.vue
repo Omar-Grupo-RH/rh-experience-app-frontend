@@ -8,7 +8,7 @@ import ClientsTable from "@/components/admin/Clients/ClientsTable.vue";
       <div class="space-y-1">
         <h2 class="text-4xl font-semibold">Gestión de Clientes</h2>
         <p class="text-gray-400">
-          Administra tu base de clientes: agregar, editar o eliminar registros
+          Administra tus clientes: agregar, editar o eliminar registros
         </p>
       </div>
     </div>

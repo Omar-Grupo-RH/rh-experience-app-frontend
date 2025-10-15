@@ -105,9 +105,9 @@ onMounted(async () => {
   <div class="max-w-7xl mx-auto p-5 space-y-10">
     <div class="flex flex-col gap-2">
       <div class="space-y-0.5">
-        <h2 class="text-4xl font-semibold">Actualizar informacion</h2>
+        <h2 class="text-4xl font-semibold">Actualizar información</h2>
         <p class="text-gray-400">
-          Modifica la informacion del cliente
+          Modifica la información del cliente
         </p>
       </div>
       <RouterLink

@@ -44,7 +44,7 @@ const { user, isAuthenticated, logout } = auth;
           v-if="isAuthenticated && user?.admin"
           class="cursor-pointer h-16 px-5 flex justify-center items-center"
         >
-          <Link to="dashboard">Administrar</Link>
+          <Link to="dashboard">Dashboard</Link>
         </li>
 
         <li

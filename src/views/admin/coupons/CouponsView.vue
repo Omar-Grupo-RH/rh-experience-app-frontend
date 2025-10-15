@@ -8,7 +8,7 @@ import { RouterLink } from "vue-router";
     <div class="flex justify-between items-center">
       <div class="space-y-1">
         <h2 class="text-4xl font-semibold">Gestión de Cupones</h2>
-        <p class="text-gray-400">Administra los cupones de descuento aqui.</p>
+        <p class="text-gray-400">Administra los cupones de descuento aquí.</p>
       </div>
     </div>
 
