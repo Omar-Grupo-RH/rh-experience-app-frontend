@@ -6,6 +6,7 @@ import TourAPI from "@/api/ReservationAPI";
 import { useReservaStore } from "@/stores/reservaStore";
 import BusSeatSelector from "@/components/Reservation/BusSeatSelector.vue";
 import Calendar from "@/components/Reservation/Calendar.vue";
+import { formatDateToSpanish } from "@/utils/formatDate";
 
 const store = useReservaStore();
 const dateLocal = ref(store.date || "");
@@ -138,7 +139,9 @@ async function startCheckout() {
                       </p>
                     </div>
                     <div class="text-right">
-                      <p class="text-lg font-semibold">{{ totalFormatted }} MXN</p>
+                      <p class="text-lg font-semibold">
+                        {{ totalFormatted }} MXN
+                      </p>
                       <p class="text-xs text-gray-500">
                         {{ store.selectedSeats.length }} × 2,100 MXN
                       </p>
@@ -251,7 +254,9 @@ async function startCheckout() {
             >
               <h2 class="font-semibold mb-2">Resumen</h2>
               <div class="bg-gray-50 p-3 rounded mb-4">
-                <p><strong>Fecha:</strong> {{ store.date }}</p>
+                <p>
+                  <strong>Fecha:</strong> {{ formatDateToSpanish(store.date) }}
+                </p>
                 <p>
                   <strong>Asientos:</strong>
                   {{ store.selectedSeats.join(", ") }}
