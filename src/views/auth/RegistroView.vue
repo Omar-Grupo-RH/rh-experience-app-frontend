@@ -3,10 +3,10 @@ import { inject, ref } from "vue";
 import { RouterLink } from "vue-router";
 import { reset } from "@formkit/vue";
 import AuthAPI from "@/api/AuthAPI";
-import { useAuth } from "@/composables/useAuth";
+import { useRouter } from "vue-router";
 
 const toast = inject("toast");
-const { login } = useAuth();
+const router = useRouter();
 
 const form = ref({
   first_name: "",
@@ -77,19 +77,13 @@ const handleSubmit = async (formData) => {
 
   try {
     // 1) Registrar
-    const { data: reg } = await AuthAPI.register(payload);
-    toast.open({ message: reg.message || "Registro exitoso", type: "success" });
+     await AuthAPI.register(payload);
+    toast.open({
+      message: "Registro exitoso inicia sesion",
+      type: "success",
+    });
     reset("registerForm");
-
-    // 2) Iniciar sesión con las mismas credenciales
-    const credentials = { email: payload.email, password: payload.password };
-    const {
-      data: { token, first_name, email },
-    } = await AuthAPI.login(credentials);
-
-    // 3) Crear el objeto perfil y pasar a login()
-    const profile = { first_name, email };
-    await login(token, profile);
+    router.push({ name: "login" });
   } catch (error) {
     const { response } = error;
     response.data.errors.forEach((msg) => {

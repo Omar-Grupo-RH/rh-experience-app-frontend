@@ -15,14 +15,22 @@ function toBoolAdmin(val) {
 function decodeJwtPayload(jwt) {
   try {
     const [, payload] = jwt.split(".");
-    const decoded = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
-    return JSON.parse(decoded);
+    return JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
   } catch {
     return null;
   }
 }
 
-function hydrateFromToken() {
+function syncReservaStore(userData) {
+  const storeReserva = useReservaStore();
+  if (!storeReserva) return;
+  const fields = ["first_name", "last_name", "email", "phone"];
+  fields.forEach((f) => {
+    if (userData[f]) storeReserva.form[f] = userData[f];
+  });
+}
+
+function hydrateFromToken(logoutFn) {
   if (!token.value) {
     user.value = null;
     localStorage.removeItem(STORAGE_USER);
@@ -30,31 +38,21 @@ function hydrateFromToken() {
   }
 
   const payload = decodeJwtPayload(token.value);
-  if (!payload) {
-    token.value = null;
-    localStorage.removeItem(STORAGE_KEY);
-    user.value = null;
-    localStorage.removeItem(STORAGE_USER);
-    return;
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-  if (payload.exp && payload.exp < now) {
-    token.value = null;
-    localStorage.removeItem(STORAGE_KEY);
-    user.value = null;
-    localStorage.removeItem(STORAGE_USER);
+  if (
+    !payload ||
+    (payload.exp && payload.exp < Math.floor(Date.now() / 1000))
+  ) {
+    logoutFn?.();
     return;
   }
 
   const base = user.value || {};
-  const adminFromPayload =
+  const adminValue =
     typeof payload.admin !== "undefined"
       ? toBoolAdmin(payload.admin)
-      : undefined;
-  const adminFromBase =
-    typeof base.admin !== "undefined" ? toBoolAdmin(base.admin) : false;
-  const adminValue = adminFromPayload ?? adminFromBase;
+      : typeof base.admin !== "undefined"
+      ? toBoolAdmin(base.admin)
+      : false;
 
   user.value = {
     id: payload.sub || payload.id || base.id || null,
@@ -67,53 +65,43 @@ function hydrateFromToken() {
   };
 
   localStorage.setItem(STORAGE_USER, JSON.stringify(user.value));
-
-  // ✅ Sincroniza con el store de reserva
-  try {
-    const storeReserva = useReservaStore();
-    if (user.value?.first_name)
-      storeReserva.form.first_name = user.value.first_name;
-    if (user.value?.last_name)
-      storeReserva.form.last_name = user.value.last_name;
-    if (user.value?.email) storeReserva.form.email = user.value.email;
-    if (user.value?.phone) storeReserva.form.phone = user.value.phone;
-  } catch (e) {
-    // puede fallar si se llama antes de que Pinia esté disponible (por ejemplo, en SSR)
-  }
+  syncReservaStore(user.value);
 }
-
-hydrateFromToken();
 
 export function useAuth() {
   const router = useRouter();
   const isAuthenticated = computed(() => !!token.value && !!user.value);
   const storeReserva = useReservaStore();
+  function logout() {
+    storeReserva.form.first_name = "";
+    storeReserva.form.last_name = "";
+    storeReserva.form.email = "";
+    storeReserva.form.phone = "";
+    token.value = null;
+    user.value = null;
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_USER);
+    router.push({ name: "login" });
+  }
 
   async function login(jwt, profile) {
     token.value = jwt;
     localStorage.setItem(STORAGE_KEY, jwt);
-    
-    hydrateFromToken();
+
+    hydrateFromToken(logout);
 
     if (profile) {
       user.value = {
         ...user.value,
-        first_name: profile.first_name,
-        last_name: profile.last_name,
-        email: profile.email,
-        phone: profile.phone,
+        ...profile,
         id: profile.id ?? user.value?.id ?? null,
         admin: toBoolAdmin(profile.admin),
       };
       localStorage.setItem(STORAGE_USER, JSON.stringify(user.value));
     }
 
-    storeReserva.form.first_name = user.value.first_name;
-    storeReserva.form.last_name = user.value.last_name;
-    storeReserva.form.email = user.value.email;
-    storeReserva.form.phone = user.value.phone;
+    syncReservaStore(user.value);
 
-    // Si es admin, mándalo al dashboard
     if (user.value.admin) {
       router.push({ name: "dashboard" });
       return;
@@ -124,15 +112,8 @@ export function useAuth() {
     router.push(next || { name: "home" });
   }
 
-  function logout() {
-    token.value = null;
-    user.value = null;
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(STORAGE_USER);
-
-    // Recarga directamente la página principal
-    window.location.href = "/";
-  }
+  // inicializamos al cargar el composable
+  hydrateFromToken(logout);
 
   return { token, user, isAuthenticated, login, logout, hydrateFromToken };
 }
