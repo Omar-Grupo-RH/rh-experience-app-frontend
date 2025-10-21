@@ -3,14 +3,11 @@ import AdminAPI from "@/api/AdminAPI";
 export function useCalendarAPI() {
   const listEvents = async () => {
     const { data } = await AdminAPI.allTrips();
-
     return data.data ?? [];
   };
 
   const getTrip = async (id) => {
-    const {
-      data: { data },
-    } = await AdminAPI.getTripById(id);
+    const { data } = await AdminAPI.getTripById(id);
     return data ?? null;
   };
 

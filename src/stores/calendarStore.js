@@ -136,11 +136,12 @@ export const useCalendarStore = defineStore("calendar", () => {
 
     const { id } = info.event;
     try {
-      const trip = await getTrip(id);
-      const updateTrip = { ...trip };
-      updateTrip.trip_date = info.event.startStr;
+      const payload = {
+        id,
+        trip_date: info.event.startStr,
+      };
 
-      const resp = await updateEvent(updateTrip);
+      const resp = await updateEvent(payload);
       const updated = resp.data;
 
       // Actualizar el evento en el store
@@ -152,7 +153,7 @@ export const useCalendarStore = defineStore("calendar", () => {
       Swal.fire({
         title: `Tour Reagendado`,
         text: `RH EXPERIENCE agendado para el ${formatDateToSpanish(
-          updateTrip.trip_date
+          updated.trip_date
         )}`,
         icon: "success",
         timer: 2000,
@@ -168,16 +169,17 @@ export const useCalendarStore = defineStore("calendar", () => {
   // NUEVO: También puedes mover handleEventClick si quieres
   async function handleEventClick(info) {
     const { id } = info.event;
-    const trip = await getTrip(id);
-    const { title, total_seats, trip_date } = trip;
+    const { data: trip } = await getTrip(id);
+    const { title, total_seats, trip_date, unavaible_seats } = trip;
     const soloCerrar = isPast(trip_date);
+    const avaible_seats = total_seats - unavaible_seats;
 
     const res = await Swal.fire({
-      title: title || "Evento",
+      title: title,
       html: `
         <div style="text-align:center">
           <p><strong>Fecha:</strong> ${formatDateToSpanish(trip_date)}</p>
-          <p><strong>Lugares Disponibles:</strong> ${total_seats}</p>
+          <p><strong>Lugares Disponibles:</strong> ${avaible_seats}</p>
         </div>
       `,
       icon: "info",

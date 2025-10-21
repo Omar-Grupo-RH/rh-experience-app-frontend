@@ -28,8 +28,10 @@ const calendarOptions = ref({
 
   dateClick(info) {
     const clickedDate = info.dateStr;
-    const hasEvent = events.value.some((event) => event.start === clickedDate);
-    if (!hasEvent) {
+
+    // Buscar el evento que coincide con la fecha
+    const event = store.events.find((ev) => ev.start === clickedDate);
+    if (!event) {
       Swal.fire({
         title: `Opps!`,
         text: "Solamente puedes seleccionar los dias donde hay RH EXPERIENCE",
@@ -39,13 +41,18 @@ const calendarOptions = ref({
       return;
     }
 
-    // info.dayEl ya viene bien aquí, pero podemos normalizar:
+    // Aquí tienes el id del evento
+    store.selectedTripId = event.id;
+    store.selectedSeats = [];
+
     const dayEl =
       info.dayEl || info.jsEvent?.target?.closest?.(".fc-daygrid-day");
     if (dayEl) selectDay(dayEl, clickedDate);
   },
 
   eventClick(info) {
+    store.selectedTripId = info.event.id;
+    store.selectedSeats = [];
     // info.jsEvent.target es el elemento real que recibió el click
     const clickTarget = info.jsEvent?.target || info.el || null;
 

@@ -24,7 +24,14 @@ function decodeJwtPayload(jwt) {
 function syncReservaStore(userData) {
   const storeReserva = useReservaStore();
   if (!storeReserva) return;
-  const fields = ["first_name", "last_name", "email", "phone"];
+  const fields = [
+    "first_name",
+    "last_name",
+    "email",
+    "phone",
+    "born_date",
+    "allergies",
+  ];
   fields.forEach((f) => {
     if (userData[f]) storeReserva.form[f] = userData[f];
   });
@@ -60,6 +67,8 @@ function hydrateFromToken(logoutFn) {
     last_name: payload.last_name || base.last_name,
     email: payload.email || base.email,
     phone: payload.phone || base.phone,
+    born_date: payload.born_date || base.born_date,
+    allergies: payload.allergies || base.allergies,
     admin: adminValue,
     raw: payload,
   };
@@ -77,6 +86,8 @@ export function useAuth() {
     storeReserva.form.last_name = "";
     storeReserva.form.email = "";
     storeReserva.form.phone = "";
+    storeReserva.form.born_date = "";
+    storeReserva.form.allergies = [];
     token.value = null;
     user.value = null;
     localStorage.removeItem(STORAGE_KEY);

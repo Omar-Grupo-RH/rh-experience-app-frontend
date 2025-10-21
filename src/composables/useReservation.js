@@ -6,7 +6,13 @@ export function useReservation() {
     return data.data ?? [];
   };
 
+  const getSeatsByTrip = async (id) => {
+    const { data } = await ReservationAPI.getTripById(id);
+    return data.data ?? [];
+  };
+
   return {
     listEvents,
+    getSeatsByTrip,
   };
 }

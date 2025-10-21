@@ -19,7 +19,7 @@ const $toast = useToast({
   duration: 5000,
   position: "top-right",
 });
-const appName = "RH Experience"; // nombre por defecto
+const appName = "RH Experience App"; // nombre por defecto
 
 router.afterEach((to) => {
   // toma el meta.title más cercano (soporta rutas anidadas)
