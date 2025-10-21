@@ -8,8 +8,8 @@ import { formatDateToSpanish } from "@/utils/formatDate";
 
 const store = useReservaStore();
 const isProcessing = ref(false);
-
 const allergiesInput = ref("");
+
 function pushAllergies(...rawTags) {
   const existing = new Set(
     store.form.allergies.map((a) => a.trim().toLowerCase())
@@ -59,6 +59,8 @@ const totalFormatted = computed(() => {
     currency: "MXN",
   }).format(total);
 });
+
+const breakdown = computed(() => store.priceBreakdown());
 
 function goToPago() {
   store.next();
@@ -155,7 +157,7 @@ async function startCheckout() {
                   </p>
                   <BusSeatSelector />
                   <div class="flex items-center justify-between mt-3">
-                    <div>
+                    <div class="flex flex-col gap-1.5">
                       <p class="text-sm">
                         Fecha escogida:
                         <strong>{{ formatDateToSpanish(store.date) }}</strong>
@@ -167,12 +169,11 @@ async function startCheckout() {
                         }}</strong>
                         <span v-else class="text-gray-400">— ninguno —</span>
                       </p>
-                      <p
-                        class="text-xs text-gray-500"
-                        v-if="store.selectedSeats.length"
-                      >
-                        {{ store.selectedSeats.length }} × 2,100 MXN
-                      </p>
+                      <div v-if="store.selectedSeats.length">
+                        <p class="text-gray-500 text-sm">
+                          {{ breakdown.breakdownText }}
+                        </p>
+                      </div>
                       <p
                         class="text-lg font-semibold"
                         v-if="store.selectedSeats.length"

@@ -20,6 +20,8 @@ export const useReservaStore = defineStore("reserva", () => {
   const events = ref([]);
 
   const pricePerSeat = ref(2100);
+  const counterDescountSeat = ref(0);
+  const counterNormalSeat = ref(0);
 
   function next() {
     if (step.value < 3) step.value++;
@@ -46,7 +48,53 @@ export const useReservaStore = defineStore("reserva", () => {
   }
 
   function total() {
-    return selectedSeats.value.length * pricePerSeat.value;
+    return priceBreakdown().total;
+  }
+
+  function priceBreakdown() {
+    const count = selectedSeats.value.length;
+
+    const standardPrice = 2100;
+    const discountedPrice = 1900;
+
+    if (count === 0) {
+      return {
+        discountedCount: 0,
+        standardCount: 0,
+        total: 0,
+        breakdownText: "Sin asientos seleccionados",
+      };
+    }
+
+    const isEven = count % 2 === 0;
+    const discountedCount = isEven ? count : count - 1;
+    const standardCount = isEven ? 0 : 1;
+
+    const total =
+      discountedCount * discountedPrice + standardCount * standardPrice;
+
+    let breakdownText = "";
+
+    if (count === 1) {
+      breakdownText = `1 x $${standardPrice.toLocaleString("es-MX")} MXN`;
+    } else if (standardCount === 0) {
+      breakdownText = `${discountedCount} x $${discountedPrice.toLocaleString(
+        "es-MX"
+      )} MXN`;
+    } else {
+      breakdownText =
+        `${discountedCount} x $${discountedPrice.toLocaleString(
+          "es-MX"
+        )} MXN | ` +
+        `${standardCount} x $${standardPrice.toLocaleString("es-MX")} MXN`;
+    }
+
+    return {
+      discountedCount,
+      standardCount,
+      total,
+      breakdownText,
+    };
   }
 
   async function loadEvents() {
@@ -87,5 +135,6 @@ export const useReservaStore = defineStore("reserva", () => {
     events,
     seatsSold,
     selectedTripId,
+    priceBreakdown,
   };
 });
