@@ -8,4 +8,8 @@ export default {
   getTripById(id) {
     return api.get("/trip", { params: { id } });
   },
+
+  getCoupon(code) {
+    return api.get("/payment/coupon", { params: { code } });
+  },
 };

@@ -1,5 +1,5 @@
 <script setup>
-import { useCouponStore } from "@/stores/couponStore";
+import { useCouponStore } from "@/stores/admin/couponStore";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 

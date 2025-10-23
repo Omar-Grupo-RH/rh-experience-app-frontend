@@ -11,8 +11,14 @@ export function useReservation() {
     return data.data ?? [];
   };
 
+  const getCouponDiscount = async (code) => {
+    const { data } = await ReservationAPI.getCoupon(code);
+    return data.data ?? [];
+  };
+
   return {
     listEvents,
     getSeatsByTrip,
+    getCouponDiscount,
   };
 }

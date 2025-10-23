@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from "vue";
-import { useCouponStore } from "@/stores/couponStore";
+import { useCouponStore } from "@/stores/admin/couponStore";
 import { formatDateToSpanish } from "@/utils/formatDate";
 const store = useCouponStore();
 
@@ -42,7 +42,7 @@ onMounted(async () => {
           >
             <td class="p-3 text-sm">{{ coupon.code }}</td>
             <td class="p-3 text-sm">{{ coupon.description }}</td>
-            <td class="p-3 text-sm">{{ coupon.discount }}%</td>
+            <td class="p-3 text-sm">{{ coupon.discount * 100 }}%</td>
             <td class="p-3 text-sm">{{ coupon.usage_limit }}</td>
             <td class="p-3 text-sm">
               {{ formatDateToSpanish(coupon.expiry_date) }}

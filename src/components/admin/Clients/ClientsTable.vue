@@ -1,5 +1,5 @@
 <script setup>
-import { useClientStore } from "@/stores/clientStore";
+import { useClientStore } from "@/stores/admin/clientStore";
 import { formatDateToSpanish } from "@/utils/formatDate";
 import { onMounted } from "vue";
 import { RouterLink } from "vue-router";
@@ -39,7 +39,9 @@ onMounted(() => {
             :key="client.id"
             class="border-b border-gray-200 hover:bg-gray-50 text-center"
           >
-            <td class="p-3 font-medium">{{ client.first_name  }} {{ client.last_name  }}</td>
+            <td class="p-3 font-medium">
+              {{ client.first_name }} {{ client.last_name }}
+            </td>
             <td class="p-3 text-sm text-gray-600">
               <div>{{ client.email }}</div>
               <div>{{ client.phone }}</div>

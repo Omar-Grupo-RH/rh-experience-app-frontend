@@ -1,10 +1,12 @@
 import { useReservation } from "@/composables/useReservation";
 import { defineStore } from "pinia";
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, inject } from "vue";
 
 export const useReservaStore = defineStore("reserva", () => {
-  const { listEvents, getSeatsByTrip } = useReservation();
+  const { listEvents, getSeatsByTrip, getCouponDiscount } = useReservation();
 
+  // --- STATE ---
+  const toast = inject("toast");
   const step = ref(1);
   const selectedSeats = ref([]);
   const selectedTripId = ref(null);
@@ -13,49 +15,23 @@ export const useReservaStore = defineStore("reserva", () => {
   const pricePerSeat = ref(2100);
   const events = ref([]);
 
+  const couponInput = ref("");
+  const couponTextBtn = ref("Canjear");
+  const discountPercent = ref(0);
+  const discountAmount = ref(0);
+
+  const total = ref(0);
+
   const emailSendTickets = ref({
     emailSent: "",
     confirmEmail: "",
   });
 
-  // 🔹 Valida si cada pasajero es mayor de edad
-  const allAdults = computed(() => {
-    const today = new Date();
-    return passengers.value.every((p) => {
-      if (!p.born_date) return false;
-      const birth = new Date(p.born_date);
-      const age = today.getFullYear() - birth.getFullYear();
-      const monthDiff = today.getMonth() - birth.getMonth();
-      const dayDiff = today.getDate() - birth.getDate();
-      const realAge =
-        monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
-      return realAge >= 18;
-    });
-  });
-
-  // 🔹 Valida si se pueden continuar los datos (correos + edades)
-  const canContinuePassengers = computed(() => {
-    return sameEmails.value && allAdults.value;
-  });
-
-  const sameEmails = computed(() => {
-    return (
-      emailSendTickets.value.emailSent !== "" &&
-      emailSendTickets.value.emailSent === emailSendTickets.value.confirmEmail
-    );
-  });
-
-  // Pasajeros (uno por asiento seleccionado)
+  // --- PASAJEROS ---
   const passengers = ref([]);
   const normSeat = (s) => String(s);
 
-  const next = () => {
-    if (step.value < 4) step.value++;
-  };
-  const prev = () => {
-    if (step.value > 1) step.value--;
-  };
-
+  // Sincroniza pasajeros con asientos seleccionados
   function syncPassengersToSeats() {
     const seats = selectedSeats.value.map(normSeat);
     const prev = new Map(passengers.value.map((p) => [normSeat(p.seat), p]));
@@ -73,17 +49,46 @@ export const useReservaStore = defineStore("reserva", () => {
     );
   }
 
-  // Dispara en push/splice/reorden e inicia hidratado
   watch(() => selectedSeats.value.slice(), syncPassengersToSeats, {
     immediate: true,
   });
 
-  // Precios
+  // --- VALIDACIONES ---
+  const allAdults = computed(() => {
+    const today = new Date();
+    return passengers.value.every((p) => {
+      if (!p.born_date) return false;
+      const birth = new Date(p.born_date);
+      const age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      const dayDiff = today.getDate() - birth.getDate();
+      const realAge =
+        monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+      return realAge >= 18;
+    });
+  });
 
+  const sameEmails = computed(() => {
+    return (
+      emailSendTickets.value.emailSent !== "" &&
+      emailSendTickets.value.emailSent === emailSendTickets.value.confirmEmail
+    );
+  });
+
+  const canContinuePassengers = computed(() => {
+    return sameEmails.value && allAdults.value;
+  });
+
+  const couponEmpy = computed(() => couponInput.value !== "");
+
+  const couponIsApply = computed(() => discountAmount.value !== 0);
+
+  // --- PRECIOS ---
   function priceBreakdown() {
     const count = selectedSeats.value.length;
     const standardPrice = 2100;
     const discountedPrice = 1900;
+
     if (count === 0) {
       return {
         discountedCount: 0,
@@ -92,10 +97,11 @@ export const useReservaStore = defineStore("reserva", () => {
         breakdownText: "Sin asientos seleccionados",
       };
     }
+
     const isEven = count % 2 === 0;
     const discountedCount = isEven ? count : count - 1;
     const standardCount = isEven ? 0 : 1;
-    const total =
+    const baseTotal =
       discountedCount * discountedPrice + standardCount * standardPrice;
 
     let breakdownText = "";
@@ -112,12 +118,50 @@ export const useReservaStore = defineStore("reserva", () => {
         "es-MX"
       )} MXN`;
     }
-    return { discountedCount, standardCount, total, breakdownText };
+
+    return { discountedCount, standardCount, total: baseTotal, breakdownText };
   }
-  const total = () => priceBreakdown().total;
 
-  // Eventos
+  // 🔁 Actualiza total automáticamente cuando cambian asientos o descuento
+  function updateTotal() {
+    const baseTotal = priceBreakdown().total;
+    const discount = baseTotal * discountPercent.value;
+    total.value = baseTotal - discount;
+  }
 
+  watch([selectedSeats, discountPercent], updateTotal, {
+    immediate: true,
+    deep: true,
+  });
+
+  // --- CUPONES ---
+  async function getCoupon(code) {
+    couponTextBtn.value = "Buscando...";
+    try {
+      const { discount } = await getCouponDiscount(code);
+
+      discountPercent.value = Number(discount);
+
+      discountAmount.value = (total.value * discountPercent.value).toFixed(2);
+      toast?.open?.({
+        message: `Cupón aplicado del ${
+          discountPercent.value * 100
+        }% de descuento`,
+        type: "success",
+      });
+
+      couponTextBtn.value = "Canjeado";
+    } catch (e) {
+      toast?.open?.({
+        message: e.response?.data?.message || "Cupón inválido",
+        type: "error",
+      });
+      couponTextBtn.value = "Canjear";
+      discountPercent.value = 0;
+    }
+  }
+
+  // --- EVENTOS Y ASIENTOS ---
   async function loadEvents() {
     try {
       const list = await listEvents();
@@ -131,6 +175,7 @@ export const useReservaStore = defineStore("reserva", () => {
       console.error("No se pudieron cargar los eventos", err);
     }
   }
+
   async function seatsSold(id) {
     try {
       return await getSeatsByTrip(id);
@@ -139,13 +184,20 @@ export const useReservaStore = defineStore("reserva", () => {
     }
   }
 
-  // Mutadores
+  // --- NAVEGACIÓN DE PASOS ---
+  const next = () => step.value < 4 && step.value++;
+  const prev = () => step.value > 1 && step.value--;
+
+  // --- MUTADORES ---
   function reset() {
     step.value = 1;
     selectedSeats.value = [];
     date.value = null;
     passengers.value = [];
+    discountPercent.value = 0;
+    total.value = 0;
   }
+
   function setDate(d) {
     date.value = d;
   }
@@ -157,8 +209,9 @@ export const useReservaStore = defineStore("reserva", () => {
     else selectedSeats.value.push(seat);
   }
 
+  // --- RETURN ---
   return {
-    // state
+    // State
     step,
     selectedSeats,
     selectedTripId,
@@ -168,15 +221,21 @@ export const useReservaStore = defineStore("reserva", () => {
     events,
     aceptedTerms,
     emailSendTickets,
-
-    // getters
+    couponInput,
+    couponTextBtn,
+    discountPercent,
+    discountAmount,
     total,
+
+    // Getters
     priceBreakdown,
     canContinuePassengers,
     allAdults,
     sameEmails,
+    couponEmpy,
+    couponIsApply,
 
-    // actions
+    // Actions
     next,
     prev,
     reset,
@@ -184,6 +243,6 @@ export const useReservaStore = defineStore("reserva", () => {
     loadEvents,
     toggleSeat,
     seatsSold,
-    sameEmails,
+    getCoupon,
   };
 });

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch } from "vue";
-import { useReservaStore } from "@/stores/reservaStore";
+import { useReservaStore } from "@/stores/public/reservaStore";
 
 const store = useReservaStore();
 
@@ -12,7 +12,7 @@ const startY = 70;
 const rowHeight = seatSize + 10;
 
 const fixedOccupied = ["A1", "A2"]; // siempre ocupados
-const dynamicOccupied = ref([]);    // ocupados que vienen del backend
+const dynamicOccupied = ref([]); // ocupados que vienen del backend
 
 const rows = ["A", "B", "C", "D", "E", "F"];
 
@@ -23,12 +23,31 @@ const seats = computed(() => {
     const y = startY + rowIndex * rowHeight;
 
     if (rowLetter === "F") {
-      for (let i = 1; i <= 4; i++) arr.push({ id: `${rowLetter}${i}`, x: startX + (i - 1) * (seatSize + seatGap), y });
+      for (let i = 1; i <= 4; i++)
+        arr.push({
+          id: `${rowLetter}${i}`,
+          x: startX + (i - 1) * (seatSize + seatGap),
+          y,
+        });
     } else if (rowLetter === "A" || rowLetter === "B") {
-      for (let i = 1; i <= 2; i++) arr.push({ id: `${rowLetter}${i}`, x: startX + (i - 1) * (seatSize + seatGap), y });
+      for (let i = 1; i <= 2; i++)
+        arr.push({
+          id: `${rowLetter}${i}`,
+          x: startX + (i - 1) * (seatSize + seatGap),
+          y,
+        });
     } else {
-      for (let i = 1; i <= 2; i++) arr.push({ id: `${rowLetter}${i}`, x: startX + (i - 1) * (seatSize + seatGap), y });
-      arr.push({ id: `${rowLetter}3`, x: startX + 2 * (seatSize + seatGap) + 60, y });
+      for (let i = 1; i <= 2; i++)
+        arr.push({
+          id: `${rowLetter}${i}`,
+          x: startX + (i - 1) * (seatSize + seatGap),
+          y,
+        });
+      arr.push({
+        id: `${rowLetter}3`,
+        x: startX + 2 * (seatSize + seatGap) + 60,
+        y,
+      });
     }
   });
   return arr;
@@ -81,7 +100,6 @@ watch(
   { immediate: true }
 );
 </script>
-
 
 <template>
   <div class="w-full overflow-auto text-black">

@@ -1,20 +1,16 @@
 <script setup>
 import Menu from "@/components/Navigation/Menu.vue";
 import { ref, computed } from "vue";
-import { useReservaStore } from "@/stores/reservaStore";
+import { useReservaStore } from "@/stores/public/reservaStore";
+
 import BusSeatSelector from "@/components/Reservation/BusSeatSelector.vue";
 import Calendar from "@/components/Reservation/Calendar.vue";
 import { formatDateToSpanish } from "@/utils/formatDate";
+import { currencyFormat } from "@/utils/formatMoney";
 
 const store = useReservaStore();
 const isProcessing = ref(false);
 
-// Totales
-const totalFormatted = computed(() =>
-  new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(
-    store.total()
-  )
-);
 const breakdown = computed(() => store.priceBreakdown());
 
 function goToPago() {
@@ -60,18 +56,8 @@ async function startCheckout() {
     <Menu />
     <section class="min-h-screen">
       <div
-        class="min-h-screen flex justify-center items-center bg-experience-white relative py-5"
+        class="min-h-screen flex justify-center items-center bg-gray-100 relative py-5"
       >
-        <div
-          class="w-full h-full absolute inset-0 overflow-hidden pointer-events-none"
-        >
-          <img
-            src="/images/textura2.svg"
-            alt="Textura de experience"
-            class="w-full h-full object-cover opacity-50 pointer-events-none"
-          />
-        </div>
-
         <div class="md:p-5 rounded-2xl w-[95%] xl:w-[80%] relative">
           <div class="max-w-7xl mx-auto space-y-6">
             <!-- Pasos -->
@@ -147,7 +133,7 @@ async function startCheckout() {
                         class="text-lg font-semibold"
                         v-if="store.selectedSeats.length"
                       >
-                        Total: {{ totalFormatted }} MXN
+                        Total: {{ currencyFormat(store.total) }} MXN
                       </p>
                     </div>
                   </div>
@@ -196,9 +182,7 @@ async function startCheckout() {
                           label-class="block font-medium text-gray-800 mb-2"
                           :value="p"
                         >
-                          <div
-                            class="bg-gray-50 p-4 rounded-lg border border-gray-200"
-                          >
+                          <div class="p-4 rounded-lg border border-gray-200">
                             <div>
                               <p class="font-semibold text-xl">
                                 Pasajero
@@ -324,13 +308,85 @@ async function startCheckout() {
 
                       <div class="flex justify-between mt-6"></div>
                     </FormKit>
+                  </div>
+
+                  <div class="space-y-5">
+                    <div
+                      class="flex w-full items-center justify-between rounded-lg border-gray-200 mt-3 lg:mt-0 border lg:flex-1"
+                    >
+                      <div class="flex flex-col gap-1.5 w-full p-5">
+                        <div class="flex items-center gap-5 lg:gap-10">
+                          <img
+                            src="/logos/Recurso9.svg"
+                            class="w-9 lg:w-16 invert"
+                            alt=""
+                          />
+                          <div>
+                            <p class="font-semibold">
+                              {{ formatDateToSpanish(store.date) }}
+                            </p>
+                            <p class="font-semibold">
+                              Origen: <span>Oficinas de Grupo RH</span>
+                            </p>
+                            <div v-if="store.selectedSeats.length">
+                              <p class="font-semibold">
+                                {{ breakdown.breakdownText }}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="mt-5">
+                          <p>
+                            Asientos seleccionados:
+                            <strong v-if="store.selectedSeats.length">{{
+                              store.selectedSeats.join(", ")
+                            }}</strong>
+                            <span v-else class="text-gray-400"
+                              >— ninguno —</span
+                            >
+                          </p>
+
+                          <p
+                            class="text-lg font-semibold"
+                            v-if="store.selectedSeats.length"
+                          >
+                            Total: {{ currencyFormat(store.total) }} MXN
+                          </p>
+
+                          <div
+                            class="flex items-center gap-5 lg:flex-col lg:gap-2 mt-5"
+                          >
+                            <button
+                              class="py-2 px-4 rounded-md bg-gray-300 w-full cursor-pointer"
+                              @click="store.prev"
+                            >
+                              Regresar
+                            </button>
+                            <button
+                              class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              :disabled="!store.canContinuePassengers"
+                              @click="store.next"
+                            >
+                              Continuar
+                            </button>
+                          </div>
+                          <p
+                            v-if="!store.allAdults"
+                            class="text-red-500 text-sm mt-2"
+                          >
+                            Todos los pasajeros deben ser mayores de edad.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
                     <div>
                       <h3>
                         Ingresa el correo electronico al cual se enviaran los
                         boletos
                       </h3>
-                      <div class="flex flex-col gap-2 md:flex-row mt-5">
+                      <div class="flex flex-col gap-1 mt-3">
                         <FormKit
                           type="email"
                           name="emailSent"
@@ -357,74 +413,6 @@ async function startCheckout() {
                       <p v-if="!store.sameEmails" class="text-red-500 text-sm">
                         Los correos deben coincidir para continuar.
                       </p>
-                    </div>
-                  </div>
-
-                  <div
-                    class="flex w-full items-center justify-between rounded-lg bg-gray-50 border-gray-200 mt-3 border lg:flex-1"
-                  >
-                    <div class="flex flex-col gap-1.5 w-full p-5">
-                      <div class="flex items-center gap-5 lg:gap-10">
-                        <img
-                          src="/logos/Recurso9.svg"
-                          class="w-9 lg:w-16 invert"
-                          alt=""
-                        />
-                        <div>
-                          <p class="font-semibold">
-                            {{ formatDateToSpanish(store.date) }}
-                          </p>
-                          <p class="font-semibold">
-                            Origen: <span>Oficinas de Grupo RH</span>
-                          </p>
-                          <div v-if="store.selectedSeats.length">
-                            <p class="font-semibold">
-                              {{ breakdown.breakdownText }}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="mt-5">
-                        <p>
-                          Asientos seleccionados:
-                          <strong v-if="store.selectedSeats.length">{{
-                            store.selectedSeats.join(", ")
-                          }}</strong>
-                          <span v-else class="text-gray-400">— ninguno —</span>
-                        </p>
-
-                        <p
-                          class="text-lg font-semibold"
-                          v-if="store.selectedSeats.length"
-                        >
-                          Total: {{ totalFormatted }} MXN
-                        </p>
-
-                        <div
-                          class="flex items-center gap-5 lg:flex-col lg:gap-2 mt-5"
-                        >
-                          <button
-                            class="py-2 px-4 rounded-md bg-gray-300 w-full cursor-pointer"
-                            @click="store.prev"
-                          >
-                            Regresar
-                          </button>
-                          <button
-                            class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                            :disabled="!store.canContinuePassengers"
-                            @click="store.next"
-                          >
-                            Continuar
-                          </button>
-                        </div>
-                        <p
-                          v-if="!store.allAdults"
-                          class="text-red-500 text-sm mt-2"
-                        >
-                          Todos los pasajeros deben ser mayores de edad.
-                        </p>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -471,7 +459,7 @@ async function startCheckout() {
                         </div>
 
                         <div class="p-4">
-                          <p class="xl:text-lg">
+                          <p class="xl:text-lg uppercase font-semibold">
                             {{ p.first_name }} {{ p.last_name }}
                           </p>
                           <p class="xl:text-lg">
@@ -534,7 +522,7 @@ async function startCheckout() {
                           class="text-lg font-semibold"
                           v-if="store.selectedSeats.length"
                         >
-                          Total: {{ totalFormatted }} MXN
+                          Total: {{ currencyFormat(store.total) }} MXN
                         </p>
 
                         <div
@@ -606,13 +594,38 @@ async function startCheckout() {
                           }}</strong>
                           <span v-else class="text-gray-400">— ninguno —</span>
                         </p>
-
+                        <p
+                          class="text-lg font-semibold"
+                          v-if="store.discountAmount"
+                        >
+                          Descuento:
+                          {{ currencyFormat(store.discountAmount) }} MXN
+                        </p>
                         <p
                           class="text-lg font-semibold"
                           v-if="store.selectedSeats.length"
                         >
-                          Total: {{ totalFormatted }} MXN
+                          Total: {{ currencyFormat(store.total) }} MXN
                         </p>
+
+                        <div class="flex my-3">
+                          <input
+                            type="text"
+                            name="cupon"
+                            id="cupon"
+                            placeholder="INGRESA CODIGO DE CUPON"
+                            class="w-[80%] border-0 outline-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                            :disabled="store.couponIsApply"
+                            v-model="store.couponInput"
+                          />
+                          <button
+                            class="bg-experience-pink text-white font-semibold w-[20%] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            :disabled="!store.couponEmpy || store.couponIsApply"
+                            @click="store.getCoupon(store.couponInput)"
+                          >
+                            {{ store.couponTextBtn }}
+                          </button>
+                        </div>
 
                         <div class="flex items-center gap-2 mt-3">
                           <input
@@ -627,19 +640,19 @@ async function startCheckout() {
                         </div>
 
                         <div class="mt-5 space-y-2">
-                          <button
+                          <!-- <button
                             type="button"
                             class="py-2 px-4 rounded-md bg-gray-300 w-full cursor-pointer"
                             @click="store.prev"
                           >
                             Regresar
-                          </button>
+                          </button> -->
                           <button
                             :disabled="!store.aceptedTerms"
                             @click="startCheckout"
                             class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            Pagar {{ totalFormatted }} MXN
+                            Pagar {{ currencyFormat(store.total) }} MXN
                           </button>
                         </div>
                       </div>

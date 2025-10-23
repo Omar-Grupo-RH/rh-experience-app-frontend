@@ -1,5 +1,5 @@
 <script setup>
-import { useClientStore } from "@/stores/clientStore";
+import { useClientStore } from "@/stores/admin/clientStore";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 

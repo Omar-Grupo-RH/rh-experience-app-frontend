@@ -1,5 +1,5 @@
 <script setup>
-import { useClientStore } from "@/stores/clientStore";
+import { useClientStore } from "@/stores/admin/clientStore";
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
@@ -106,9 +106,7 @@ onMounted(async () => {
     <div class="flex flex-col gap-2">
       <div class="space-y-0.5">
         <h2 class="text-4xl font-semibold">Actualizar información</h2>
-        <p class="text-gray-400">
-          Modifica la información del cliente
-        </p>
+        <p class="text-gray-400">Modifica la información del cliente</p>
       </div>
       <RouterLink
         :to="{ name: 'clients' }"

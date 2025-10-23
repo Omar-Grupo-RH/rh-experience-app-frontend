@@ -1,5 +1,5 @@
 <script setup>
-import { useReservaStore } from "@/stores/reservaStore";
+import { useReservaStore } from "@/stores/public/reservaStore";
 import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";

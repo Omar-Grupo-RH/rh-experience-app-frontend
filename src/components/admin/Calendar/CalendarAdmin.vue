@@ -4,7 +4,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { ref, onMounted, watch } from "vue";
-import { useCalendarStore } from "@/stores/calendarStore";
+import { useCalendarStore } from "@/stores/admin/calendarStore";
 
 const store = useCalendarStore();
 const calendarRef = ref(null);
