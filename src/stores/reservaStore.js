@@ -5,8 +5,6 @@ import { ref, watch, computed } from "vue";
 export const useReservaStore = defineStore("reserva", () => {
   const { listEvents, getSeatsByTrip } = useReservation();
 
-  
-
   const step = ref(1);
   const selectedSeats = ref([]);
   const selectedTripId = ref(null);
@@ -18,6 +16,26 @@ export const useReservaStore = defineStore("reserva", () => {
   const emailSendTickets = ref({
     emailSent: "",
     confirmEmail: "",
+  });
+
+  // 🔹 Valida si cada pasajero es mayor de edad
+  const allAdults = computed(() => {
+    const today = new Date();
+    return passengers.value.every((p) => {
+      if (!p.born_date) return false;
+      const birth = new Date(p.born_date);
+      const age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      const dayDiff = today.getDate() - birth.getDate();
+      const realAge =
+        monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+      return realAge >= 18;
+    });
+  });
+
+  // 🔹 Valida si se pueden continuar los datos (correos + edades)
+  const canContinuePassengers = computed(() => {
+    return sameEmails.value && allAdults.value;
   });
 
   const sameEmails = computed(() => {
@@ -154,6 +172,9 @@ export const useReservaStore = defineStore("reserva", () => {
     // getters
     total,
     priceBreakdown,
+    canContinuePassengers,
+    allAdults,
+    sameEmails,
 
     // actions
     next,

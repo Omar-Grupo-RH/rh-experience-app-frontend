@@ -72,10 +72,12 @@ async function startCheckout() {
           />
         </div>
 
-        <div class="md:p-5 rounded-2xl  w-[95%] xl:w-[80%] relative">
-          <div class="max-w-7xl mx-auto  space-y-6">
+        <div class="md:p-5 rounded-2xl w-[95%] xl:w-[80%] relative">
+          <div class="max-w-7xl mx-auto space-y-6">
             <!-- Pasos -->
-            <div class="flex flex-col items-center lg:flex-row lg:justify-around font-medium mb-4">
+            <div
+              class="flex flex-col items-center lg:flex-row lg:justify-around font-medium mb-4"
+            >
               <div
                 :class="
                   store.step >= 1 ? 'text-experience-pink' : 'text-gray-400'
@@ -151,12 +153,14 @@ async function startCheckout() {
                   </div>
                   <div class="lg:flex lg:justify-end">
                     <button
-                    class="px-4 py-2 rounded-md bg-experience-pink text-white disabled:opacity-50 cursor-pointer mt-5 w-full lg:w-fit"
-                    :disabled="store.selectedSeats.length === 0 || !store.date"
-                    @click="store.next"
-                  >
-                    Siguiente
-                  </button>
+                      class="px-4 py-2 rounded-md bg-experience-pink text-white disabled:opacity-50 cursor-pointer mt-5 w-full lg:w-fit"
+                      :disabled="
+                        store.selectedSeats.length === 0 || !store.date
+                      "
+                      @click="store.next"
+                    >
+                      Siguiente
+                    </button>
                   </div>
                 </div>
               </div>
@@ -326,7 +330,7 @@ async function startCheckout() {
                         Ingresa el correo electronico al cual se enviaran los
                         boletos
                       </h3>
-                      <div class="flex flex-col gap-2 md:flex-row mt-5 ">
+                      <div class="flex flex-col gap-2 md:flex-row mt-5">
                         <FormKit
                           type="email"
                           name="emailSent"
@@ -350,6 +354,9 @@ async function startCheckout() {
                           }"
                         />
                       </div>
+                      <p v-if="!store.sameEmails" class="text-red-500 text-sm">
+                        Los correos deben coincidir para continuar.
+                      </p>
                     </div>
                   </div>
 
@@ -405,12 +412,18 @@ async function startCheckout() {
                           </button>
                           <button
                             class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                            :disabled="!store.sameEmails"
+                            :disabled="!store.canContinuePassengers"
                             @click="store.next"
                           >
                             Continuar
                           </button>
                         </div>
+                        <p
+                          v-if="!store.allAdults"
+                          class="text-red-500 text-sm mt-2"
+                        >
+                          Todos los pasajeros deben ser mayores de edad.
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -474,9 +487,11 @@ async function startCheckout() {
                     </ul>
 
                     <div class="mt-5">
-                      <p class="text-gray-400 italic ">
+                      <p class="text-gray-400 italic">
                         Los boletos se enviaran al correo:
-                        <span class="font-semibold">{{ store.emailSendTickets.emailSent }}</span>
+                        <span class="font-semibold">{{
+                          store.emailSendTickets.emailSent
+                        }}</span>
                       </p>
                     </div>
                   </div>
@@ -621,6 +636,7 @@ async function startCheckout() {
                           </button>
                           <button
                             :disabled="!store.aceptedTerms"
+                            @click="startCheckout"
                             class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Pagar {{ totalFormatted }} MXN
