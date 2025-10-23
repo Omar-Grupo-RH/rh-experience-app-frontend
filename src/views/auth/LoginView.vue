@@ -14,22 +14,14 @@ const handleSubmit = async (formData) => {
       data: {
         token,
         first_name,
-        email,
         last_name,
-        phone,
         admin,
-        born_date,
-        allergies,
       },
     } = await AuthAPI.login(formData);
     await login(token, {
       first_name,
-      email,
       last_name,
-      phone,
       admin,
-      born_date,
-      allergies,
     });
 
     reset("loginForm");

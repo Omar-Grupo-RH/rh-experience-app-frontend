@@ -8,80 +8,46 @@ import { formatDateToSpanish } from "@/utils/formatDate";
 
 const store = useReservaStore();
 const isProcessing = ref(false);
-const allergiesInput = ref("");
 
-function pushAllergies(...rawTags) {
-  const existing = new Set(
-    store.form.allergies.map((a) => a.trim().toLowerCase())
-  );
-
-  const toAdd = rawTags
-    .flat()
-    .map((t) => (t ?? "").trim())
-    .filter(Boolean);
-  for (const tag of toAdd) {
-    const key = tag.toLowerCase();
-    if (!existing.has(key)) {
-      store.form.allergies.push(tag);
-      existing.add(key);
-    }
-  }
-}
-
-function handleAllergiesInput(e) {
-  const v = e.target.value;
-  if (v.includes(",")) {
-    const tags = v
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
-    pushAllergies(tags);
-    allergiesInput.value = "";
-  }
-}
-
-function commitAllergyOnBlur() {
-  const v = allergiesInput.value.trim();
-  if (v) {
-    pushAllergies(v);
-    allergiesInput.value = "";
-  }
-}
-
-function removeAllergy(i) {
-  store.form.allergies.splice(i, 1);
-}
-
-const totalFormatted = computed(() => {
-  const total = store.total();
-  return new Intl.NumberFormat("es-MX", {
-    style: "currency",
-    currency: "MXN",
-  }).format(total);
-});
-
+// Totales
+const totalFormatted = computed(() =>
+  new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(
+    store.total()
+  )
+);
 const breakdown = computed(() => store.priceBreakdown());
 
 function goToPago() {
+  if (!validateAdults()) return;
   store.next();
 }
 
 async function startCheckout() {
   isProcessing.value = true;
   try {
-    console.log(
-      JSON.stringify({
-        date: store.date,
-        seats: store.selectedSeats,
-        first_name: store.form.first_name,
-        last_name: store.form.last_name,
-        phone: store.form.phone,
-        email: store.form.email,
-        unit_price: store.pricePerSeat,
-      })
-    );
-  } catch (err) {
-    console.error(err);
+    const payload = {
+      date: store.date,
+      trip_id: store.selectedTripId,
+      seats: store.selectedSeats,
+      // Todos los pasajeros (incluye quien paga)
+      passengers: store.passengers.map((p) => ({
+        seat_id: p.seat,
+        first_name: p.first_name,
+        last_name: p.last_name,
+        email: p.email,
+        phone: p.phone,
+        born_date: p.born_date,
+        allergies: p.allergies,
+      })),
+      // Puedes tomar el email de envío del primer pasajero o pedir uno aparte:
+      tickets_email: store.passengers[0]?.email || "",
+      unit_price: store.pricePerSeat,
+      breakdown: store.priceBreakdown(),
+    };
+    console.log("CHECKOUT PAYLOAD:", JSON.stringify(payload, null, 2));
+    // TODO: fetch(...) a tu backend / sesión Stripe
+  } catch (e) {
+    console.error(e);
     alert("Error iniciando pago");
   } finally {
     isProcessing.value = false;
@@ -94,7 +60,7 @@ async function startCheckout() {
     <Menu />
     <section class="min-h-screen">
       <div
-        class="min-h-screen flex justify-center items-center bg-experience-aqua relative py-5"
+        class="min-h-screen flex justify-center items-center bg-experience-white relative py-5"
       >
         <div
           class="w-full h-full absolute inset-0 overflow-hidden pointer-events-none"
@@ -106,37 +72,37 @@ async function startCheckout() {
           />
         </div>
 
-        <div
-          class="p-5 md:p-10 rounded-2xl shadow md:w-[80%] bg-experience-white relative"
-        >
-          <h2
-            class="text-xl md:text-2xl mb-5 uppercase xl:text-3xl font-semibold text-center"
-          >
-            Reservar experiencia
-          </h2>
-
-          <div class="max-w-7xl mx-auto p-6 space-y-6">
-            <div class="flex justify-between font-medium mb-4">
+        <div class="md:p-5 rounded-2xl  w-[95%] xl:w-[80%] relative">
+          <div class="max-w-7xl mx-auto  space-y-6">
+            <!-- Pasos -->
+            <div class="flex flex-col items-center lg:flex-row lg:justify-around font-medium mb-4">
               <div
                 :class="
                   store.step >= 1 ? 'text-experience-pink' : 'text-gray-400'
                 "
               >
-                1. Día & Asientos
+                Fecha y Asientos
               </div>
               <div
                 :class="
                   store.step >= 2 ? 'text-experience-pink' : 'text-gray-400'
                 "
               >
-                2. Datos
+                Registro de Pasajeros
               </div>
               <div
                 :class="
                   store.step >= 3 ? 'text-experience-pink' : 'text-gray-400'
                 "
               >
-                3. Pago
+                Confirmacion de datos
+              </div>
+              <div
+                :class="
+                  store.step >= 4 ? 'text-experience-pink' : 'text-gray-400'
+                "
+              >
+                Pago
               </div>
             </div>
 
@@ -145,17 +111,18 @@ async function startCheckout() {
               v-if="store.step === 1"
               class="bg-white p-4 rounded-lg w-full shadow-sm space-y-4"
             >
-              <div class="flex justify-between lg:gap-5">
-                <div class="lg:w-[70%]">
+              <div class="flex flex-col xl:flex-row justify-between xl:gap-5">
+                <div class="xl:w-[70%]">
                   <p class="xl:text-lg font-medium mb-5">Selecciona tu fecha</p>
                   <Calendar />
                 </div>
 
-                <div v-if="store.date" class="lg:w-[25%]">
+                <div v-if="store.date" class="xl:w-[25%]">
                   <p class="xl:text-lg font-medium mb-5 text-center">
                     Selecciona tus asientos
                   </p>
                   <BusSeatSelector />
+
                   <div class="flex items-center justify-between mt-3">
                     <div class="flex flex-col gap-1.5">
                       <p class="text-sm">
@@ -182,201 +149,487 @@ async function startCheckout() {
                       </p>
                     </div>
                   </div>
-                  <button
-                    class="px-4 py-2 rounded-md bg-experience-pink text-white disabled:opacity-50 cursor-pointer mt-5 w-full"
+                  <div class="lg:flex lg:justify-end">
+                    <button
+                    class="px-4 py-2 rounded-md bg-experience-pink text-white disabled:opacity-50 cursor-pointer mt-5 w-full lg:w-fit"
                     :disabled="store.selectedSeats.length === 0 || !store.date"
                     @click="store.next"
                   >
                     Siguiente
                   </button>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- Paso 2 -->
-
+            <!-- Paso 2: N Pasajeros -->
             <div
               v-else-if="store.step === 2"
-              class="bg-white py-10 rounded-lg shadow-sm"
+              class="bg-white p-10 rounded-lg shadow-sm"
             >
               <div class="max-w-5xl mx-auto">
-                <FormKit
-                  type="form"
-                  submit-label="Siguiente"
-                  :actions="false"
-                  incomplete-message="Hay algunos campos incompletos"
-                  @submit="goToPago"
+                <h2
+                  class="text-2xl font-semibold mb-6 text-balance text-center"
                 >
-                  <FormKit
-                    type="text"
-                    label="Nombre(s)"
-                    name="first_name"
-                    placeholder="John"
-                    validation="required|length:3"
-                    :validation-messages="{
-                      required: 'El nombre es obligatorio',
-                    }"
-                    :value="store.form.first_name"
-                    v-model="store.form.first_name"
-                  />
-
-                  <FormKit
-                    type="text"
-                    label="Apellido(s)"
-                    name="last_name"
-                    placeholder="Doe"
-                    validation="required|length:3"
-                    :validation-messages="{
-                      required: 'El apellido es obligatorio',
-                    }"
-                    :value="store.form.last_name"
-                    v-model="store.form.last_name"
-                  />
-
-                  <FormKit
-                    type="email"
-                    label="Correo electrónico"
-                    name="email"
-                    placeholder="Ingresa tu correo electronico"
-                    validation="required|email"
-                    :validation-messages="{
-                      required: 'El correo electronico es obligatorio',
-                      email: 'Email no valido',
-                    }"
-                    :value="store.form.email"
-                    v-model="store.form.email"
-                  />
-                  <FormKit
-                    type="date"
-                    label="Fecha de nacimiento"
-                    name="born_date"
-                    v-model="store.form.born_date"
-                    placeholder="Selecciona tu fecha de nacimiento"
-                    validation="required|date"
-                    :value="store.form.born_date"
-                    :validation-messages="{
-                      required: 'La fecha de nacimiento es obligatoria',
-                      date: 'Fecha no valida',
-                    }"
-                  />
-
-                  <div class="mb-4">
-                    <label
-                      for="allergies_input"
-                      class="block font-medium text-gray-700 mb-1"
-                    >
-                      Alergias (separadas por coma)
-                    </label>
-
-                    <input
-                      id="allergies_input"
-                      type="text"
-                      v-model="allergiesInput"
-                      @blur="commitAllergyOnBlur"
-                      @input="handleAllergiesInput"
-                      placeholder="Ej. mariscos, cacahuate, gluten"
-                      class="w-full outline-none border-0 bg-gray-50 rounded-md p-2 text-sm"
-                    />
-
-                    <!-- Chips visuales -->
-                    <div class="flex flex-wrap gap-2 mt-2">
-                      <span
-                        v-for="(allergy, index) in store.form.allergies"
-                        :key="index"
-                        class="bg-blue-100 text-experience-pink text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1"
-                      >
-                        {{ allergy }}
-                        <button
-                          type="button"
-                          class="text-red-500 hover:text-red-700 cursor-pointer"
-                          @click="removeAllergy(index)"
+                  Registro de pasajeros para RH EXPERIENCE el
+                  {{ formatDateToSpanish(store.date) }}
+                </h2>
+                <div
+                  class="w-full flex flex-col-reverse gap-5 lg:flex-row items-start lg:gap-10 relative"
+                >
+                  <div class="w-full lg:max-w-xl lg:flex-2">
+                    <FormKit type="form" :actions="false">
+                      <div class="space-y-6">
+                        <FormKit
+                          v-for="(p, idx) in store.passengers"
+                          :key="p.seat"
+                          type="group"
+                          :name="`passengers[${idx}]`"
+                          :label="`Pasajero ${String(idx + 1).padStart(
+                            2,
+                            '0'
+                          )} — Asiento ${p.seat}`"
+                          label-class="block font-medium text-gray-800 mb-2"
+                          :value="p"
                         >
-                          ✕
-                        </button>
-                      </span>
+                          <div
+                            class="bg-gray-50 p-4 rounded-lg border border-gray-200"
+                          >
+                            <div>
+                              <p class="font-semibold text-xl">
+                                Pasajero
+                                <span class="font-normal">{{ idx + 1 }}</span>
+                              </p>
+                              <div>
+                                <p class="font-semibold text-xl">
+                                  Asiento
+                                  <span class="font-normal">{{ p.seat }}</span>
+                                </p>
+                              </div>
+                            </div>
+                            <div class="grid md:grid-cols-2 gap-4 mt-5">
+                              <FormKit
+                                type="text"
+                                name="first_name"
+                                label="Nombre(s)"
+                                v-model="p.first_name"
+                                placeholder="Jhon"
+                                validation="required|length:3"
+                                :validation-messages="{
+                                  required: 'El nombre es obligatorio',
+                                }"
+                              />
+                              <FormKit
+                                type="text"
+                                name="last_name"
+                                label="Apellido(s)"
+                                v-model="p.last_name"
+                                placeholder="Doe"
+                                validation="required|length:3"
+                                :validation-messages="{
+                                  required: 'El apellido es obligatorio',
+                                }"
+                              />
+                              <FormKit
+                                type="email"
+                                name="email"
+                                label="Correo electrónico"
+                                v-model="p.email"
+                                placeholder="ejemplo@correo.com"
+                                validation="required|email"
+                                :validation-messages="{
+                                  required: 'Correo obligatorio',
+                                  email: 'Email no válido',
+                                }"
+                              />
+                              <FormKit
+                                type="tel"
+                                name="phone"
+                                label="Teléfono"
+                                v-model="p.phone"
+                                placeholder="10 dígitos"
+                                validation="required|matches:/^[0-9]{10}$/"
+                                :validation-messages="{
+                                  required: 'Teléfono obligatorio',
+                                  matches: 'Debe tener 10 dígitos',
+                                }"
+                              />
+                              <FormKit
+                                type="date"
+                                name="born_date"
+                                label="Fecha de nacimiento"
+                                v-model="p.born_date"
+                                placeholder="AAAA-MM-DD"
+                                validation="required|date"
+                                :validation-messages="{
+                                  required: 'Fecha obligatoria',
+                                  date: 'Fecha no válida',
+                                }"
+                              />
+
+                              <!-- Alergias -->
+                              <div class="mb-2 md:col-span-2">
+                                <label
+                                  class="block font-medium text-gray-700 mb-1"
+                                  >Alergias (separadas por coma)</label
+                                >
+                                <input
+                                  type="text"
+                                  class="w-full outline-none border-0 bg-white rounded-md p-2 text-sm"
+                                  @keydown.enter.prevent
+                                  @blur="
+                                    (ev) => {
+                                      const raw = ev.target.value.trim();
+                                      if (!raw) return;
+                                      const tags = raw
+                                        .split(',')
+                                        .map((t) => t.trim())
+                                        .filter(Boolean);
+                                      p.allergies = Array.from(
+                                        new Set([
+                                          ...(p.allergies || []),
+                                          ...tags,
+                                        ])
+                                      );
+                                      ev.target.value = '';
+                                    }
+                                  "
+                                  placeholder="Ej. mariscos, cacahuate"
+                                />
+                                <div class="flex flex-wrap gap-2 mt-2">
+                                  <span
+                                    v-for="(tag, aidx) in p.allergies"
+                                    :key="aidx"
+                                    class="bg-blue-100 text-experience-pink text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1"
+                                  >
+                                    {{ tag }}
+                                    <button
+                                      type="button"
+                                      class="text-red-500 hover:text-red-700 cursor-pointer"
+                                      @click="p.allergies.splice(aidx, 1)"
+                                    >
+                                      ✕
+                                    </button>
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </FormKit>
+                      </div>
+
+                      <div class="flex justify-between mt-6"></div>
+                    </FormKit>
+
+                    <div>
+                      <h3>
+                        Ingresa el correo electronico al cual se enviaran los
+                        boletos
+                      </h3>
+                      <div class="flex flex-col gap-2 md:flex-row mt-5 ">
+                        <FormKit
+                          type="email"
+                          name="emailSent"
+                          v-model="store.emailSendTickets.emailSent"
+                          placeholder="Ingresa correo electronico"
+                          validation="required|email"
+                          :validation-messages="{
+                            required: 'Correo obligatorio',
+                            email: 'Email no válido',
+                          }"
+                        />
+                        <FormKit
+                          type="email"
+                          name="confirmEmail"
+                          v-model="store.emailSendTickets.confirmEmail"
+                          placeholder="Confirmar correo electronico"
+                          validation="required|email"
+                          :validation-messages="{
+                            required: 'Correo obligatorio',
+                            email: 'Email no válido',
+                          }"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <FormKit
-                    type="tel"
-                    label="Teléfono"
-                    name="phone"
-                    placeholder="Ingresa tu numero telefonico"
-                    validation="required|matches:/^[0-9]{10}$/"
-                    :validation-messages="{
-                      required: 'El numero telefonico es obligatorio',
-                      matches:
-                        'El numero telefonico debe tener 10 digitos solamente.',
-                    }"
-                    :value="store.form.phone"
-                    v-model="store.form.phone"
-                  />
+                  <div
+                    class="flex w-full items-center justify-between rounded-lg bg-gray-50 border-gray-200 mt-3 border lg:flex-1"
+                  >
+                    <div class="flex flex-col gap-1.5 w-full p-5">
+                      <div class="flex items-center gap-5 lg:gap-10">
+                        <img
+                          src="/logos/Recurso9.svg"
+                          class="w-9 lg:w-16 invert"
+                          alt=""
+                        />
+                        <div>
+                          <p class="font-semibold">
+                            {{ formatDateToSpanish(store.date) }}
+                          </p>
+                          <p class="font-semibold">
+                            Origen: <span>Oficinas de Grupo RH</span>
+                          </p>
+                          <div v-if="store.selectedSeats.length">
+                            <p class="font-semibold">
+                              {{ breakdown.breakdownText }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
 
-                  <div class="flex justify-between mt-6">
-                    <button
-                      type="button"
-                      class="w-fit h-fit py-2 px-4 rounded-md cursor-pointer bg-gray-300"
-                      @click="store.prev"
-                    >
-                      Atrás
-                    </button>
+                      <div class="mt-5">
+                        <p>
+                          Asientos seleccionados:
+                          <strong v-if="store.selectedSeats.length">{{
+                            store.selectedSeats.join(", ")
+                          }}</strong>
+                          <span v-else class="text-gray-400">— ninguno —</span>
+                        </p>
 
-                    <FormKit
-                      type="submit"
-                      label="Siguiente"
-                      input-class="px-4 py-2 bg-experience-pink text-white rounded-md"
-                    />
+                        <p
+                          class="text-lg font-semibold"
+                          v-if="store.selectedSeats.length"
+                        >
+                          Total: {{ totalFormatted }} MXN
+                        </p>
+
+                        <div
+                          class="flex items-center gap-5 lg:flex-col lg:gap-2 mt-5"
+                        >
+                          <button
+                            class="py-2 px-4 rounded-md bg-gray-300 w-full cursor-pointer"
+                            @click="store.prev"
+                          >
+                            Regresar
+                          </button>
+                          <button
+                            class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            :disabled="!store.sameEmails"
+                            @click="store.next"
+                          >
+                            Continuar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </FormKit>
+                </div>
               </div>
             </div>
 
+            <!-- Paso 3 -->
             <div
               v-else-if="store.step === 3"
+              class="bg-white p-10 rounded-lg shadow-sm"
+            >
+              <div class="max-w-5xl mx-auto">
+                <h2
+                  class="text-2xl font-semibold mb-6 text-balance text-center"
+                >
+                  Confirmacion de datos
+                </h2>
+                <div
+                  class="w-full flex flex-col-reverse lg:flex-row lg:items-start lg:gap-10 relative"
+                >
+                  <div class="lg:max-w-xl lg:flex-2 mt-5 lg:mt-3">
+                    <ul class="space-y-5">
+                      <li
+                        v-for="(p, idx) in store.passengers"
+                        :key="p.seat"
+                        class="bg-gray-50 rounded border border-gray-200 flex"
+                      >
+                        <div
+                          class="flex flex-col justify-center items-center p-4 gap-2 border-gray-300 border-r-2"
+                        >
+                          <p class="lg:text-xl">
+                            <strong>Pasajero {{ idx + 1 }}</strong>
+                          </p>
+
+                          <div>
+                            <img
+                              src="/svg/seat.svg"
+                              alt="Icono de un asiento"
+                              class="w-5 xl:w-7"
+                            />
+                          </div>
+
+                          <p class="text-sm">Asiento {{ p.seat }}</p>
+                        </div>
+
+                        <div class="p-4">
+                          <p class="xl:text-lg">
+                            {{ p.first_name }} {{ p.last_name }}
+                          </p>
+                          <p class="xl:text-lg">
+                            {{ formatDateToSpanish(p.born_date) }}
+                          </p>
+                          <p class="xl:text-lg">{{ p.phone || "—" }}</p>
+                          <p class="xl:text-lg">{{ p.email || "—" }}</p>
+                          <p class="xl:text-lg" v-if="p.allergies?.length">
+                            Alergias: {{ p.allergies.join(", ") }}
+                          </p>
+                        </div>
+                      </li>
+                    </ul>
+
+                    <div class="mt-5">
+                      <p class="text-gray-400 italic ">
+                        Los boletos se enviaran al correo:
+                        <span class="font-semibold">{{ store.emailSendTickets.emailSent }}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    class="flex items-center justify-between rounded-lg bg-gray-50 border-gray-200 mt-3 border lg:flex-1"
+                  >
+                    <div class="flex flex-col gap-1.5 w-full p-5">
+                      <div class="flex items-center gap-5 lg:gap-10">
+                        <img
+                          src="/logos/Recurso9.svg"
+                          class="w-9 lg:w-16 invert"
+                          alt=""
+                        />
+                        <div>
+                          <p class="font-semibold">
+                            {{ formatDateToSpanish(store.date) }}
+                          </p>
+                          <p class="font-semibold">
+                            Origen: <span>Oficinas de Grupo RH</span>
+                          </p>
+                          <div v-if="store.selectedSeats.length">
+                            <p class="font-semibold">
+                              {{ breakdown.breakdownText }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="lg:mt-5">
+                        <p>
+                          Asientos seleccionados:
+                          <strong v-if="store.selectedSeats.length">{{
+                            store.selectedSeats.join(", ")
+                          }}</strong>
+                          <span v-else class="text-gray-400">— ninguno —</span>
+                        </p>
+
+                        <p
+                          class="text-lg font-semibold"
+                          v-if="store.selectedSeats.length"
+                        >
+                          Total: {{ totalFormatted }} MXN
+                        </p>
+
+                        <div
+                          class="mt-5 flex gap-5 items-center lg:flex-col lg:gap-2"
+                        >
+                          <button
+                            class="py-2 px-4 rounded-md bg-gray-300 w-full cursor-pointer"
+                            @click="store.prev"
+                          >
+                            Regresar
+                          </button>
+                          <button
+                            class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            @click="store.next"
+                          >
+                            Continuar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Paso 4 -->
+            <div
+              v-else-if="store.step === 4"
               class="bg-white p-4 rounded-lg shadow-sm"
             >
-              <h2 class="font-semibold mb-2">Resumen</h2>
-              <div class="bg-gray-50 p-3 rounded mb-4">
-                <p>
-                  <strong>Fecha:</strong> {{ formatDateToSpanish(store.date) }}
-                </p>
-                <p>
-                  <strong>Asientos:</strong>
-                  {{ store.selectedSeats.join(", ") }}
-                </p>
-                <p><strong>Nombre(s):</strong> {{ store.form.first_name }}</p>
-                <p><strong>Apellido(s):</strong> {{ store.form.last_name }}</p>
-                <p><strong>Email:</strong> {{ store.form.email }}</p>
-                <p><strong>Telefono:</strong> {{ store.form.phone }}</p>
-              </div>
+              <div class="max-w-5xl mx-auto">
+                <h2
+                  class="text-2xl font-semibold mb-6 text-balance text-center"
+                >
+                  Realizar Pago
+                </h2>
+                <div class="w-full lg:flex items-start lg:gap-10 relative">
+                  <div class="max-w-xl lg:flex-2">Aqui ira lo de stripe</div>
+                  <div
+                    class="flex items-center justify-between rounded-lg bg-gray-50 border-gray-200 mt-3 border lg:flex-1"
+                  >
+                    <div class="flex flex-col gap-1.5 w-full p-5">
+                      <div class="flex items-center gap-5 lg:gap-10">
+                        <img
+                          src="/logos/Recurso9.svg"
+                          class="w-9 lg:w-16 invert"
+                          alt=""
+                        />
+                        <div>
+                          <p class="font-semibold">
+                            {{ formatDateToSpanish(store.date) }}
+                          </p>
+                          <p class="font-semibold">
+                            Origen: <span>Oficinas de Grupo RH</span>
+                          </p>
+                          <div v-if="store.selectedSeats.length">
+                            <p class="font-semibold">
+                              {{ breakdown.breakdownText }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
 
-              <div class="flex items-center justify-between mb-4">
-                <div>
-                  <p class="text-sm">Total a pagar</p>
-                  <p class="text-2xl font-semibold">{{ totalFormatted }}</p>
+                      <div class="mt-5">
+                        <p>
+                          Asientos seleccionados:
+                          <strong v-if="store.selectedSeats.length">{{
+                            store.selectedSeats.join(", ")
+                          }}</strong>
+                          <span v-else class="text-gray-400">— ninguno —</span>
+                        </p>
+
+                        <p
+                          class="text-lg font-semibold"
+                          v-if="store.selectedSeats.length"
+                        >
+                          Total: {{ totalFormatted }} MXN
+                        </p>
+
+                        <div class="flex items-center gap-2 mt-3">
+                          <input
+                            type="checkbox"
+                            name="terminos"
+                            id="terminos"
+                            v-model="store.aceptedTerms"
+                          />
+                          <label for="terminos" class="block"
+                            >Acepto los terminos y condiciones</label
+                          >
+                        </div>
+
+                        <div class="mt-5 space-y-2">
+                          <button
+                            type="button"
+                            class="py-2 px-4 rounded-md bg-gray-300 w-full cursor-pointer"
+                            @click="store.prev"
+                          >
+                            Regresar
+                          </button>
+                          <button
+                            :disabled="!store.aceptedTerms"
+                            class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Pagar {{ totalFormatted }} MXN
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <button
-                  @click="startCheckout"
-                  :disabled="isProcessing"
-                  class="px-4 py-2 bg-green-600 text-white rounded-md cursor-pointer"
-                >
-                  {{ isProcessing ? "Redirigiendo..." : "Pagar con Stripe" }}
-                </button>
-              </div>
-
-              <div class="mt-4 flex justify-between">
-                <button
-                  class="w-fit h-fit py-2 px-4 rounded-md cursor-pointer bg-gray-300"
-                  @click="store.prev"
-                >
-                  Atrás
-                </button>
-                <button
-                  class="w-fit h-fit py-2 px-4 rounded-md cursor-pointer bg-red-500 text-white"
-                  @click="store.reset"
-                >
-                  Cancelar
-                </button>
               </div>
             </div>
           </div>

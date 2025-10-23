@@ -1,6 +1,5 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
-import { useReservaStore } from "@/stores/reservaStore";
 
 const STORAGE_KEY = "AUTH_TOKEN";
 const STORAGE_USER = "AUTH_USER";
@@ -19,22 +18,6 @@ function decodeJwtPayload(jwt) {
   } catch {
     return null;
   }
-}
-
-function syncReservaStore(userData) {
-  const storeReserva = useReservaStore();
-  if (!storeReserva) return;
-  const fields = [
-    "first_name",
-    "last_name",
-    "email",
-    "phone",
-    "born_date",
-    "allergies",
-  ];
-  fields.forEach((f) => {
-    if (userData[f]) storeReserva.form[f] = userData[f];
-  });
 }
 
 function hydrateFromToken(logoutFn) {
@@ -65,29 +48,18 @@ function hydrateFromToken(logoutFn) {
     id: payload.sub || payload.id || base.id || null,
     first_name: payload.first_name || base.first_name,
     last_name: payload.last_name || base.last_name,
-    email: payload.email || base.email,
-    phone: payload.phone || base.phone,
-    born_date: payload.born_date || base.born_date,
-    allergies: payload.allergies || base.allergies,
     admin: adminValue,
     raw: payload,
   };
 
   localStorage.setItem(STORAGE_USER, JSON.stringify(user.value));
-  syncReservaStore(user.value);
 }
 
 export function useAuth() {
   const router = useRouter();
   const isAuthenticated = computed(() => !!token.value && !!user.value);
-  const storeReserva = useReservaStore();
+
   function logout() {
-    storeReserva.form.first_name = "";
-    storeReserva.form.last_name = "";
-    storeReserva.form.email = "";
-    storeReserva.form.phone = "";
-    storeReserva.form.born_date = "";
-    storeReserva.form.allergies = [];
     token.value = null;
     user.value = null;
     localStorage.removeItem(STORAGE_KEY);
@@ -111,7 +83,7 @@ export function useAuth() {
       localStorage.setItem(STORAGE_USER, JSON.stringify(user.value));
     }
 
-    syncReservaStore(user.value);
+    
 
     if (user.value.admin) {
       router.push({ name: "dashboard" });
