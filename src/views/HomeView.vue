@@ -2,21 +2,18 @@
 import Menu from "@/components/Navigation/Menu.vue";
 import { ref, computed } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
-
 import BusSeatSelector from "@/components/Reservation/BusSeatSelector.vue";
+import TermsCondModal from "@/components/Reservation/TermsCondModal.vue";
 import Calendar from "@/components/Reservation/Calendar.vue";
 import { formatDateToSpanish } from "@/utils/formatDate";
 import { currencyFormat } from "@/utils/formatMoney";
+
+import axios from "axios";
 
 const store = useReservaStore();
 const isProcessing = ref(false);
 
 const breakdown = computed(() => store.priceBreakdown());
-
-function goToPago() {
-  if (!validateAdults()) return;
-  store.next();
-}
 
 async function startCheckout() {
   isProcessing.value = true;
@@ -36,12 +33,16 @@ async function startCheckout() {
         allergies: p.allergies,
       })),
       // Puedes tomar el email de envío del primer pasajero o pedir uno aparte:
-      tickets_email: store.passengers[0]?.email || "",
+      tickets_email: store.emailSendTickets.emailSent,
+      tickets_name: store.emailSendTickets.nameSent || "Cliente",
       unit_price: store.pricePerSeat,
-      breakdown: store.priceBreakdown(),
+      total: store.total,
+      couponId: store.couponId || null,
     };
-    console.log("CHECKOUT PAYLOAD:", JSON.stringify(payload, null, 2));
-    // TODO: fetch(...) a tu backend / sesión Stripe
+
+    console.log(JSON.stringify(payload))
+    const res = await axios.post("http://localhost:4000/api/payment", payload);
+    console.log(res);
   } catch (e) {
     console.error(e);
     alert("Error iniciando pago");
@@ -52,13 +53,13 @@ async function startCheckout() {
 </script>
 
 <template>
-  <main>
+  <main >
     <Menu />
-    <section class="min-h-screen">
+    <section class="min-h-screen relative">
       <div
-        class="min-h-screen flex justify-center items-center bg-gray-100 relative py-5"
+        class="min-h-screen flex justify-center    bg-gray-50 relative"
       >
-        <div class="md:p-5 rounded-2xl w-[95%] xl:w-[80%] relative">
+        <div class="rounded-2xl w-[95%] xl:w-[80%]  mt-10 py-5 pb-10 relative">
           <div class="max-w-7xl mx-auto space-y-6">
             <!-- Pasos -->
             <div
@@ -97,12 +98,14 @@ async function startCheckout() {
             <!-- Paso 1 -->
             <div
               v-if="store.step === 1"
-              class="bg-white p-4 rounded-lg w-full shadow-sm space-y-4"
+              class="bg-white p-4  rounded-lg w-full h-auto shadow-sm space-y-4"
             >
               <div class="flex flex-col xl:flex-row justify-between xl:gap-5">
                 <div class="xl:w-[70%]">
                   <p class="xl:text-lg font-medium mb-5">Selecciona tu fecha</p>
-                  <Calendar />
+                  <div class="h-[600px] overflow-y-scroll">
+                    <Calendar />
+                  </div>
                 </div>
 
                 <div v-if="store.date" class="xl:w-[25%]">
@@ -383,10 +386,20 @@ async function startCheckout() {
 
                     <div>
                       <h3>
-                        Ingresa el correo electronico al cual se enviaran los
-                        boletos
+                        Ingresa los datos de la persona que recibira los boletos
                       </h3>
                       <div class="flex flex-col gap-1 mt-3">
+                        <FormKit
+                          type="text"
+                          name="nameSent"
+                          v-model="store.emailSendTickets.nameSent"
+                          placeholder="Ingresa el nombre del destinatarios"
+                          validation="required"
+                          :validation-messages="{
+                            required: 'Nombre obligatorio',
+                          }"
+                        />
+
                         <FormKit
                           type="email"
                           name="emailSent"
@@ -476,9 +489,13 @@ async function startCheckout() {
 
                     <div class="mt-5">
                       <p class="text-gray-400 italic">
-                        Los boletos se enviaran al correo:
+                        Los boletos se enviaran al correo
                         <span class="font-semibold">{{
                           store.emailSendTickets.emailSent
+                        }}</span>
+                        a nombre de
+                        <span class="font-semibold">{{
+                          store.emailSendTickets.nameSent
                         }}</span>
                       </p>
                     </div>
@@ -560,7 +577,18 @@ async function startCheckout() {
                   Realizar Pago
                 </h2>
                 <div class="w-full lg:flex items-start lg:gap-10 relative">
-                  <div class="max-w-xl lg:flex-2">Aqui ira lo de stripe</div>
+                  <div class="max-w-xl lg:flex-2">
+                    <form id="payment-form">
+                      <div id="payment-element">
+                        <!--Stripe.js injects the Payment Element-->
+                      </div>
+                      <button id="submit">
+                        <div class="spinner hidden" id="spinner"></div>
+                        <span id="button-text">Pay now</span>
+                      </button>
+                      <div id="payment-message" class="hidden"></div>
+                    </form>
+                  </div>
                   <div
                     class="flex items-center justify-between rounded-lg bg-gray-50 border-gray-200 mt-3 border lg:flex-1"
                   >
@@ -635,7 +663,13 @@ async function startCheckout() {
                             v-model="store.aceptedTerms"
                           />
                           <label for="terminos" class="block"
-                            >Acepto los terminos y condiciones</label
+                            >Acepto los
+                            <button
+                              @click="store.modal = !store.modal"
+                              class="underline cursor-pointer"
+                            >
+                              terminos y condiciones
+                            </button></label
                           >
                         </div>
 
@@ -664,6 +698,7 @@ async function startCheckout() {
           </div>
         </div>
       </div>
+      <TermsCondModal :isVisible="store.modal" />
     </section>
   </main>
 </template>

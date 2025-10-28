@@ -14,22 +14,44 @@ export const useReservaStore = defineStore("reserva", () => {
   const aceptedTerms = ref(false);
   const pricePerSeat = ref(2100);
   const events = ref([]);
+  const modal = ref(false);
 
   const couponInput = ref("");
   const couponTextBtn = ref("Canjear");
   const discountPercent = ref(0);
   const discountAmount = ref(0);
+  const couponId = ref(null);
 
   const total = ref(0);
 
   const emailSendTickets = ref({
     emailSent: "",
     confirmEmail: "",
+    nameSent: "",
   });
 
   // --- PASAJEROS ---
   const passengers = ref([]);
   const normSeat = (s) => String(s);
+
+  // --- HELPERS PRIVADOS (no exportados) ---
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function isValidDateStr(s) {
+    if (typeof s !== "string" || !s.trim()) return false;
+    const d = new Date(s);
+    return !isNaN(d.getTime());
+  }
+
+  function getAgeFromISO(iso) {
+    if (!isValidDateStr(iso)) return -1;
+    const b = new Date(iso + "T00:00:00"); // fija medianoche local
+    const t = new Date();
+    let age = t.getFullYear() - b.getFullYear();
+    const m = t.getMonth() - b.getMonth();
+    if (m < 0 || (m === 0 && t.getDate() < b.getDate())) age--;
+    return age;
+  }
 
   // Sincroniza pasajeros con asientos seleccionados
   function syncPassengersToSeats() {
@@ -49,38 +71,94 @@ export const useReservaStore = defineStore("reserva", () => {
     );
   }
 
-  watch(() => selectedSeats.value.slice(), syncPassengersToSeats, {
-    immediate: true,
-  });
+  // Usamos deep:true para reaccionar a push/splice sobre el mismo array
+  watch(selectedSeats, syncPassengersToSeats, { immediate: true, deep: true });
 
   // --- VALIDACIONES ---
+
+  // 🔎 Depuración: lista de errores (NO cambia API pública)
+  const validationErrors = ref([]);
+
   const allAdults = computed(() => {
-    const today = new Date();
-    return passengers.value.every((p) => {
-      if (!p.born_date) return false;
-      const birth = new Date(p.born_date);
-      const age = today.getFullYear() - birth.getFullYear();
-      const monthDiff = today.getMonth() - birth.getMonth();
-      const dayDiff = today.getDate() - birth.getDate();
-      const realAge =
-        monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
-      return realAge >= 18;
+    const errs = [];
+    const ok = passengers.value.every((p, i) => {
+      if (!p.born_date || !isValidDateStr(p.born_date)) {
+        errs.push(`Pasajero ${i + 1} (${p.seat}): born_date vacío/ inválido`);
+        return false;
+      }
+      const age = getAgeFromISO(p.born_date);
+      if (age < 18) {
+        errs.push(`Pasajero ${i + 1} (${p.seat}): es menor de edad (${age})`);
+        return false;
+      }
+      return true;
     });
+    // No asignamos aquí errs para no interferir con otros cálculos
+    return ok;
   });
 
   const sameEmails = computed(() => {
-    return (
-      emailSendTickets.value.emailSent !== "" &&
-      emailSendTickets.value.emailSent === emailSendTickets.value.confirmEmail
-    );
+    const a = (emailSendTickets.value.emailSent || "").trim();
+    const b = (emailSendTickets.value.confirmEmail || "").trim();
+    return a !== "" && a === b;
   });
 
+  const requiredFieldsFilled = computed(() => {
+    const required = ["first_name", "last_name", "email", "phone", "born_date"];
+    const errs = [];
+
+    if (selectedSeats.value.length === 0) {
+      errs.push("No hay asientos seleccionados.");
+      validationErrors.value = errs;
+      return false;
+    }
+
+    if (passengers.value.length !== selectedSeats.value.length) {
+      errs.push(
+        `Desfase: pasajeros (${passengers.value.length}) != asientos (${selectedSeats.value.length}).`
+      );
+      validationErrors.value = errs;
+      return false;
+    }
+
+    passengers.value.forEach((p, i) => {
+      required.forEach((k) => {
+        const v = p[k] ?? "";
+        const ok = typeof v === "string" ? v.trim().length > 0 : Boolean(v);
+        if (!ok) errs.push(`Pasajero ${i + 1} (${p.seat}): "${k}" vacío.`);
+      });
+      if (
+        p.email &&
+        typeof p.email === "string" &&
+        !EMAIL_RE.test(p.email.trim())
+      ) {
+        errs.push(`Pasajero ${i + 1} (${p.seat}): email con formato inválido.`);
+      }
+      if (p.born_date && !isValidDateStr(p.born_date)) {
+        errs.push(`Pasajero ${i + 1} (${p.seat}): born_date inválido.`);
+      }
+    });
+
+    validationErrors.value = errs;
+    return errs.length === 0;
+  });
+
+  const validationState = computed(() => ({
+    sameEmails: sameEmails.value,
+    allAdults: allAdults.value,
+    requiredFieldsFilled: requiredFieldsFilled.value,
+    canContinuePassengers: false,
+    lastErrors: validationErrors.value.slice(),
+  }));
+
   const canContinuePassengers = computed(() => {
-    return sameEmails.value && allAdults.value;
+    const ok =
+      sameEmails.value && allAdults.value && requiredFieldsFilled.value;
+    validationState.value.canContinuePassengers = ok;
+    return ok;
   });
 
   const couponEmpy = computed(() => couponInput.value !== "");
-
   const couponIsApply = computed(() => discountAmount.value !== 0);
 
   // --- PRECIOS ---
@@ -122,10 +200,11 @@ export const useReservaStore = defineStore("reserva", () => {
     return { discountedCount, standardCount, total: baseTotal, breakdownText };
   }
 
-  // 🔁 Actualiza total automáticamente cuando cambian asientos o descuento
+  // 🔁 Actualiza total/discountAmount automáticamente
   function updateTotal() {
     const baseTotal = priceBreakdown().total;
     const discount = baseTotal * discountPercent.value;
+    discountAmount.value = Number(discount.toFixed(2));
     total.value = baseTotal - discount;
   }
 
@@ -138,11 +217,13 @@ export const useReservaStore = defineStore("reserva", () => {
   async function getCoupon(code) {
     couponTextBtn.value = "Buscando...";
     try {
-      const { discount } = await getCouponDiscount(code);
+      const { discount, id } = await getCouponDiscount(code);
+      discountPercent.value = Number(discount) || 0;
 
-      discountPercent.value = Number(discount);
+      // Recalcula totales con el nuevo porcentaje
+      updateTotal();
+      couponId.value = id;
 
-      discountAmount.value = (total.value * discountPercent.value).toFixed(2);
       toast?.open?.({
         message: `Cupón aplicado del ${
           discountPercent.value * 100
@@ -153,11 +234,12 @@ export const useReservaStore = defineStore("reserva", () => {
       couponTextBtn.value = "Canjeado";
     } catch (e) {
       toast?.open?.({
-        message: e.response?.data?.message || "Cupón inválido",
+        message: e?.response?.data?.message || "Cupón inválido",
         type: "error",
       });
       couponTextBtn.value = "Canjear";
       discountPercent.value = 0;
+      updateTotal();
     }
   }
 
@@ -195,6 +277,9 @@ export const useReservaStore = defineStore("reserva", () => {
     date.value = null;
     passengers.value = [];
     discountPercent.value = 0;
+    discountAmount.value = 0;
+    couponInput.value = "";
+    couponTextBtn.value = "Canjear";
     total.value = 0;
   }
 
@@ -226,6 +311,7 @@ export const useReservaStore = defineStore("reserva", () => {
     discountPercent,
     discountAmount,
     total,
+    couponId,
 
     // Getters
     priceBreakdown,
@@ -244,5 +330,6 @@ export const useReservaStore = defineStore("reserva", () => {
     toggleSeat,
     seatsSold,
     getCoupon,
+    modal,
   };
 });

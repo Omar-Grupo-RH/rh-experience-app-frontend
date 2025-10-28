@@ -124,7 +124,7 @@ watch(
 </script>
 
 <template>
-  <div>
+  <div class="w-full h-full">
     <FullCalendar ref="calendarRef" :options="calendarOptions" />
   </div>
 </template>
