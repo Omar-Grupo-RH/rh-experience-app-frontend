@@ -40,6 +40,15 @@ const calendarOptions = ref({
       });
       return;
     }
+    if (event.start < new Date().toISOString().split("T")[0]) {
+      Swal.fire({
+        title: `Opps!`,
+        text: "No puedes seleccionar una fecha pasada.",
+        icon: "warning",
+        timer: 3000,
+      });
+      return;
+    }
 
     // Aquí tienes el id del evento
     store.selectedTripId = event.id;

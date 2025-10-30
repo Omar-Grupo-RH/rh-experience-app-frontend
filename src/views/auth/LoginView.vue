@@ -11,12 +11,7 @@ const { login } = useAuth(); // <- usamos el composable
 const handleSubmit = async (formData) => {
   try {
     const {
-      data: {
-        token,
-        first_name,
-        last_name,
-        admin,
-      },
+      data: { token, first_name, last_name, admin },
     } = await AuthAPI.login(formData);
     await login(token, {
       first_name,
@@ -103,25 +98,6 @@ const handleSubmit = async (formData) => {
 
           <FormKit type="submit">Iniciar Sesion</FormKit>
         </FormKit>
-        <div>
-          <p>
-            Aun no tienes una cuenta? Registrate
-            <RouterLink
-              :to="{ name: 'register' }"
-              class="underline text-experience-blue"
-              >aquí.</RouterLink
-            >
-          </p>
-          <p>
-            No necesitas cuenta para disfrutar la experiencia, compra tus
-            boletos
-            <RouterLink
-              :to="{ name: 'home' }"
-              class="underline text-experience-blue"
-              >aquí.</RouterLink
-            >
-          </p>
-        </div>
       </div>
     </div>
   </div>

@@ -16,7 +16,7 @@ const { user, isAuthenticated, logout } = auth;
       </Link>
     </div>
 
-    <ul class="flex flex-col gap-3 md:flex-row md:gap-5">
+    <ul class="flex flex-col md:flex-row ">
       <!-- Si NO hay sesión -->
       <li
         v-if="!isAuthenticated"
@@ -27,29 +27,16 @@ const { user, isAuthenticated, logout } = auth;
 
       <!-- Si SÍ hay sesión -->
       <template v-else-if="isAuthenticated">
-        <li class="h-16 px-5 flex items-center">
-          <span class="text-sm md:text-base opacity-90 capitalize font-bold"
-            >Hola, {{ user?.first_name }}</span
-          >
-        </li>
-
-        <li
-          v-if="isAuthenticated && !user?.admin"
-          class="cursor-pointer h-16 px-5 flex justify-center items-center"
-        >
-          <Link to="me">Mi perfil</Link>
-        </li>
-
         <li
           v-if="isAuthenticated && user?.admin"
-          class="cursor-pointer h-16 px-5 flex justify-center items-center"
+          class="cursor-pointer  h-16 px-5 flex justify-center items-center hover:bg-experience-blue transition-colors ease-in-out duration-300"
         >
           <Link to="dashboard">Dashboard</Link>
         </li>
 
         <li
           @click="logout"
-          class="cursor-pointer h-16 px-5 flex justify-center items-center bg-experience-blue hover:opacity-90"
+          class="cursor-pointer text-lg  h-16 px-5 flex justify-center items-center hover:bg-experience-blue transition-colors ease-in-out duration-300"
         >
           Cerrar sesión
         </li>

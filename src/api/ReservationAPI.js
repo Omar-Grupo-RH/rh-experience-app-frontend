@@ -12,4 +12,8 @@ export default {
   getCoupon(code) {
     return api.get("/payment/coupon", { params: { code } });
   },
+
+  reserveTrip(payload) {
+    return api.post("/payment", payload);
+  },
 };

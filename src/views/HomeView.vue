@@ -1,6 +1,6 @@
 <script setup>
 import Menu from "@/components/Navigation/Menu.vue";
-import { ref, computed } from "vue";
+import { ref, computed, inject } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 import BusSeatSelector from "@/components/Reservation/BusSeatSelector.vue";
 import TermsCondModal from "@/components/Reservation/TermsCondModal.vue";
@@ -8,58 +8,19 @@ import Calendar from "@/components/Reservation/Calendar.vue";
 import { formatDateToSpanish } from "@/utils/formatDate";
 import { currencyFormat } from "@/utils/formatMoney";
 
-import axios from "axios";
-
 const store = useReservaStore();
+const toast = inject("toast");
 const isProcessing = ref(false);
 
 const breakdown = computed(() => store.priceBreakdown());
-
-async function startCheckout() {
-  isProcessing.value = true;
-  try {
-    const payload = {
-      date: store.date,
-      trip_id: store.selectedTripId,
-      seats: store.selectedSeats,
-      // Todos los pasajeros (incluye quien paga)
-      passengers: store.passengers.map((p) => ({
-        seat_id: p.seat,
-        first_name: p.first_name,
-        last_name: p.last_name,
-        email: p.email,
-        phone: p.phone,
-        born_date: p.born_date,
-        allergies: p.allergies,
-      })),
-      // Puedes tomar el email de envío del primer pasajero o pedir uno aparte:
-      tickets_email: store.emailSendTickets.emailSent,
-      tickets_name: store.emailSendTickets.nameSent || "Cliente",
-      unit_price: store.pricePerSeat,
-      total: store.total,
-      couponId: store.couponId || null,
-    };
-
-    console.log(JSON.stringify(payload))
-    const res = await axios.post("http://localhost:4000/api/payment", payload);
-    console.log(res);
-  } catch (e) {
-    console.error(e);
-    alert("Error iniciando pago");
-  } finally {
-    isProcessing.value = false;
-  }
-}
 </script>
 
 <template>
-  <main >
+  <main>
     <Menu />
     <section class="min-h-screen relative">
-      <div
-        class="min-h-screen flex justify-center    bg-gray-50 relative"
-      >
-        <div class="rounded-2xl w-[95%] xl:w-[80%]  mt-10 py-5 pb-10 relative">
+      <div class="min-h-screen flex justify-center bg-gray-50 relative">
+        <div class="rounded-2xl w-[95%] xl:w-[80%] mt-10 py-5 pb-10 relative">
           <div class="max-w-7xl mx-auto space-y-6">
             <!-- Pasos -->
             <div
@@ -98,7 +59,7 @@ async function startCheckout() {
             <!-- Paso 1 -->
             <div
               v-if="store.step === 1"
-              class="bg-white p-4  rounded-lg w-full h-auto shadow-sm space-y-4"
+              class="bg-white p-4 rounded-lg w-full h-auto shadow-sm space-y-4"
             >
               <div class="flex flex-col xl:flex-row justify-between xl:gap-5">
                 <div class="xl:w-[70%]">
@@ -674,16 +635,15 @@ async function startCheckout() {
                         </div>
 
                         <div class="mt-5 space-y-2">
-                          <!-- <button
-                            type="button"
+                          <button
                             class="py-2 px-4 rounded-md bg-gray-300 w-full cursor-pointer"
                             @click="store.prev"
                           >
                             Regresar
-                          </button> -->
+                          </button>
                           <button
                             :disabled="!store.aceptedTerms"
-                            @click="startCheckout"
+                            @click="store.startCheckout"
                             class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Pagar {{ currencyFormat(store.total) }} MXN

@@ -16,9 +16,16 @@ export function useReservation() {
     return data.data ?? [];
   };
 
+  const setReverse = async (payload) => {
+    const { data } = await ReservationAPI.reserveTrip(payload);
+    
+    return data.data ?? [];
+  };
+
   return {
     listEvents,
     getSeatsByTrip,
     getCouponDiscount,
+    setReverse,
   };
 }

@@ -13,12 +13,6 @@ const router = createRouter({
       component: () => import("@/views/auth/AuthLayout.vue"),
       children: [
         {
-          path: "registro",
-          name: "register",
-          meta: { title: "Registro", guestOnly: true },
-          component: () => import("@/views/auth/RegistroView.vue"),
-        },
-        {
           path: "iniciar-sesion",
           name: "login",
           meta: { title: "Iniciar Sesion", guestOnly: true },
@@ -26,12 +20,7 @@ const router = createRouter({
         },
       ],
     },
-    {
-      path: "/me",
-      name: "me",
-      meta: { requiresAuth: true, title: "Mi Perfil" },
-      component: () => import("@/views/MyTripsView.vue"),
-    },
+    
     {
       path: "/admin",
       name: "admin",
@@ -44,24 +33,7 @@ const router = createRouter({
           meta: { title: "Dashboard", adminOnly: true },
           component: () => import("@/views/admin/DashboardView.vue"),
         },
-        {
-          path: "clientes",
-          name: "clients",
-          meta: { title: "Clientes", adminOnly: true },
-          component: () => import("@/views/admin/clients/ClientsView.vue"),
-        },
-        {
-          path: "agregar-cliente",
-          name: "new-client",
-          meta: { title: "Clientes - Agregar", adminOnly: true },
-          component: () => import("@/views/admin/clients/NewClientView.vue"),
-        },
-        {
-          path: "editar-cliente/:id",
-          name: "update-client",
-          meta: { title: "Clientes - Editar", adminOnly: true },
-          component: () => import("@/views/admin/clients/EditClientView.vue"),
-        },
+        
         {
           path: "viajes",
           name: "tours",

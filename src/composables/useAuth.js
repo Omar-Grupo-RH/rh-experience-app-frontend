@@ -64,7 +64,7 @@ export function useAuth() {
     user.value = null;
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(STORAGE_USER);
-    router.push({ name: "login" });
+    router.push({ name: "home" });
   }
 
   async function login(jwt, profile) {
