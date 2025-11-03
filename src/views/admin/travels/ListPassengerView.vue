@@ -99,10 +99,10 @@ const generatePDF = () => {
 
 <template>
   <div class="max-w-7xl mx-auto p-5 space-y-10">
-    <div class="space-y-2">
+    <div class="space-y-10">
       <div>
         <h2 class="text-4xl font-semibold">Listado de pasajeros</h2>
-        <p class="text-gray-400">Administra a tus pasajeros.</p>
+        <p class="text-gray-400 text-lg mt-1">Administra a tus pasajeros.</p>
       </div>
       <RouterLink
         :to="{ name: 'travels' }"
@@ -158,33 +158,33 @@ const generatePDF = () => {
               :key="p.id"
               class="border-b border-gray-200 hover:bg-gray-50 text-center"
             >
-              <td class="p-3 text-xs">{{ p.first_name }}</td>
-              <td class="p-3 text-xs">{{ p.last_name }}</td>
-              <td class="p-3 text-xs">{{ p.email }}</td>
-              <td class="p-3 text-xs">{{ p.phone }}</td>
-              <td class="p-3 text-xs">
+              <td class="p-3 text-sm">{{ p.first_name }}</td>
+              <td class="p-3 text-sm">{{ p.last_name }}</td>
+              <td class="p-3 text-sm">{{ p.email }}</td>
+              <td class="p-3 text-sm">{{ p.phone }}</td>
+              <td class="p-3 text-sm">
                 {{ formatDateToSpanish(p.born_date) }}
               </td>
-              <td class="p-3 text-xs">
+              <td class="p-3 text-sm">
                 <div class="flex justify-center flex-wrap gap-2">
                   <span
                     v-for="(allergy, i) in JSON.parse(p.allergies)"
                     :key="i"
-                    class="bg-blue-100 text-blue-800 text-[10px] font-semibold px-2 py-1 rounded-full"
+                    class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded-full"
                   >
                     {{ allergy }}
                   </span>
 
                   <span
                     v-if="JSON.parse(p.allergies).length === 0"
-                    class="text-gray-400 italic text-[10px]"
+                    class="text-gray-400 italic text-sm"
                   >
                     Sin alergias
                   </span>
                 </div>
               </td>
-              <td class="p-3 text-xs">{{ p.seat_id }}</td>
-              <td class="p-3 text-xs">
+              <td class="p-3 text-sm">{{ p.seat_id }}</td>
+              <td class="p-3 text-sm">
                 {{ formatDateToSpanish(p.created_at) }}
               </td>
             </tr>

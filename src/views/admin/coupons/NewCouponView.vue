@@ -33,8 +33,8 @@ const handleSubmit = async (formData) => {
 
 <template>
   <div class="max-w-7xl mx-auto p-5 space-y-10">
-    <div class="flex flex-col gap-2">
-      <div class="space-y-0.5">
+    <div class="flex flex-col gap-10">
+      <div class="space-y-1">
         <h2 class="text-4xl font-semibold">Agregar Nuevo Cupón</h2>
         <p class="text-gray-400">
           Llena el formulario para agregar un nuevo cupón de descuento
@@ -44,7 +44,7 @@ const handleSubmit = async (formData) => {
         :to="{ name: 'coupons' }"
         class="bg-experience-pink w-fit text-white px-4 py-2 rounded cursor-pointer shadow"
       >
-        Regresar
+        Volver a tus cupones
       </RouterLink>
     </div>
 
