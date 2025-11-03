@@ -25,6 +25,13 @@ const calendarOptions = ref({
   },
   locale: esLocale,
   events: events.value,
+  eventDidMount(info) {
+    const today = new Date().toISOString().split("T")[0];
+    if (info.event.startStr < today) {
+      info.el.style.opacity = "0.4";
+      info.el.style.pointerEvents = "none";
+    }
+  },
 
   dateClick(info) {
     const clickedDate = info.dateStr;
