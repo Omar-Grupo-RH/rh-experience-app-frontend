@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted } from "vue";
 import { useCouponStore } from "@/stores/admin/couponStore";
 import { formatDateToSpanish } from "@/utils/formatDate";
 const store = useCouponStore();
@@ -48,9 +48,8 @@ onMounted(async () => {
               {{ formatDateToSpanish(coupon.expiry_date) }}
             </td>
             <td class="p-3 text-sm">
-              <button
-                class="inline-flex rounded-full px-2 text-xs font-semibold leading-5 cursor-pointer"
-                @click="store.updateStatus(coupon)"
+              <span
+                class="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
                 :class="[
                   store.statusCoupon(coupon.id)
                     ? 'bg-green-100 text-green-500'
@@ -58,7 +57,7 @@ onMounted(async () => {
                 ]"
               >
                 {{ store.statusCoupon(coupon.id) ? "Activo" : "Inactivo" }}
-              </button>
+              </span>
             </td>
             <td class="p-3 text-sm">
               <RouterLink

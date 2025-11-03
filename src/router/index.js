@@ -20,7 +20,7 @@ const router = createRouter({
         },
       ],
     },
-    
+
     {
       path: "/admin",
       name: "admin",
@@ -33,12 +33,25 @@ const router = createRouter({
           meta: { title: "Dashboard", adminOnly: true },
           component: () => import("@/views/admin/DashboardView.vue"),
         },
-        
+
+        {
+          path: "agenda",
+          name: "calendar",
+          meta: { title: "Agenda de viajes", adminOnly: true },
+          component: () => import("@/views/admin/ToursView.vue"),
+        },
         {
           path: "viajes",
-          name: "tours",
-          meta: { title: "Viajes", adminOnly: true },
-          component: () => import("@/views/admin/ToursView.vue"),
+          name: "travels",
+          meta: { title: "Mis Viajes", adminOnly: true },
+          component: () => import("@/views/admin/travels/TravelsView.vue"),
+        },
+        {
+          path: "lista-pasajeros/:id",
+          name: "list-passenger",
+          meta: { title: "Lista de pasajeros ", adminOnly: true },
+          component: () =>
+            import("@/views/admin/travels/ListPassengerView.vue"),
         },
         {
           path: "cupones",

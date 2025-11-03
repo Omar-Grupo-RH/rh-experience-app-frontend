@@ -1,6 +1,5 @@
 <script setup>
 import CouponsTable from "@/components/admin/Coupons/CouponsTable.vue";
-import { RouterLink } from "vue-router";
 </script>
 
 <template>

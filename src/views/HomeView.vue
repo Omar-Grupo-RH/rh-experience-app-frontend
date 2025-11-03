@@ -13,6 +13,24 @@ const toast = inject("toast");
 const isProcessing = ref(false);
 
 const breakdown = computed(() => store.priceBreakdown());
+const adult = ({ value }) => {
+  if (!value) return false;
+
+  const birthDate = new Date(value);
+  const today = new Date();
+
+  // Calcular edad
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+
+  return age >= 18;
+};
 </script>
 
 <template>
@@ -212,11 +230,15 @@ const breakdown = computed(() => store.priceBreakdown());
                                 label="Fecha de nacimiento"
                                 v-model="p.born_date"
                                 placeholder="AAAA-MM-DD"
-                                validation="required|date"
+                                validation="required|date|adult"
+                                validation-visibility="live"
                                 :validation-messages="{
                                   required: 'Fecha obligatoria',
                                   date: 'Fecha no válida',
+                                  adult:
+                                    'Debes ser mayor de edad (18 años o más)',
                                 }"
+                                :validation-rules="{ adult }"
                               />
 
                               <!-- Alergias -->
