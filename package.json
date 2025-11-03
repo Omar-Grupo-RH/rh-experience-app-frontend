@@ -23,6 +23,7 @@
     "@vueform/vueform": "^1.13.3",
     "axios": "^1.12.2",
     "chart.js": "^4.5.0",
+    "html2pdf.js": "^0.12.1",
     "pinia": "^3.0.3",
     "sweetalert2": "^11.25.0",
     "tailwindcss": "^4.1.13",

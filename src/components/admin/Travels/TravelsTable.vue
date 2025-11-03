@@ -16,7 +16,8 @@ defineProps({
         <tr class="border-b border-gray-200">
           <th class="p-3 font-normal">Titulo</th>
           <th class="p-3 font-normal">Fecha de salida</th>
-          <th class="p-3 font-normal">Pasajeros</th>
+          <th class="p-3 font-normal">Asientos vendidos</th>
+          <th class="p-3 font-normal">Asientos disponibles</th>
           <th class="p-3 font-normal">Acciones</th>
         </tr>
       </thead>
@@ -31,9 +32,10 @@ defineProps({
             {{ formatDateToSpanish(travel.trip_date) }}
           </td>
           <td class="p-3 text-sm">
-            <span class="bg-experience-blue size-7 flex items-center justify-center  rounded-full text-white mx-auto">
-              {{ travel.unavaible_seats }}
-            </span>
+           {{ travel.unavaible_seats }} 
+          </td>
+          <td class="p-3 text-sm">
+           {{ 15 - parseInt(travel.unavaible_seats) }} 
           </td>
           <td class="p-3 text-sm">
             <RouterLink

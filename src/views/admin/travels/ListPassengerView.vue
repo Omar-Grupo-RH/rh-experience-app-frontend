@@ -3,6 +3,8 @@ import { formatDateToSpanish } from "@/utils/formatDate";
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useTravelStore } from "@/stores/admin/travelStore";
+import html2pdf from "html2pdf.js";
+
 const route = useRoute();
 const id = ref(null);
 const store = useTravelStore();
@@ -15,6 +17,84 @@ onMounted(async () => {
     console.log(error);
   }
 });
+
+const generatePDF = () => {
+  // Crear elemento temporal con estilos simples
+  const element = document.createElement("div");
+  element.innerHTML = `
+    <div style="font-family: Arial, sans-serif; padding: 20px;">
+      <h1 style="color: #1e40af; font-size: 24px; margin-bottom: 10px;">RH EXPERIENCE</h1>
+      <p style="color: #666; margin-bottom: 20px;">
+        Fecha de salida: ${formatDateToSpanish(
+          store.travelSelected[0]?.trip_date || ""
+        )}
+      </p>
+      <h2 style="font-size: 18px; margin-bottom: 15px;">
+        Pasajeros (${store.quantityPassengers})
+      </h2>
+      <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+        <thead>
+          <tr style="background-color: #f3f4f6; border-bottom: 1px solid #d1d5db;">
+            <th style="padding: 8px; text-align: left; font-weight: bold;">Nombre(s)</th>
+            <th style="padding: 8px; text-align: left; font-weight: bold;">Apellido(s)</th>
+            <th style="padding: 8px; text-align: left; font-weight: bold;">Email</th>
+            <th style="padding: 8px; text-align: left; font-weight: bold;">Celular</th>
+            <th style="padding: 8px; text-align: left; font-weight: bold;">Fecha nacimiento</th>
+            <th style="padding: 8px; text-align: left; font-weight: bold;">Alergias</th>
+            <th style="padding: 8px; text-align: left; font-weight: bold;">Asiento</th>
+            <th style="padding: 8px; text-align: left; font-weight: bold;">Fecha compra</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${store.passengersByTravelArray
+            .map(
+              (p) => `
+            <tr style="border-bottom: 1px solid #e5e7eb;">
+              <td style="padding: 8px;">${p.first_name}</td>
+              <td style="padding: 8px;">${p.last_name}</td>
+              <td style="padding: 8px;">${p.email}</td>
+              <td style="padding: 8px;">${p.phone}</td>
+              <td style="padding: 8px;">${formatDateToSpanish(p.born_date)}</td>
+              <td style="padding: 8px;">
+                ${
+                  JSON.parse(p.allergies).length > 0
+                    ? JSON.parse(p.allergies).join(", ")
+                    : "Sin alergias"
+                }
+              </td>
+              <td style="padding: 8px;">${p.seat_id}</td>
+              <td style="padding: 8px;">${formatDateToSpanish(
+                p.created_at
+              )}</td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const options = {
+    margin: 1,
+    filename: `lista-pasajeros-${formatDateToSpanish(
+      store.travelSelected[0]?.trip_date
+    )}.pdf`,
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: "#ffffff",
+    },
+    jsPDF: {
+      unit: "cm",
+      format: "a4",
+      orientation: "portrait",
+    },
+  };
+
+  html2pdf().set(options).from(element).save();
+};
 </script>
 
 <template>
@@ -39,7 +119,12 @@ onMounted(async () => {
       <div class="w-full p-5 rounded-lg bg-gray-50">
         <h2 class="text-4xl font-black text-experience-blue">RH EXPERIENCE</h2>
         <div class="flex flex-col mt-10">
-          <p class="text-sm text-gray-500">Fecha de salida: <span class="block text-lg text-black">{{ formatDateToSpanish(store.travelSelected[0].trip_date) }}</span></p>
+          <p class="text-sm text-gray-500">
+            Fecha de salida:
+            <span class="block text-lg text-black">{{
+              formatDateToSpanish(store.travelSelected[0].trip_date)
+            }}</span>
+          </p>
         </div>
       </div>
       <div class="flex justify-between items-center my-5">
@@ -48,12 +133,13 @@ onMounted(async () => {
         </h3>
         <button
           class="bg-experience-blue text-white p-2 rounded-lg cursor-pointer hover:bg-experience-white hover:text-black transition-colors duration-300 ease-in"
+          @click="generatePDF"
         >
           📥 Descargar PDF
         </button>
       </div>
-      <div>
-        <table class="w-full" id="table-passengers">
+      <div id="table-passengers">
+        <table class="w-full">
           <thead>
             <tr class="border-b border-gray-200">
               <th class="text-center p-3 font-normal">Nombre(s)</th>

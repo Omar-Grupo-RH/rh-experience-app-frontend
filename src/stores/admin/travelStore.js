@@ -13,9 +13,13 @@ export const useTravelStore = defineStore("travels", () => {
   const hasPassengersByTravel = computed(
     () => passengersByTravelArray.value.length > 0
   );
+
   const quantityPassengers = computed(
     () => passengersByTravelArray.value.length
   );
+
+  
+
 
   async function getTravels() {
     try {
