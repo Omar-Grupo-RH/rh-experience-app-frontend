@@ -24,7 +24,6 @@ export const useCouponStore = defineStore("coupons", () => {
     return coupon.expiry_date < today;
   });
 
-
   async function getCoupons() {
     try {
       const data = await listCoupons();
@@ -44,7 +43,9 @@ export const useCouponStore = defineStore("coupons", () => {
   }
 
   async function createCoupon(payload) {
+    
     try {
+      
       const { data: newCoupon } = await storeCoupon(payload);
       Swal.fire({
         title: `${newCoupon.code} agregado correctamente`,

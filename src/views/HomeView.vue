@@ -1,16 +1,16 @@
 <script setup>
 import Menu from "@/components/Navigation/Menu.vue";
-import { ref, computed, inject } from "vue";
+import { computed, inject } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 import BusSeatSelector from "@/components/Reservation/BusSeatSelector.vue";
 import TermsCondModal from "@/components/Reservation/TermsCondModal.vue";
 import Calendar from "@/components/Reservation/Calendar.vue";
 import { formatDateToSpanish } from "@/utils/formatDate";
 import { currencyFormat } from "@/utils/formatMoney";
+import Comments from "@/components/Comments/Comments.vue";
 
 const store = useReservaStore();
 const toast = inject("toast");
-const isProcessing = ref(false);
 
 const breakdown = computed(() => store.priceBreakdown());
 const adult = ({ value }) => {
@@ -36,8 +36,8 @@ const adult = ({ value }) => {
 <template>
   <main>
     <Menu />
-    <section class="min-h-screen relative">
-      <div class="min-h-screen flex justify-center bg-gray-50 relative">
+    <section class="relative">
+      <div class="flex justify-center relative">
         <div class="rounded-2xl w-[95%] xl:w-[80%] mt-10 py-5 pb-10 relative">
           <div class="max-w-7xl mx-auto space-y-6">
             <!-- Pasos -->
@@ -82,7 +82,7 @@ const adult = ({ value }) => {
               <div class="flex flex-col xl:flex-row justify-between xl:gap-5">
                 <div class="xl:w-[70%]">
                   <p class="xl:text-lg font-medium mb-5">Selecciona tu fecha</p>
-                  <div class="h-[600px] overflow-y-scroll">
+                  <div class="h-auto">
                     <Calendar />
                   </div>
                 </div>
@@ -682,5 +682,9 @@ const adult = ({ value }) => {
       </div>
       <TermsCondModal :isVisible="store.modal" />
     </section>
+
+    <div class="lg:mt-10">
+      <Comments />
+    </div>
   </main>
 </template>

@@ -17,7 +17,7 @@ const { user, isAuthenticated, logout } = auth;
     </div>
 
     <ul class="flex flex-col md:flex-row ">
-      <!-- Si NO hay sesión -->
+      
       <li
         v-if="!isAuthenticated"
         class="cursor-pointer h-16 px-5 flex justify-center items-center bg-experience-blue"
@@ -25,7 +25,6 @@ const { user, isAuthenticated, logout } = auth;
         <Link to="login">Iniciar sesión</Link>
       </li>
 
-      <!-- Si SÍ hay sesión -->
       <template v-else-if="isAuthenticated">
         <li
           v-if="isAuthenticated && user?.admin"

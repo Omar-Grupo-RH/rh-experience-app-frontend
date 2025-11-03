@@ -1,4 +1,4 @@
-import AdminAPI from "@/api/AdminAPI";
+
 import TravelsAPI from "@/api/Travels";
 
 

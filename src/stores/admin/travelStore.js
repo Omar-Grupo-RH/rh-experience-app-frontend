@@ -10,6 +10,7 @@ export const useTravelStore = defineStore("travels", () => {
   const travelSelected = ref({});
 
   const hasTravels = computed(() => travels.value.length > 0);
+  
   const hasPassengersByTravel = computed(
     () => passengersByTravelArray.value.length > 0
   );
@@ -17,10 +18,6 @@ export const useTravelStore = defineStore("travels", () => {
   const quantityPassengers = computed(
     () => passengersByTravelArray.value.length
   );
-
-  
-
-
   async function getTravels() {
     try {
       const data = await listTravels();
