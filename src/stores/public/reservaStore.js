@@ -1,11 +1,12 @@
 import { useReservation } from "@/composables/useReservation";
 import { defineStore } from "pinia";
 import { ref, watch, computed, inject } from "vue";
+import { loadStripe } from "@stripe/stripe-js";
 
 export const useReservaStore = defineStore("reserva", () => {
   const { listEvents, getSeatsByTrip, getCouponDiscount, setReverse } =
     useReservation();
-
+  const stripePromise = loadStripe(import.meta.env.VITE_PUBLISHABLE_KEY_STRIPE);
   // --- STATE ---
   const toast = inject("toast");
   const step = ref(1);
@@ -295,48 +296,7 @@ export const useReservaStore = defineStore("reserva", () => {
     else selectedSeats.value.push(seat);
   }
 
-  async function startCheckout() {
-    try {
-      const payload = {
-        date: date.value,
-        trip_id: selectedTripId.value,
-        seats: selectedSeats.value,
-        // Todos los pasajeros (incluye quien paga)
-        passengers: passengers.value.map((p) => ({
-          seat_id: p.seat,
-          first_name: p.first_name,
-          last_name: p.last_name,
-          email: p.email,
-          phone: p.phone,
-          born_date: p.born_date,
-          allergies: p.allergies,
-        })),
-        // Puedes tomar el email de envío del primer pasajero o pedir uno aparte:
-        tickets_email: emailSendTickets.value.emailSent,
-        tickets_name: emailSendTickets.value.nameSent || "Cliente",
-        unit_price: pricePerSeat.value,
-        total: total.value,
-        couponId: couponId.value || null,
-      };
-
-      await setReverse(payload);
-
-      toast?.open?.({
-        message: "Reservacion exitosa, revisa tu correo electronico.",
-        type: "success",
-      });
-      setTimeout(() => {
-        reset();
-        window.location.reload();
-      }, 5100);
-    } catch (e) {
-      console.error(e);
-      toast?.open?.({
-        message: e?.response?.data?.message || "Error al realizar el pago",
-        type: "error",
-      });
-    }
-  }
+ 
 
   // --- RETURN ---
   return {
@@ -375,6 +335,6 @@ export const useReservaStore = defineStore("reserva", () => {
     seatsSold,
     getCoupon,
     modal,
-    startCheckout,
+    
   };
 });

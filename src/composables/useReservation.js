@@ -18,7 +18,6 @@ export function useReservation() {
 
   const setReverse = async (payload) => {
     const { data } = await ReservationAPI.reserveTrip(payload);
-    
     return data.data ?? [];
   };
 

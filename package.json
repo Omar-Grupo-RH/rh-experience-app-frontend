@@ -19,6 +19,7 @@
     "@fullcalendar/interaction": "^6.1.19",
     "@fullcalendar/timegrid": "^6.1.19",
     "@fullcalendar/vue3": "^6.1.19",
+    "@stripe/stripe-js": "^8.3.0",
     "@tailwindcss/vite": "^4.1.13",
     "@vueform/vueform": "^1.13.3",
     "axios": "^1.12.2",

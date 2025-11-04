@@ -1,6 +1,6 @@
 <script setup>
 import Menu from "@/components/Navigation/Menu.vue";
-import { computed, inject } from "vue";
+import { computed, inject, onMounted, ref, watch, nextTick } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 import BusSeatSelector from "@/components/Reservation/BusSeatSelector.vue";
 import TermsCondModal from "@/components/Reservation/TermsCondModal.vue";
@@ -9,17 +9,156 @@ import { formatDateToSpanish } from "@/utils/formatDate";
 import { currencyFormat } from "@/utils/formatMoney";
 import Comments from "@/components/Comments/Comments.vue";
 
+import { loadStripe } from "@stripe/stripe-js";
+
 const store = useReservaStore();
 const toast = inject("toast");
 
+const stripePromise = loadStripe(import.meta.env.VITE_PUBLISHABLE_KEY_STRIPE);
+const cardMounted = ref(false);
+const loading = ref(false);
+let stripe, elements, cardElement;
+
+onMounted(async () => {
+  stripe = await stripePromise;
+  elements = stripe.elements();
+});
+
+// Monta solo cuando el paso 4 está vsible y el contenedor ya existe
+watch(
+  () => store.step,
+  async (step) => {
+    if (step === 4 && !cardMounted.value) {
+      // Espera a que Vue pinte el DOM del paso 4
+      await nextTick();
+      // A veces ayuda esperar un frame para layouts (sobre todo si hay transiciones)
+      await new Promise((r) => requestAnimationFrame(r));
+
+      const mountTarget = document.getElementById("card-element");
+      if (!mountTarget) return; // aún no existe
+
+      // Si había un elemento previo (hot-reload), límpialo
+      try {
+        cardElement?.unmount?.();
+        cardElement?.destroy?.();
+      } catch {}
+
+      cardElement = elements.create("card", { hidePostalCode: true });
+      cardElement.mount(mountTarget);
+      cardMounted.value = true;
+    } else if (step !== 4 && cardMounted.value) {
+      // Te fuiste del paso 4: desmonta para evitar fugas/duplicados
+      try {
+        cardElement?.unmount?.();
+        cardElement?.destroy?.();
+      } finally {
+        cardElement = undefined;
+        cardMounted.value = false;
+      }
+    }
+  },
+  { immediate: true }
+);
+
+// Helper para armar el payload con TODO lo que ya guardas en el store
+function buildCheckoutPayload() {
+  return {
+    date: store.date,
+    trip_id: store.selectedTripId,
+    seats: store.selectedSeats,
+    passengers: store.passengers.map((p) => ({
+      seat_id: p.seat,
+      first_name: p.first_name,
+      last_name: p.last_name,
+      email: p.email,
+      phone: p.phone,
+      born_date: p.born_date,
+      allergies: p.allergies,
+    })),
+    tickets_email: store.emailSendTickets.emailSent,
+    tickets_name: store.emailSendTickets.nameSent || "Cliente",
+    unit_price: store.pricePerSeat,
+    total: store.total, // en MXN (unidades); backend lo convierte a centavos
+    couponId: store.couponId || null,
+    currency: "mxn",
+  };
+}
+
+// ------- NUEVO: flujo de pago con Card Element -------
+async function startCheckout() {
+  if (!store.aceptedTerms) {
+    toast?.open?.({
+      message: "Debes aceptar términos y condiciones.",
+      type: "warning",
+    });
+    return;
+  }
+  if (!store.canContinuePassengers) {
+    toast?.open?.({
+      message: "Revisa los datos de pasajeros.",
+      type: "warning",
+    });
+    return;
+  }
+  if (!stripe || !cardElement) {
+    toast?.open?.({ message: "Stripe no cargó correctamente.", type: "error" });
+    return;
+  }
+
+  loading.value = true;
+  try {
+    // 1) Crear PaymentIntent en tu backend (draft + locks + hold cupón)
+    const payload = buildCheckoutPayload();
+    const res = await fetch("http://localhost:4000/api/payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data?.success || !data?.clientSecret) {
+      throw new Error(data?.message || "No se pudo iniciar el pago");
+    }
+
+    // 2) Confirmar pago con la tarjeta
+    const { error, paymentIntent } = await stripe.confirmCardPayment(
+      data.clientSecret,
+      { payment_method: { card: cardElement } }
+    );
+
+    if (error) {
+      // El webhook marcará failed y liberará locks
+      toast?.open?.({
+        message: error.message || "Pago rechazado",
+        type: "error",
+      });
+      return;
+    }
+    toast?.open?.({
+      message: "✅ Pago procesado, confirmando reserva...",
+      type: "success",
+    });
+    setTimeout(() => {
+      store.reset();
+      window.location.reload();
+    }, 5100);
+  } catch (e) {
+    console.error(e);
+    toast?.open?.({
+      message: e?.message || "Error al procesar el pago",
+      type: "error",
+    });
+  } finally {
+    loading.value = false;
+  }
+}
+
+// --------- VALIDACIÓN de adulto que ya tenías ---------
 const breakdown = computed(() => store.priceBreakdown());
 const adult = ({ value }) => {
   if (!value) return false;
-
   const birthDate = new Date(value);
   const today = new Date();
-
-  // Calcular edad
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
   if (
@@ -28,7 +167,6 @@ const adult = ({ value }) => {
   ) {
     age--;
   }
-
   return age >= 18;
 };
 </script>
@@ -663,13 +801,20 @@ const adult = ({ value }) => {
                           >
                             Regresar
                           </button>
-                          <button
-                            :disabled="!store.aceptedTerms"
-                            @click="store.startCheckout"
-                            class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            Pagar {{ currencyFormat(store.total) }} MXN
-                          </button>
+                          <div class="payment-container">
+                            <div id="card-element"></div>
+                            <button
+                              :disabled="!store.aceptedTerms || loading"
+                              @click="startCheckout"
+                              class="px-4 py-2 bg-experience-pink w-full text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {{
+                                loading
+                                  ? "Procesando..."
+                                  : `Pagar ${currencyFormat(store.total)} MXN`
+                              }}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -688,3 +833,15 @@ const adult = ({ value }) => {
     </div>
   </main>
 </template>
+
+<style scoped>
+.payment-container {
+  max-width: 400px;
+  margin: 0 auto;
+}
+#card-element {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+</style>
