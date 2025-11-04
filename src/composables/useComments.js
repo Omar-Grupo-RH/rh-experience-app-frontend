@@ -11,5 +11,10 @@ export function useComments() {
     return data ?? [];
   };
 
-  return { listComments, createComment };
+  const modifyComment = async (payload) => {
+    const { data } = await CommentsAPI.editComment(payload);
+    return data ?? [];
+  };
+
+  return { listComments, createComment, modifyComment };
 }

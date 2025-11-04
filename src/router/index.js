@@ -77,6 +77,12 @@ const router = createRouter({
           meta: { title: "Ingresos", adminOnly: true }, // 👈
           component: () => import("@/views/admin/EarningsView.vue"),
         },
+        {
+          path: "comentarios",
+          name: "comments",
+          meta: { title: "Comentarios", adminOnly: true }, // 👈
+          component: () => import("@/views/admin/CommentsView.vue"),
+        },
       ],
     },
   ],

@@ -11,10 +11,11 @@ const { user, isAuthenticated, logout } = auth;
     <nav class="lg:h-full flex flex-col justify-between px-3 py-10">
       <div class="space-y-2">
         <Link to="dashboard">Dashboard</Link>
+        <Link to="earnings">Ingresos</Link>
         <Link to="calendar">Agenda de viajes</Link>
         <Link to="travels">Mis Viajes</Link>
         <Link to="coupons">Cupones</Link>
-        <Link to="earnings">Ingresos</Link>
+        <Link to="comments">Comentarios</Link>
       </div>
       <div class="space-y-2">
         <Link to="home">Salir del dashboard</Link>

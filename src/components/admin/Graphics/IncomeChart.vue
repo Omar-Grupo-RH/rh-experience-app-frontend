@@ -51,7 +51,7 @@ const data = {
       borderColor: "#d94a93", // verde Tailwind (emerald)
       backgroundColor: "#d94a93",
       tension: 0.3,
-      fill: true,
+
     },
   ],
 };
@@ -80,7 +80,7 @@ const options = {
 </script>
 
 <template>
-  <div class="bg-white p-5 rounded-lg shadow">
+  <div class="bg-white p-5 rounded-lg shadow w-full">
     <Line :data="data" :options="options" />
   </div>
 </template>

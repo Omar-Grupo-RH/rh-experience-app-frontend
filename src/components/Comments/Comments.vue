@@ -1,6 +1,7 @@
 <script setup>
 import { useCommentStore } from "@/stores/public/commentStore";
 import { formatDateToSpanish } from "@/utils/formatDate";
+import { generarEstrellas } from "@/utils/generateStars";
 import { ref, onMounted } from "vue";
 
 const commentsStore = useCommentStore();
@@ -13,19 +14,6 @@ const commentPayload = ref({
   rating: "",
   comment: "",
 });
-
-// Funciones auxiliares
-const generarEstrellas = (rating) => {
-  let estrellas = "";
-  for (let i = 1; i <= 5; i++) {
-    if (i <= rating) {
-      estrellas += "★";
-    } else {
-      estrellas += "☆";
-    }
-  }
-  return estrellas;
-};
 
 onMounted(async () => {
   await commentsStore.getComments();
@@ -43,6 +31,9 @@ const handleSubmit = async (formData) => {
 
   try {
     await commentsStore.storeComment(payload);
+    Object.keys(commentPayload.value).forEach((key) => {
+      commentPayload.value[key] = "";
+    });
   } catch (error) {
     console.error("Error al enviar el comentario:", error);
   }
@@ -147,17 +138,23 @@ const handleSubmit = async (formData) => {
           </div>
         </div>
 
-        <FormKit
+        <div>
+          <FormKit
           type="textarea"
           name="comment"
           label="Comentario"
           placeholder="Escribe tu comentario aqui..."
           v-model="commentPayload.comment"
-          validation="required|length:10"
+          validation="required|length:5,100"
           :validation-messages="{
             required: 'Tu comentario es obligatorio',
+            length: 'Tu comentario debe tener entre 5 y 100 caracteres.',
           }"
         />
+        <div class="text-gray-400 flex justify-end text-sm">
+          {{ commentPayload.comment.length }}/100 caracteres
+        </div>
+        </div>
 
         <div class="mt-5 flex justify-end">
           <FormKit type="submit">Publicar comentario</FormKit>
@@ -200,7 +197,7 @@ const handleSubmit = async (formData) => {
   </div>
 </template>
 
-<style>
+<style scoped>
 .comment-card {
   min-width: 300px;
   background: linear-gradient(135deg, #d94a93 0%, #2c5da7 100%);

@@ -13,7 +13,7 @@ export const useCommentStore = defineStore("comments", () => {
   async function getComments() {
     try {
       const data = await listComments();
-      comments.value = data;
+      comments.value = data.filter((c) => c.is_visible == 1);
     } catch (error) {
       console.log(error);
     }

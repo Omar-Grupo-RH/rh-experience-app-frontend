@@ -7,4 +7,7 @@ export default {
   newComment(payload) {
     return api.post("/comments/create", payload);
   },
+  editComment(payload) {
+    return api.post("/comments/update", payload);
+  },
 };
