@@ -1,30 +1,36 @@
-import { useReservation } from "@/composables/useReservation";
-import { defineStore } from "pinia";
-import { ref, watch, computed, inject } from "vue";
-import { loadStripe } from "@stripe/stripe-js";
+// src/stores/public/reservaStore.js
+import { defineStore, storeToRefs } from "pinia";
+import { ref, computed, watch, inject } from "vue";
+
+import { useCouponsStore } from "./couponsStore";
+import { useSeatsStore } from "./seatsStore";
+import { useEventsStore } from "./eventsStore";
+
+import {
+  validatePassengers,
+  validateEmails,
+} from "@/composables/usePassengerValidation";
 
 export const useReservaStore = defineStore("reserva", () => {
-  const { listEvents, getSeatsByTrip, getCouponDiscount, setReverse } =
-    useReservation();
-  const stripePromise = loadStripe(import.meta.env.VITE_PUBLISHABLE_KEY_STRIPE);
-  // --- STATE ---
+  // ---------- Sub-stores
+  const coupons = useCouponsStore();
+  const seats = useSeatsStore();
+  const evts = useEventsStore();
+
+  // ---------- Refs reales desde sub-stores (evita "Invalid watch source")
+  const { selectedSeats, selectedTripId, date, passengers, pricePerSeat } =
+    storeToRefs(seats);
+
+  const { couponInput, couponTextBtn, discountPercent, couponId } =
+    storeToRefs(coupons);
+
+  const { events } = storeToRefs(evts);
+
+  // ---------- Estado raíz (igual que antes)
   const toast = inject("toast");
   const step = ref(1);
-  const selectedSeats = ref([]);
-  const selectedTripId = ref(null);
-  const date = ref(null);
   const aceptedTerms = ref(false);
-  const pricePerSeat = ref(2100);
-  const events = ref([]);
   const modal = ref(false);
-
-  const couponInput = ref("");
-  const couponTextBtn = ref("Canjear");
-  const discountPercent = ref(0);
-  const discountAmount = ref(0);
-  const couponId = ref(null);
-
-  const total = ref(0);
 
   const emailSendTickets = ref({
     emailSent: "",
@@ -32,118 +38,25 @@ export const useReservaStore = defineStore("reserva", () => {
     nameSent: "",
   });
 
-  // --- PASAJEROS ---
-  const passengers = ref([]);
-  const normSeat = (s) => String(s);
-
-  // --- HELPERS PRIVADOS (no exportados) ---
-  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  function isValidDateStr(s) {
-    if (typeof s !== "string" || !s.trim()) return false;
-    const d = new Date(s);
-    return !isNaN(d.getTime());
-  }
-
-  function getAgeFromISO(iso) {
-    if (!isValidDateStr(iso)) return -1;
-    const b = new Date(iso + "T00:00:00"); // fija medianoche local
-    const t = new Date();
-    let age = t.getFullYear() - b.getFullYear();
-    const m = t.getMonth() - b.getMonth();
-    if (m < 0 || (m === 0 && t.getDate() < b.getDate())) age--;
-    return age;
-  }
-
-  // Sincroniza pasajeros con asientos seleccionados
-  function syncPassengersToSeats() {
-    const seats = selectedSeats.value.map(normSeat);
-    const prev = new Map(passengers.value.map((p) => [normSeat(p.seat), p]));
-    passengers.value = seats.map(
-      (seat) =>
-        prev.get(seat) || {
-          seat,
-          first_name: "",
-          last_name: "",
-          email: "",
-          phone: "",
-          born_date: "",
-          allergies: [],
-        }
-    );
-  }
-
-  // Usamos deep:true para reaccionar a push/splice sobre el mismo array
-  watch(selectedSeats, syncPassengersToSeats, { immediate: true, deep: true });
-
-  // --- VALIDACIONES ---
-
-  // 🔎 Depuración: lista de errores (NO cambia API pública)
+  // ---------- Validaciones (composable) — mismos getters públicos
   const validationErrors = ref([]);
 
-  const allAdults = computed(() => {
-    const errs = [];
-    const ok = passengers.value.every((p, i) => {
-      if (!p.born_date || !isValidDateStr(p.born_date)) {
-        errs.push(`Pasajero ${i + 1} (${p.seat}): born_date vacío/ inválido`);
-        return false;
-      }
-      const age = getAgeFromISO(p.born_date);
-      if (age < 18) {
-        errs.push(`Pasajero ${i + 1} (${p.seat}): es menor de edad (${age})`);
-        return false;
-      }
-      return true;
-    });
-    // No asignamos aquí errs para no interferir con otros cálculos
-    return ok;
-  });
+  const _passengersValidation = validatePassengers(passengers, selectedSeats);
+  const allAdults = computed(() => _passengersValidation.value.allAdults);
+  const requiredFieldsFilled = computed(
+    () => _passengersValidation.value.requiredFilled
+  );
 
-  const sameEmails = computed(() => {
-    const a = (emailSendTickets.value.emailSent || "").trim();
-    const b = (emailSendTickets.value.confirmEmail || "").trim();
-    return a !== "" && a === b;
-  });
+  const sameEmails = validateEmails(emailSendTickets);
 
-  const requiredFieldsFilled = computed(() => {
-    const required = ["first_name", "last_name", "email", "phone", "born_date"];
-    const errs = [];
-
-    if (selectedSeats.value.length === 0) {
-      errs.push("No hay asientos seleccionados.");
-      validationErrors.value = errs;
-      return false;
-    }
-
-    if (passengers.value.length !== selectedSeats.value.length) {
-      errs.push(
-        `Desfase: pasajeros (${passengers.value.length}) != asientos (${selectedSeats.value.length}).`
-      );
-      validationErrors.value = errs;
-      return false;
-    }
-
-    passengers.value.forEach((p, i) => {
-      required.forEach((k) => {
-        const v = p[k] ?? "";
-        const ok = typeof v === "string" ? v.trim().length > 0 : Boolean(v);
-        if (!ok) errs.push(`Pasajero ${i + 1} (${p.seat}): "${k}" vacío.`);
-      });
-      if (
-        p.email &&
-        typeof p.email === "string" &&
-        !EMAIL_RE.test(p.email.trim())
-      ) {
-        errs.push(`Pasajero ${i + 1} (${p.seat}): email con formato inválido.`);
-      }
-      if (p.born_date && !isValidDateStr(p.born_date)) {
-        errs.push(`Pasajero ${i + 1} (${p.seat}): born_date inválido.`);
-      }
-    });
-
-    validationErrors.value = errs;
-    return errs.length === 0;
-  });
+  // Sincroniza errores para depuración/UI
+  watch(
+    _passengersValidation,
+    (v) => {
+      validationErrors.value = v.errors.slice();
+    },
+    { immediate: true }
+  );
 
   const validationState = computed(() => ({
     sameEmails: sameEmails.value,
@@ -160,10 +73,7 @@ export const useReservaStore = defineStore("reserva", () => {
     return ok;
   });
 
-  const couponEmpy = computed(() => couponInput.value !== "");
-  const couponIsApply = computed(() => discountAmount.value !== 0);
-
-  // --- PRECIOS ---
+  // ---------- Precios (misma lógica / mismos nombres)
   function priceBreakdown() {
     const count = selectedSeats.value.length;
     const standardPrice = 2100;
@@ -202,103 +112,73 @@ export const useReservaStore = defineStore("reserva", () => {
     return { discountedCount, standardCount, total: baseTotal, breakdownText };
   }
 
-  // 🔁 Actualiza total/discountAmount automáticamente
+  // Mantén estos nombres como ref (igual que antes)
+  const discountAmount = ref(0);
+  const total = ref(0);
+
   function updateTotal() {
     const baseTotal = priceBreakdown().total;
-    const discount = baseTotal * discountPercent.value;
+    const discount = baseTotal * discountPercent?.value;
     discountAmount.value = Number(discount.toFixed(2));
     total.value = baseTotal - discount;
   }
 
+  // 👇 Ahora sí: refs reales, sin warnings
   watch([selectedSeats, discountPercent], updateTotal, {
     immediate: true,
-    deep: true,
+    deep: true, 
   });
 
-  // --- CUPONES ---
+  // ---------- Cupones (fachada con mismo nombre getCoupon)
   async function getCoupon(code) {
     couponTextBtn.value = "Buscando...";
     try {
-      const { discount, id } = await getCouponDiscount(code);
-      discountPercent.value = Number(discount) || 0;
-
-      // Recalcula totales con el nuevo porcentaje
-      updateTotal();
-      couponId.value = id;
-
+      const { discountPercent: d } = await coupons.applyCoupon(code);
+      updateTotal(); // recalc
       toast?.open?.({
-        message: `Cupón aplicado del ${
-          discountPercent.value * 100
-        }% de descuento`,
+        message: `Cupón aplicado del ${d * 100}% de descuento`,
         type: "success",
       });
-
-      couponTextBtn.value = "Canjeado";
     } catch (e) {
       toast?.open?.({
         message: e?.response?.data?.message || "Cupón inválido",
         type: "error",
       });
-      couponTextBtn.value = "Canjear";
-      discountPercent.value = 0;
+      coupons.resetCoupons();
       updateTotal();
     }
   }
 
-  // --- EVENTOS Y ASIENTOS ---
+  // ---------- Eventos (fachada con mismos nombres)
   async function loadEvents() {
     try {
-      const list = await listEvents();
-      events.value = list.map((t) => ({
-        id: String(t.id),
-        title: t.title,
-        start: t.trip_date,
-        allDay: true,
-      }));
+      await evts.loadEvents();
     } catch (err) {
       console.error("No se pudieron cargar los eventos", err);
     }
   }
 
   async function seatsSold(id) {
-    try {
-      return await getSeatsByTrip(id);
-    } catch {
-      return [];
-    }
+    return await evts.seatsSold(id);
   }
 
-  // --- NAVEGACIÓN DE PASOS ---
+  // ---------- Navegación y reset (misma API)
   const next = () => step.value < 4 && step.value++;
   const prev = () => step.value > 1 && step.value--;
 
-  // --- MUTADORES ---
   function reset() {
     step.value = 1;
-    selectedSeats.value = [];
-    date.value = null;
-    passengers.value = [];
-    discountPercent.value = 0;
+    seats.resetSeats();
+    coupons.resetCoupons();
     discountAmount.value = 0;
-    couponInput.value = "";
-    couponTextBtn.value = "Canjear";
     total.value = 0;
   }
 
-  function setDate(d) {
-    date.value = d;
-  }
+  // ---------- Auxiliares (mismo API)
+  const couponEmpy = computed(() => couponInput.value !== "");
+  const couponIsApply = computed(() => discountAmount.value !== 0);
 
-  function toggleSeat(id) {
-    const seat = normSeat(id);
-    const i = selectedSeats.value.indexOf(seat);
-    if (i >= 0) selectedSeats.value.splice(i, 1);
-    else selectedSeats.value.push(seat);
-  }
-
- 
-
-  // --- RETURN ---
+  // ---------- Exposición (MISMO contrato público)
   return {
     // State
     step,
@@ -316,6 +196,7 @@ export const useReservaStore = defineStore("reserva", () => {
     discountAmount,
     total,
     couponId,
+    modal,
 
     // Getters
     priceBreakdown,
@@ -324,17 +205,16 @@ export const useReservaStore = defineStore("reserva", () => {
     sameEmails,
     couponEmpy,
     couponIsApply,
+    validationErrors,
 
     // Actions
     next,
     prev,
     reset,
-    setDate,
+    setDate: seats.setDate,
     loadEvents,
-    toggleSeat,
+    toggleSeat: seats.toggleSeat,
     seatsSold,
     getCoupon,
-    modal,
-    
   };
 });

@@ -2,6 +2,7 @@
 import { onMounted } from "vue";
 import { useCouponStore } from "@/stores/admin/couponStore";
 import { formatDateToSpanish } from "@/utils/formatDate";
+
 const store = useCouponStore();
 
 onMounted(async () => {

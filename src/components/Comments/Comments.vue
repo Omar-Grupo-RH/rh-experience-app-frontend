@@ -34,6 +34,7 @@ const handleSubmit = async (formData) => {
     Object.keys(commentPayload.value).forEach((key) => {
       commentPayload.value[key] = "";
     });
+    
   } catch (error) {
     console.error("Error al enviar el comentario:", error);
   }
@@ -140,20 +141,20 @@ const handleSubmit = async (formData) => {
 
         <div>
           <FormKit
-          type="textarea"
-          name="comment"
-          label="Comentario"
-          placeholder="Escribe tu comentario aqui..."
-          v-model="commentPayload.comment"
-          validation="required|length:5,100"
-          :validation-messages="{
-            required: 'Tu comentario es obligatorio',
-            length: 'Tu comentario debe tener entre 5 y 100 caracteres.',
-          }"
-        />
-        <div class="text-gray-400 flex justify-end text-sm">
-          {{ commentPayload.comment.length }}/100 caracteres
-        </div>
+            type="textarea"
+            name="comment"
+            label="Comentario"
+            placeholder="Escribe tu comentario aqui..."
+            v-model="commentPayload.comment"
+            validation="required|length:5,100"
+            :validation-messages="{
+              required: 'Tu comentario es obligatorio',
+              length: 'Tu comentario debe tener entre 5 y 100 caracteres.',
+            }"
+          />
+          <div class="text-gray-400 flex justify-end text-sm">
+            {{ commentPayload.comment.length }}/100 caracteres
+          </div>
         </div>
 
         <div class="mt-5 flex justify-end">

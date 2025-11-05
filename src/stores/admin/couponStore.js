@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import Swal from "sweetalert2";
 import { useCoupon } from "@/composables/useCoupon";
 
-export const useCouponStore = defineStore("coupons", () => {
+export const useCouponStore = defineStore("adminCoupons", () => {
   const { listCoupons, storeCoupon, destroyCoupon, showCoupon, modifyCoupon } =
     useCoupon();
 
@@ -43,9 +43,7 @@ export const useCouponStore = defineStore("coupons", () => {
   }
 
   async function createCoupon(payload) {
-    
     try {
-      
       const { data: newCoupon } = await storeCoupon(payload);
       Swal.fire({
         title: `${newCoupon.code} agregado correctamente`,

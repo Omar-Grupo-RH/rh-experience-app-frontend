@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref, computed, inject } from "vue";
 import { useComments } from "@/composables/useComments";
 
-export const useCommentStore = defineStore("commentsAdmin", () => {
+export const useCommentStore = defineStore("adminComments", () => {
   const { listComments, modifyComment } = useComments();
   const toast = inject("toast");
   const comments = ref([]);
