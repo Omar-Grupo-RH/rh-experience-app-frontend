@@ -25,13 +25,7 @@ const adult = ({ value }) => {
 
 <template>
   <div class="max-w-5xl mx-auto">
-    <h2 class="text-2xl font-semibold mb-6 text-balance text-center">
-      Registro de pasajeros para RH EXPERIENCE el
-      {{ formatDateToSpanish(store.date) }}
-    </h2>
-    <div
-      class="w-full flex flex-col-reverse gap-5 lg:flex-row items-start lg:gap-10 relative"
-    >
+    <div class="w-full flex flex-col gap-5 lg:flex-row items-start lg:gap-10">
       <div class="w-full lg:max-w-xl lg:flex-2">
         <FormKit type="form" :actions="false">
           <div class="space-y-6">
@@ -48,7 +42,7 @@ const adult = ({ value }) => {
             >
               <div class="p-4 rounded-lg border border-gray-200">
                 <div>
-                  <p class="font-semibold text-xl">
+                  <p class="font-semibold text-2xl">
                     Pasajero
                     <span class="font-normal">{{ idx + 1 }}</span>
                   </p>
@@ -171,80 +165,20 @@ const adult = ({ value }) => {
 
           <div class="flex justify-between mt-6"></div>
         </FormKit>
-      </div>
-
-      <div class="space-y-5">
-        <div
-          class="flex w-full items-center justify-between rounded-lg border-gray-200 mt-3 lg:mt-0 border lg:flex-1"
-        >
-          <div class="flex flex-col gap-1.5 w-full p-5">
-            <div class="flex items-center gap-5 lg:gap-10">
-              <img
-                src="/logos/Recurso9.svg"
-                class="w-9 lg:w-16 invert"
-                alt=""
-              />
-              <div>
-                <p class="font-semibold">
-                  {{ formatDateToSpanish(store.date) }}
-                </p>
-                <p class="font-semibold">
-                  Origen: <span>Oficinas de Grupo RH</span>
-                </p>
-                <div v-if="store.selectedSeats.length">
-                  <p class="font-semibold">
-                    {{ breakdown.breakdownText }}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div class="mt-5">
-              <p>
-                Asientos seleccionados:
-                <strong v-if="store.selectedSeats.length">{{
-                  store.selectedSeats.join(", ")
-                }}</strong>
-                <span v-else class="text-gray-400">— ninguno —</span>
-              </p>
-
-              <p
-                class="text-lg font-semibold"
-                v-if="store.selectedSeats.length"
-              >
-                Total: {{ currencyFormat(store.total) }} MXN
-              </p>
-
-              <div class="flex items-center gap-5 lg:flex-col lg:gap-2 mt-5">
-                <button
-                  class="py-2 px-4 rounded-md bg-gray-300 w-full cursor-pointer"
-                  @click="store.prev"
-                >
-                  Regresar
-                </button>
-                <button
-                  class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  :disabled="!store.canContinuePassengers"
-                  @click="store.next"
-                >
-                  Continuar
-                </button>
-              </div>
-              <p v-if="!store.allAdults" class="text-red-500 text-sm mt-2">
-                Todos los pasajeros deben ser mayores de edad.
-              </p>
-            </div>
-          </div>
-        </div>
 
         <div>
-          <h3>Ingresa los datos de la persona que recibira los boletos</h3>
+          <h3 class="text-xl font-semibold mb-1">
+            Ingresa los datos de la persona que recibirá los boletos
+          </h3>
+          <p v-if="!store.sameEmails" class="text-red-500 text-sm">
+            Los correos deben coincidir para continuar.
+          </p>
           <div class="flex flex-col gap-1 mt-3">
             <FormKit
               type="text"
               name="nameSent"
               v-model="store.emailSendTickets.nameSent"
-              placeholder="Ingresa el nombre del destinatarios"
+              placeholder="Ingresa el nombre del destinatario"
               validation="required"
               :validation-messages="{
                 required: 'Nombre obligatorio',
@@ -274,10 +208,76 @@ const adult = ({ value }) => {
               }"
             />
           </div>
-          <p v-if="!store.sameEmails" class="text-red-500 text-sm">
-            Los correos deben coincidir para continuar.
-          </p>
+          
         </div>
+      </div>
+
+      <div
+        class="space-y-5 w-full lg:w-[40%] lg:sticky lg:top-8 rounded-lg border p-5 border-gray-200"
+      >
+        <div
+          class="flex w-full items-center justify-between mt-3 lg:mt-0 lg:flex-1"
+        >
+          <div class="flex flex-col gap-1.5 w-full">
+            <h3 class="font-bold uppercase mb-5 lg:text-xl xl:text-2xl">
+              Resumen de compra
+            </h3>
+            <div>
+              <div>
+                <p>
+                  Fecha de RH EXPERIENCE:
+                  <span class="font-semibold">
+                    {{ formatDateToSpanish(store.date) }}</span
+                  >
+                </p>
+                <p>
+                  Origen:
+                  <span class="font-semibold">Oficinas de Grupo RH</span>
+                </p>
+                <div v-if="store.selectedSeats.length">
+                  <p>
+                    Boletos:
+                    <span class="font-semibold">{{
+                      breakdown.breakdownText
+                    }}</span>
+                  </p>
+                </div>
+                <p>
+                  Asientos seleccionados:
+                  <span class="font-semibold">{{
+                    store.selectedSeats.join(", ")
+                  }}</span>
+                </p>
+                <p
+                  class="text-xl font-bold uppercase mt-5"
+                  v-if="store.selectedSeats.length"
+                >
+                  Total: {{ currencyFormat(store.total) }} MXN
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-5 flex gap-2 items-center flex-col md:flex-row-reverse">
+          <button
+            class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="!store.canContinuePassengers"
+            @click="store.next"
+          >
+            Continuar
+          </button>
+          <button
+            class="py-2 px-4 rounded-md bg-gray-200 w-full cursor-pointer"
+            @click="store.prev"
+          >
+            Regresar
+          </button>
+        </div>
+
+        <p v-if="!store.allAdults" class="text-red-600 text-sm mt-2">
+          Es obligatorio que los pasajeros sean mayores de edad.
+        </p>
       </div>
     </div>
   </div>

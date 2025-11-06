@@ -6,13 +6,13 @@ import { useRouter } from "vue-router";
 const couponStore = useCouponStore();
 const router = useRouter();
 
-const formData = ref({
+const form = ref({
   code: "",
   discount: "",
   usage_limit: "",
   expiry_limit: "",
   is_active: true,
-  created_at: [],
+  created_at: "",
   description: "",
 });
 
@@ -24,9 +24,18 @@ const handleSubmit = async (formData) => {
 
   try {
     await couponStore.createCoupon(payload);
+    form.value = {
+      code: "",
+      discount: "",
+      usage_limit: "",
+      expiry_limit: "",
+      is_active: true,
+      created_at: "",
+      description: "",
+    };
     router.push({ name: "coupons" });
   } catch (error) {
-    console.log(error);
+    console.log("Hubo un error");
   }
 };
 </script>
@@ -61,7 +70,7 @@ const handleSubmit = async (formData) => {
             type="text"
             label="Código del cupón"
             name="code"
-            v-model="formData.code"
+            v-model="form.code"
             placeholder="RHEXPERIENCE10"
             validation="required|length:3"
             :validation-messages="{ required: 'El código es obligatorio' }"
@@ -72,7 +81,7 @@ const handleSubmit = async (formData) => {
             label="Descuento (%)"
             name="discount"
             placeholder="20"
-            v-model="formData.discount"
+            v-model="form.discount"
             validation="required|between:1,100|integer|numeric|positive"
             :validation-messages="{
               required: 'El descuento es obligatorio',
@@ -82,7 +91,7 @@ const handleSubmit = async (formData) => {
           <FormKit
             type="text"
             label="Descripción"
-            v-model="formData.description"
+            v-model="form.description"
             name="description"
             placeholder="Para nuevos clientes"
             validation="required|length:3"
@@ -93,7 +102,7 @@ const handleSubmit = async (formData) => {
 
           <FormKit
             type="number"
-            v-model="formData.usage_limit"
+            v-model="form.usage_limit"
             label="Cantidad de uso"
             name="usage_limit"
             placeholder="20"
@@ -107,7 +116,7 @@ const handleSubmit = async (formData) => {
             type="date"
             label="Fecha de expiración"
             name="expiry_date"
-            v-model="formData.expiry_limit"
+            v-model="form.expiry_limit"
             validation="required|date"
             :validation-messages="{
               required: 'La fecha es obligatoria',
@@ -118,7 +127,7 @@ const handleSubmit = async (formData) => {
             type="checkbox"
             label="Activar cupón"
             name="is_active"
-            v-model="formData.is_active"
+            v-model="form.is_active"
           />
 
           <div class="mt-5">

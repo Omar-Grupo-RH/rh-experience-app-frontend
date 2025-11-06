@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 
 const store = useReservaStore();
@@ -102,63 +102,71 @@ watch(
 </script>
 
 <template>
-  <div class="w-full overflow-auto text-black">
-    <svg
-      :viewBox="`0 0 ${svgWidth} ${svgHeight}`"
-      width="100%"
-      :height="svgHeight"
-    >
-      <!-- fondo -->
-      <rect
-        x="0"
-        y="0"
-        :width="svgWidth"
+  <div>
+    <div class="text-black">
+      <svg
+        :viewBox="`0 0 ${svgWidth} ${svgHeight}`"
+        width="100%"
         :height="svgHeight"
-        rx="12"
-        fill="#f8fafc"
-      />
-
-      <!-- conductor / guía -->
-      <g transform="translate(20,14)">
-        <rect x="-15" y="0" width="95%" height="24" rx="6" fill="#e6f2ff" />
-        <text x="45%" y="16" font-size="14" text-anchor="middle" fill="#0f172a">
-          Conductor
-        </text>
-      </g>
-
-      <!-- asientos -->
-      <g
-        v-for="seat in seats"
-        :key="seat.id"
-        :transform="`translate(${seat.x}, ${seat.y})`"
       >
-        <g
-          tabindex="0"
-          @click="onClickSeat(seat.id)"
-          :aria-label="`Asiento ${seat.id}`"
-          role="button"
-          cursor="pointer"
-        >
-          <rect
-            :width="seatSize"
-            :height="seatSize"
-            rx="6"
-            :fill="seatFill(seat.id)"
-            stroke="#374151"
-            stroke-width="2"
-          />
+        <!-- fondo -->
+        <rect
+          x="0"
+          y="0"
+          :width="svgWidth"
+          :height="svgHeight"
+          rx="12"
+          fill="#f8fafc"
+        />
+
+        <!-- conductor / guía -->
+        <g transform="translate(20,14)">
+          <rect x="-15" y="0" width="95%" height="24" rx="6" fill="#e6f2ff" />
           <text
-            :x="seatSize / 2"
-            :y="seatSize / 2 + 4"
-            font-size="12"
+            x="45%"
+            y="16"
+            font-size="14"
             text-anchor="middle"
-            :fill="textFill(seat.id)"
-            style="font-weight: 600"
+            fill="#0f172a"
           >
-            {{ seat.id }}
+            Conductor
           </text>
         </g>
-      </g>
-    </svg>
+
+        <!-- asientos -->
+        <g
+          v-for="seat in seats"
+          :key="seat.id"
+          :transform="`translate(${seat.x}, ${seat.y})`"
+        >
+          <g
+            tabindex="0"
+            @click="onClickSeat(seat.id)"
+            :aria-label="`Asiento ${seat.id}`"
+            role="button"
+            cursor="pointer"
+          >
+            <rect
+              :width="seatSize"
+              :height="seatSize"
+              rx="6"
+              :fill="seatFill(seat.id)"
+              stroke="#374151"
+              stroke-width="2"
+            />
+            <text
+              :x="seatSize / 2"
+              :y="seatSize / 2 + 4"
+              font-size="12"
+              text-anchor="middle"
+              :fill="textFill(seat.id)"
+              style="font-weight: 600"
+            >
+              {{ seat.id }}
+            </text>
+          </g>
+        </g>
+      </svg>
+    </div>
   </div>
 </template>

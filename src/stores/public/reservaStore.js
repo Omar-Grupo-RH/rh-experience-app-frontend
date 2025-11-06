@@ -163,7 +163,7 @@ export const useReservaStore = defineStore("reserva", () => {
   }
 
   // ---------- Navegación y reset (misma API)
-  const next = () => step.value < 4 && step.value++;
+  const next = () => step.value < 5 && step.value++;
   const prev = () => step.value > 1 && step.value--;
 
   function reset() {

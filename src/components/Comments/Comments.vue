@@ -3,9 +3,10 @@ import { useCommentStore } from "@/stores/public/commentStore";
 import { formatDateToSpanish } from "@/utils/formatDate";
 import { generarEstrellas } from "@/utils/generateStars";
 import { ref, onMounted } from "vue";
+import SkeletonComments from "../ui/SkeletonComments.vue";
 
 const commentsStore = useCommentStore();
-
+const loading = ref(true);
 const commentPayload = ref({
   letters: "",
   first_name: "",
@@ -17,6 +18,7 @@ const commentPayload = ref({
 
 onMounted(async () => {
   await commentsStore.getComments();
+  loading.value = false;
 });
 
 const handleSubmit = async (formData) => {
@@ -34,7 +36,6 @@ const handleSubmit = async (formData) => {
     Object.keys(commentPayload.value).forEach((key) => {
       commentPayload.value[key] = "";
     });
-    
   } catch (error) {
     console.error("Error al enviar el comentario:", error);
   }
@@ -43,14 +44,14 @@ const handleSubmit = async (formData) => {
 
 <template>
   <div class="max-w-7xl mx-auto pb-10">
-    <h2 class="text-3xl font-semibold lg:text-5xl text-center">
-      Comparte tu experience con nuestra comunidad
+    <h2 class="text-2xl font-semibold lg:text-4xl xl:text-5xl text-center">
+      Comparte tu experiencia con nuestra comunidad
     </h2>
 
     <div
       class="w-full p-10 bg-white rounded-lg border shadow border-gray-100 my-10"
     >
-      <h3 class="text-3xl mb-5">Deja tu comentario</h3>
+      <h3 class="text-xl font-semibold mb-5">Deja tu comentario</h3>
 
       <FormKit
         type="form"
@@ -144,7 +145,7 @@ const handleSubmit = async (formData) => {
             type="textarea"
             name="comment"
             label="Comentario"
-            placeholder="Escribe tu comentario aqui..."
+            placeholder="Escribe tu comentario aquí..."
             v-model="commentPayload.comment"
             validation="required|length:5,100"
             :validation-messages="{
@@ -157,35 +158,37 @@ const handleSubmit = async (formData) => {
           </div>
         </div>
 
-        <div class="mt-5 flex justify-end">
+        <div class="mt-5 lg:flex w-full lg:justify-end">
           <FormKit type="submit">Publicar comentario</FormKit>
         </div>
       </FormKit>
     </div>
 
-    <div
-      class="grid grid-cols-1 gap-5 lg:grid-cols-3 lg:mt-5"
-      v-if="commentsStore.hasComments"
-    >
-      <div
-        v-for="comentario in commentsStore.comments"
-        :key="comentario.id"
-        class="comment-card"
-      >
-        <div class="comment-header">
-          <div class="avatar">
-            {{ comentario.letters }}
+    <div v-if="commentsStore.hasComments">
+      <div v-if="loading">
+        <SkeletonComments :limit="commentsStore.comments.length" />
+      </div>
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-3 lg:mt-5" v-else>
+        <div
+          v-for="comentario in commentsStore.comments"
+          :key="comentario.id"
+          class="comment-card"
+        >
+          <div class="comment-header">
+            <div class="avatar">
+              {{ comentario.letters }}
+            </div>
+            <div class="user-info">
+              <h4 class="capitalize">
+                {{ comentario.first_name + " " + comentario.last_name }}
+              </h4>
+              <span>{{ formatDateToSpanish(comentario.created_at) }}</span>
+            </div>
           </div>
-          <div class="user-info">
-            <h4 class="capitalize">
-              {{ comentario.first_name + " " + comentario.last_name }}
-            </h4>
-            <span>{{ formatDateToSpanish(comentario.created_at) }}</span>
+          <p class="comment-text">{{ comentario.comment }}</p>
+          <div class="rating">
+            {{ generarEstrellas(comentario.rating) }}
           </div>
-        </div>
-        <p class="comment-text">{{ comentario.comment }}</p>
-        <div class="rating">
-          {{ generarEstrellas(comentario.rating) }}
         </div>
       </div>
     </div>

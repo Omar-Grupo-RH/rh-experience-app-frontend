@@ -1,6 +1,6 @@
 <script setup>
 import AsideMenu from "@/components/admin/Navigation/AsideMenu.vue";
-import { RouterView, RouterLink } from "vue-router";
+import { RouterView } from "vue-router";
 </script>
 
 <template>

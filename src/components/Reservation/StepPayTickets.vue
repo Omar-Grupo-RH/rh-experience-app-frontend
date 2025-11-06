@@ -21,7 +21,7 @@ onMounted(async () => {
 watch(
   () => store.step,
   async (step) => {
-    if (step === 4 && !cardMounted.value) {
+    if (step === 5 && !cardMounted.value) {
       await nextTick();
       await new Promise((r) => requestAnimationFrame(r));
 
@@ -36,7 +36,7 @@ watch(
       cardElement = elements.create("card", { hidePostalCode: true });
       cardElement.mount(mountTarget);
       cardMounted.value = true;
-    } else if (step !== 4 && cardMounted.value) {
+    } else if (step !== 5 && cardMounted.value) {
       try {
         cardElement?.unmount?.();
         cardElement?.destroy?.();
@@ -140,124 +140,109 @@ async function startCheckout() {
     loading.value = false;
   }
 }
-
 </script>
 
 <template>
   <div class="max-w-5xl mx-auto">
-    <h2 class="text-2xl font-semibold mb-6 text-balance text-center">
-      Realizar Pago
-    </h2>
-    <div class="w-full lg:flex items-start lg:gap-10 relative">
-      <div class="max-w-xl lg:flex-2">
-        <form id="payment-form">
-          <div id="payment-element">
-            <!--Stripe.js injects the Payment Element-->
-          </div>
-          <button id="submit">
-            <div class="spinner hidden" id="spinner"></div>
-            <span id="button-text">Pay now</span>
+    
+    <div
+      class="rounded-lg border-gray-200 p-5 lg:p-10 border max-w-xl mx-auto lg:text-lg"
+    >
+      <h3 class="font-bold uppercase mb-5 lg:text-xl xl:text-2xl">
+        Resumen de compra
+      </h3>
+      <div>
+        <p>
+          Fecha de RH EXPERIENCE:
+          <span class="font-semibold">
+            {{ formatDateToSpanish(store.date) }}</span
+          >
+        </p>
+        <p>Origen: <span class="font-semibold">Oficinas de Grupo RH</span></p>
+        <div v-if="store.selectedSeats.length">
+          <p>
+            Boletos:
+            <span class="font-semibold">{{ breakdown.breakdownText }}</span>
+          </p>
+        </div>
+        <p>
+          Asientos seleccionados:
+          <span class="font-semibold">{{
+            store.selectedSeats.join(", ")
+          }}</span>
+        </p>
+        <p class="text-lg font-semibold" v-if="store.discountAmount">
+          Descuento:
+          {{ currencyFormat(store.discountAmount) }} MXN
+        </p>
+        <p
+          class="text-xl font-bold uppercase mt-5"
+          v-if="store.selectedSeats.length"
+        >
+          Total: {{ currencyFormat(store.total) }} MXN
+        </p>
+
+        <div class="flex my-3">
+          <input
+            type="text"
+            name="cupon"
+            id="cupon"
+            placeholder="INGRESA CODIGO DE CUPON"
+            class="w-[80%] border-0 outline-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="store.couponIsApply"
+            v-model="store.couponInput"
+          />
+          <button
+            class="bg-experience-pink text-white font-semibold w-[20%] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="!store.couponEmpy || store.couponIsApply"
+            @click="store.getCoupon(store.couponInput)"
+          >
+            {{ store.couponTextBtn }}
           </button>
-          <div id="payment-message" class="hidden"></div>
-        </form>
-      </div>
-      <div
-        class="flex items-center justify-between rounded-lg bg-gray-50 border-gray-200 mt-3 border lg:flex-1"
-      >
-        <div class="flex flex-col gap-1.5 w-full p-5">
-          <div class="flex items-center gap-5 lg:gap-10">
-            <img src="/logos/Recurso9.svg" class="w-9 lg:w-16 invert" alt="" />
-            <div>
-              <p class="font-semibold">
-                {{ formatDateToSpanish(store.date) }}
-              </p>
-              <p class="font-semibold">
-                Origen: <span>Oficinas de Grupo RH</span>
-              </p>
-              <div v-if="store.selectedSeats.length">
-                <p class="font-semibold">
-                  {{ breakdown.breakdownText }}
-                </p>
-              </div>
-            </div>
+        </div>
+
+        <div class="flex items-center gap-2 mt-3">
+          <input
+            type="checkbox"
+            name="terminos"
+            id="terminos"
+            v-model="store.aceptedTerms"
+          />
+          <label for="terminos" class="block"
+            >Acepto los
+            <button
+              @click="store.modal = !store.modal"
+              class="underline cursor-pointer"
+            >
+              términos y condiciones
+            </button></label
+          >
+        </div>
+
+        <div class="mt-5 space-y-2">
+          <div class="payment-container">
+            <div id="card-element"></div>
           </div>
+        </div>
 
-          <div class="mt-5">
-            <p>
-              Asientos seleccionados:
-              <strong v-if="store.selectedSeats.length">{{
-                store.selectedSeats.join(", ")
-              }}</strong>
-              <span v-else class="text-gray-400">— ninguno —</span>
-            </p>
-            <p class="text-lg font-semibold" v-if="store.discountAmount">
-              Descuento:
-              {{ currencyFormat(store.discountAmount) }} MXN
-            </p>
-            <p class="text-lg font-semibold" v-if="store.selectedSeats.length">
-              Total: {{ currencyFormat(store.total) }} MXN
-            </p>
-
-            <div class="flex my-3">
-              <input
-                type="text"
-                name="cupon"
-                id="cupon"
-                placeholder="INGRESA CODIGO DE CUPON"
-                class="w-[80%] border-0 outline-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                :disabled="store.couponIsApply"
-                v-model="store.couponInput"
-              />
-              <button
-                class="bg-experience-pink text-white font-semibold w-[20%] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                :disabled="!store.couponEmpy || store.couponIsApply"
-                @click="store.getCoupon(store.couponInput)"
-              >
-                {{ store.couponTextBtn }}
-              </button>
-            </div>
-
-            <div class="flex items-center gap-2 mt-3">
-              <input
-                type="checkbox"
-                name="terminos"
-                id="terminos"
-                v-model="store.aceptedTerms"
-              />
-              <label for="terminos" class="block"
-                >Acepto los
-                <button
-                  @click="store.modal = !store.modal"
-                  class="underline cursor-pointer"
-                >
-                  terminos y condiciones
-                </button></label
-              >
-            </div>
-
-            <div class="mt-5 space-y-2">
-              <button
-                class="py-2 px-4 rounded-md bg-gray-300 w-full cursor-pointer"
-                @click="store.prev"
-              >
-                Regresar
-              </button>
-              <div class="payment-container">
-                <div id="card-element"></div>
-                <button
-                  :disabled="!store.aceptedTerms || loading"
-                  @click="startCheckout"
-                  class="px-4 py-2 bg-experience-pink w-full text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {{
-                    loading
-                      ? "Procesando..."
-                      : `Pagar ${currencyFormat(store.total)} MXN`
-                  }}
-                </button>
-              </div>
-            </div>
-          </div>
+        <div class="mt-5 flex gap-2 items-center flex-col md:flex-row-reverse">
+          <button
+            :disabled="!store.aceptedTerms || loading"
+            @click="startCheckout"
+            class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{
+              loading
+                ? "Procesando..."
+                : `Pagar ${currencyFormat(store.total)} MXN`
+            }}
+          </button>
+          <button
+            class="py-2 px-4 rounded-md bg-gray-200 w-full cursor-pointer"
+            @click="store.prev"
+          >
+            Regresar
+          </button>
         </div>
       </div>
     </div>
@@ -266,12 +251,12 @@ async function startCheckout() {
 
 <style scoped>
 .payment-container {
-  max-width: 400px;
+  max-width: 100%;
   margin: 0 auto;
 }
 #card-element {
   border: 1px solid #ccc;
-  padding: 10px;
+  padding: 15px;
   margin-bottom: 15px;
 }
 </style>

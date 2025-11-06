@@ -53,11 +53,9 @@ export const useCouponStore = defineStore("adminCoupons", () => {
       });
       coupons.value.push(newCoupon);
     } catch (error) {
-      Swal.fire({
-        title: error.response.data.error,
-        icon: "error",
-        timer: 2000,
-      });
+      const msg = error?.response?.data?.error || "No se pudo crear el cupón.";
+      Swal.fire({ title: msg, icon: "error", timer: 2000 });
+      throw error;
     }
   }
 

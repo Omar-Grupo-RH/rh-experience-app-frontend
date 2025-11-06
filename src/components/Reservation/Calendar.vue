@@ -7,11 +7,15 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { ref, watch, onMounted, computed, onUnmounted } from "vue";
 import esLocale from "@fullcalendar/core/locales/es";
 import Swal from "sweetalert2";
+import { formatDateToSpanish } from "@/utils/formatDate";
+import SkeletonCalendar from "@/components/ui/SkeletonCalendar.vue";
 
 const store = useReservaStore();
 const selectedDate = ref(store.date);
 const calendarRef = ref(null);
 const events = computed(() => store.events);
+
+const loading = ref(true);
 
 // Detectar el tamaño de pantalla
 const isMobile = ref(window.innerWidth < 768);
@@ -35,28 +39,32 @@ const calendarOptions = ref({
   },
   locale: esLocale,
   events: events.value,
-  
+
   // Configuraciones responsive
-  height: 'auto',
-  contentHeight: 'auto',
-  aspectRatio: isMobile.value ? 0.8 : 1.35, // Proporción según dispositivo
-  
+  height: "auto",
+  contentHeight: "auto",
+  aspectRatio: isMobile.value ? 0.8 : 1.5, // Proporción según dispositivo
+
   // Views responsive
   views: {
     dayGridMonth: {
-      titleFormat: isMobile.value ? { year: 'numeric', month: 'short' } : { year: 'numeric', month: 'long' },
-      dayHeaderFormat: isMobile.value ? { weekday: 'short' } : { weekday: 'long' },
+      titleFormat: isMobile.value
+        ? { year: "numeric", month: "short" }
+        : { year: "numeric", month: "long" },
+      dayHeaderFormat: isMobile.value
+        ? { weekday: "short" }
+        : { weekday: "long" },
       dayMaxEvents: isMobile.value ? 1 : 2, // Menos eventos en móvil
-    }
+    },
   },
 
   // Botones responsive
   buttonText: {
-    today: isMobile.value ? 'Hoy' : 'Hoy',
-    month: isMobile.value ? 'Mes' : 'Mes',
-    week: isMobile.value ? 'Sem.' : 'Semana',
-    day: isMobile.value ? 'Día' : 'Día',
-    list: isMobile.value ? 'Lista' : 'Lista'
+    today: isMobile.value ? "Hoy" : "Hoy",
+    month: isMobile.value ? "Mes" : "Mes",
+    week: isMobile.value ? "Sem." : "Semana",
+    day: isMobile.value ? "Día" : "Día",
+    list: isMobile.value ? "Lista" : "Lista",
   },
 
   eventDidMount(info) {
@@ -65,18 +73,18 @@ const calendarOptions = ref({
       info.el.style.opacity = "0.4";
       info.el.style.pointerEvents = "none";
     }
-    
+
     // Ajustar contenido de eventos para móvil
     if (isMobile.value) {
-      info.el.style.fontSize = '0.7rem';
-      info.el.style.padding = '1px 2px';
+      info.el.style.fontSize = "0.7rem";
+      info.el.style.padding = "1px 2px";
     }
   },
 
   dateClick(info) {
     const clickedDate = info.dateStr;
     const event = store.events.find((ev) => ev.start === clickedDate);
-    
+
     if (!event) {
       Swal.fire({
         title: `Opps!`,
@@ -86,7 +94,7 @@ const calendarOptions = ref({
       });
       return;
     }
-    
+
     if (event.start < new Date().toISOString().split("T")[0]) {
       Swal.fire({
         title: `Opps!`,
@@ -100,23 +108,41 @@ const calendarOptions = ref({
     store.selectedTripId = event.id;
     store.selectedSeats = [];
 
-    const dayEl = info.dayEl || info.jsEvent?.target?.closest?.(".fc-daygrid-day");
+    const dayEl =
+      info.dayEl || info.jsEvent?.target?.closest?.(".fc-daygrid-day");
     if (dayEl) selectDay(dayEl, clickedDate);
   },
 
   eventClick(info) {
     store.selectedTripId = info.event.id;
     store.selectedSeats = [];
-    
+
     const clickTarget = info.jsEvent?.target || info.el || null;
     const dayEl = clickTarget ? clickTarget.closest(".fc-daygrid-day") : null;
-    const usedDayEl = dayEl || (info.el && info.el.closest ? info.el.closest(".fc-daygrid-day") : null);
+    const usedDayEl =
+      dayEl ||
+      (info.el && info.el.closest ? info.el.closest(".fc-daygrid-day") : null);
 
     if (usedDayEl) {
       selectDay(usedDayEl, info.event.startStr);
     } else {
       selectedDate.value = info.event.startStr;
-      store.setDate(info.event.startStr);
+      Swal.fire({
+        title: `Reservar para el RH EXPERIENCE del ${formatDateToSpanish(
+          info.event.startStr
+        )}?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#d94a93",
+        cancelButtonColor: "#adadad",
+        confirmButtonText: "Confirmar",
+        cancelButtonText: "Cancelar",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          store.setDate(info.event.startStr);
+          store.step++;
+        }
+      });
     }
   },
 });
@@ -127,7 +153,22 @@ function selectDay(dayEl, dateStr) {
   });
   dayEl.classList.add("fc-day-selected");
   selectedDate.value = dateStr;
-  store.setDate(dateStr);
+  Swal.fire({
+    title: `Reservar para el RH EXPERIENCE del ${formatDateToSpanish(
+      dateStr
+    )}?`,
+    icon: "question",
+    showCancelButton: true,
+    cancelButtonColor: "#adadad",
+    confirmButtonColor: "#d94a93",
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      store.setDate(dateStr);
+      store.step++;
+    }
+  });
 }
 
 function syncCalendar() {
@@ -143,19 +184,19 @@ function syncCalendar() {
 function updateCalendarView() {
   const api = calendarRef.value?.getApi?.();
   if (!api) return;
-  
+
   // Forzar actualización de la vista
   api.updateSize();
 }
 
 onMounted(async () => {
   await store.loadEvents();
-
+  loading.value = false;
   // Agregar listener para resize
-  window.addEventListener('resize', handleResize);
-  
+  window.addEventListener("resize", handleResize);
+
   // Actualizar calendario cuando cambie el tamaño
-  window.addEventListener('resize', updateCalendarView);
+  window.addEventListener("resize", updateCalendarView);
 
   setTimeout(() => {
     syncCalendar();
@@ -164,8 +205,8 @@ onMounted(async () => {
 
 // Limpiar event listeners
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
-  window.removeEventListener('resize', updateCalendarView);
+  window.removeEventListener("resize", handleResize);
+  window.removeEventListener("resize", updateCalendarView);
 });
 
 watch(
@@ -197,7 +238,8 @@ watch([isMobile, isTablet], () => {
 
 <template>
   <div class="calendar-container">
-    <FullCalendar ref="calendarRef" :options="calendarOptions" />
+    <SkeletonCalendar v-if="loading" />
+    <FullCalendar v-else ref="calendarRef" :options="calendarOptions" />
   </div>
 </template>
 
@@ -215,13 +257,13 @@ watch([isMobile, isTablet], () => {
 }
 
 :deep(.fc .fc-toolbar) {
-  flex-direction: column;
+  flex-direction: row;
   gap: 0.5rem;
   padding: 0.5rem;
 }
 
 :deep(.fc .fc-toolbar-title) {
-  font-size: clamp(1rem, 3vw, 1.5rem);
+  font-size: clamp(1rem, 3vw, 2.5rem);
   text-align: center;
 }
 
@@ -244,13 +286,15 @@ watch([isMobile, isTablet], () => {
 }
 
 :deep(.fc .fc-daygrid-day-number) {
-  font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+  font-size: clamp(0.7rem, 1.5vw, 1.2rem);
   padding: 2px 4px;
 }
 
 :deep(.fc .fc-col-header-cell-cushion) {
-  font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+  font-size: clamp(0.5rem, 1.5vw, 1.1rem);
   padding: 4px 2px;
+  font-weight: normal;
+  text-transform: uppercase;
 }
 
 :deep(.fc-daygrid-day.fc-day-selected) {
@@ -281,15 +325,15 @@ watch([isMobile, isTablet], () => {
   .calendar-container {
     padding: 0.25rem;
   }
-  
+
   :deep(.fc .fc-toolbar) {
     padding: 0.25rem;
   }
-  
+
   :deep(.fc .fc-daygrid-day-frame) {
     min-height: 50px;
   }
-  
+
   :deep(.fc-event) {
     min-height: 16px;
   }
@@ -299,11 +343,11 @@ watch([isMobile, isTablet], () => {
   :deep(.fc .fc-daygrid-day-frame) {
     min-height: 40px;
   }
-  
+
   :deep(.fc .fc-button) {
     padding: 0.3rem 0.6rem;
   }
-  
+
   :deep(.fc-event) {
     font-size: 0.6rem;
     line-height: 1.2;
@@ -314,13 +358,21 @@ watch([isMobile, isTablet], () => {
   .calendar-container {
     padding: 1rem;
   }
-  
+  :deep(.fc-event) {
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+
   :deep(.fc .fc-toolbar) {
     flex-direction: row;
   }
-  
+
   :deep(.fc .fc-daygrid-day-frame) {
-    min-height: 80px;
+    min-height: 120px;
   }
+}
+
+.swal2-title {
+  color: red !important;
 }
 </style>

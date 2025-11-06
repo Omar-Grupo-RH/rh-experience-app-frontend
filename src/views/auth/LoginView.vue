@@ -34,22 +34,10 @@ const handleSubmit = async (formData) => {
 </script>
 
 <template>
-  <div class="h-dvh grid md:grid-cols-2">
-    <div class="hidden md:block md:h-full w-full overflow-hidden relative">
-      <img
-        src="/images/login-image.webp"
-        class="w-full h-full object-cover"
-        alt="Moises lanzodose desde la tiroleza"
-      />
-      <img
-        src="/logos/Recurso8.svg"
-        class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-        alt=""
-      />
-    </div>
-
+  <div class="h-dvh">
+    
     <div
-      class="md:h-full flex justify-center items-center bg-experience-pink relative"
+      class="h-full flex justify-center items-center lg:items-start bg-experience-pink relative"
     >
       <div
         class="w-full h-full absolute inset-0 overflow-hidden pointer-events-none"
@@ -61,11 +49,11 @@ const handleSubmit = async (formData) => {
         />
       </div>
 
-      <div class="p-5 md:p-10 rounded-2xl shadow md:w-[80%] bg-white relative">
+      <div class="p-5 md:p-10 w-[95%] max-w-xl rounded-2xl shadow  mt-0 lg:mt-20 md:w-[80%] bg-white relative">
         <h2
           class="text-xl md:text-2xl mb-5 uppercase xl:text-3xl font-semibold text-center"
         >
-          Inicio de sesion
+          Inicio de sesión
         </h2>
         <FormKit
           id="loginForm"
@@ -77,12 +65,12 @@ const handleSubmit = async (formData) => {
         >
           <FormKit
             type="email"
-            label="Correo electronico"
+            label="Correo electrónico"
             name="email"
             placeholder="Ingresa tu correo electronico"
             validation="required"
             :validation-messages="{
-              required: 'El correo electronico es obligatorio',
+              required: 'El correo electrónico es obligatorio',
             }"
           />
           <FormKit
@@ -96,7 +84,7 @@ const handleSubmit = async (formData) => {
             }"
           />
 
-          <FormKit type="submit">Iniciar Sesion</FormKit>
+          <FormKit type="submit">Iniciar sesión</FormKit>
         </FormKit>
       </div>
     </div>

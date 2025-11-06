@@ -10,91 +10,118 @@ defineProps({
   <Transition name="fade">
     <div
       v-if="isVisible"
-      class="absolute bg-experience-white shadow w-[90%] max-w-4xl h-[600px] p-5 rounded-md overflow-y-scroll top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
+      class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
     >
-      <div class="w-full h-full flex flex-col justify-center relative">
+      <div
+        class="bg-gray-100 shadow w-[90%] max-w-4xl h-[600px] p-5 rounded-md overflow-y-auto relative modal-content"
+      >
         <button
-          class="absolute top-0 right-0 bg-experience-pink text-white font-semibold py-1 px-1.5 rounded-sm cursor-pointer"
+          class="absolute top-4 right-4 bg-experience-pink text-white font-semibold py-2 px-3 rounded-sm cursor-pointer z-10 hover:bg-pink-700 transition-colors"
           @click="store.modal = !store.modal"
         >
           Cerrar
         </button>
-        <h2 class="text-3xl lg:text-5xl text-center">Terminos y condiciones</h2>
-        <p class="mt-5">
-          Yo manifiesto que es mi voluntad participar en el
-          <span class="text-xl uppercase font-semibold italic"
-            >Recorrido "RH EXPERIENCE"</span
-          >
-          a los siguientes municipios y comisarias; Motul de Felipe Carrillo
-          Puerto, Cansahcab, Dzidzantun, Santa clara y Dzilam del Bravo.
-        </p>
+        
+        <div class="w-full h-full flex flex-col justify-center text-justify">
+          <h2 class="text-3xl lg:text-5xl text-center font-bold mb-8">Términos y condiciones</h2>
+          
+          <div class="space-y-5">
+            <p>
+              Yo manifiesto que es mi voluntad participar en el
+              <span class="text-lg uppercase font-semibold italic"
+                >Recorrido "RH EXPERIENCE"</span
+              >
+              a los siguientes municipios y comisarías; Motul de Felipe Carrillo
+              Puerto, Cansahcab, Dzidzantun, Santa Clara y Dzilam del Bravo.
+            </p>
 
-        <p class="mt-5">
-          Declaro bajo protesta de decir verdad que, deslindo y libero de toda
-          responsabilidad civil, laboral y penal a
-          <span class="text-xl uppercase font-semibold"
-            >"Desarrollo inmobiliario peninsular RH" Sociedad anonima de capital
-            variable, "inversiones inmobiliarias R & H del suereste", sociedad
-            anonima de capital variable, creacion y estrategia inmobiliaria rh
-            sociedad anonima de capital variable</span
-          >
-          y todas las empresas pertenecientes a Grupo RH, asi como a sus
-          trabajadores, guias, ayudantes, representantes legales, o personal de
-          apoyo en el viaje y oficinas por cualquier accidente que tuviera, sus
-          consecuencias o fatalidades que puedan presentarse durante el
-          <span class="text-xl uppercase font-semibold italic"
-            >Recorrido "RH EXPERIENCE"</span
-          >.
-        </p>
+            <p>
+              Declaro bajo protesta de decir verdad que, deslindo y libero de toda
+              responsabilidad civil, laboral y penal a
+              <span class="text-lg uppercase font-semibold"
+                >"Desarrollo inmobiliario peninsular RH" Sociedad anónima de capital
+                variable, "inversiones inmobiliarias R & H del sureste", sociedad
+                anónima de capital variable, creación y estrategia inmobiliaria RH
+                sociedad anónima de capital variable</span
+              >
+              y todas las empresas pertenecientes a Grupo RH, así como a sus
+              trabajadores, guías, ayudantes, representantes legales, o personal de
+              apoyo en el viaje y oficinas por cualquier accidente que tuviera, sus
+              consecuencias o fatalidades que puedan presentarse durante el
+              <span class="text-lg uppercase font-semibold italic"
+                >Recorrido "RH EXPERIENCE"</span
+              >.
+            </p>
 
-        <p class="mt-5">
-          Hago constar que seguire las indicaciones, instrucciones y sugerencias
-          de el/la/los guia (s) a cargo del
-          <span class="text-xl uppercase font-semibold italic"
-            >Recorrido "RH EXPERIENCE"</span
-          >, asi como acatar las medidas de seguridad necesarias que cuidare de
-          mi persona, asi como de los que me rodean para desempeñar las
-          actividades que son de mi conocimiento y para los cuales de manera
-          voluntaria, consciente y responsable decidi ser participe.
-        </p>
+            <p>
+              Hago constar que seguiré las indicaciones, instrucciones y sugerencias
+              de el/la/los guía(s) a cargo del
+              <span class="text-lg uppercase font-semibold italic"
+                >Recorrido "RH EXPERIENCE"</span
+              >, así como acatar las medidas de seguridad necesarias que cuidaré de
+              mi persona, así como de los que me rodean para desempeñar las
+              actividades que son de mi conocimiento y para los cuales de manera
+              voluntaria, consciente y responsable decidí ser partícipe.
+            </p>
 
-        <p class="mt-5">
-          Para los efectos legales que tenga el presente, quedo a sus ordenes.
-        </p>
+            <p>
+              Para los efectos legales que tenga el presente, quedo a sus órdenes.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </Transition>
 </template>
 
-
 <style scoped>
-/* Transiciones para el fade */
+/* Transiciones para el overlay y el modal */
 .fade-enter-active,
 .fade-leave-active {
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease;
 }
 
-.fade-enter-from {
-  opacity: 0;
-}
-
+.fade-enter-from,
 .fade-leave-to {
   opacity: 0;
 }
 
-/* Transición adicional para el contenido del modal */
-.fade-enter-active .modal-content,
-.fade-leave-active .modal-content {
+/* Transición para el contenido del modal */
+.fade-enter-active .modal-content {
   transition: all 0.3s ease;
+  transition-delay: 0.1s;
+}
+
+.fade-leave-active .modal-content {
+  transition: all 0.2s ease;
 }
 
 .fade-enter-from .modal-content {
-  transform: scale(0.95);
+  transform: scale(0.9);
   opacity: 0;
 }
 
 .fade-leave-to .modal-content {
   transform: scale(0.95);
   opacity: 0;
+}
+
+/* Personalizar scrollbar */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 </style>

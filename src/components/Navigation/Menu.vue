@@ -39,9 +39,9 @@ const closeMobileMenu = () => {
           <div v-if="!isAuthenticated" class="ml-4">
             <Link 
               to="login" 
-              class="bg-experience-pink hover:bg-experience-pink/90 uppercase transition-colors duration-200 px-4 py-2 rounded-md font-medium"
+              class="text-sm lg:text-base bg-experience-pink hover:bg-experience-pink/90 uppercase transition-colors duration-200 px-4 py-2 rounded-md font-medium"
             >
-              Iniciar sesión
+              Administrar
             </Link>
           </div>
 
