@@ -57,14 +57,11 @@ function buildCheckoutPayload() {
       date: store.date,
       trip_id: store.selectedTripId,
       seats: store.selectedSeats,
-
-      // 👇 para envío de boletos como ya lo tenías
       tickets_email: store.emailSendTickets.emailSent,
       tickets_name: store.emailSendTickets.nameSent || "Cliente",
     },
 
     price_data: {
-      // 👇 precio/cupones
       unit_price: store.pricePerSeat,
       total: store.total,
       subtotal: store.subtotal,
@@ -83,7 +80,6 @@ function buildCheckoutPayload() {
       allergies: p.allergies,
     })),
 
-    // 👇 NUEVO: info de facturación/comprador para tu BD
     buyer: {
       full_name: store.payer.full_name,
       email: store.payer.email,
@@ -113,13 +109,19 @@ async function startCheckout() {
     return;
   }
   if (!stripe || !cardElement) {
-    toast?.open?.({ message: "Stripe no cargó correctamente.", type: "error" });
+    toast?.open?.({
+      message: "Stripe no cargó correctamente.",
+      type: "error",
+    });
     return;
   }
 
   loading.value = true;
+  let orderId = null;
+  let ticketId = null;
+
   try {
-    // 1) Creas PI en backend con buyer en payload
+    // 1) Crear PaymentIntent + guardar en BD (ticket, pasajeros, buyer, order pending)
     const payload = buildCheckoutPayload();
 
     const res = await fetch(`${import.meta.env.VITE_API_URL}/payment`, {
@@ -128,47 +130,117 @@ async function startCheckout() {
       body: JSON.stringify(payload),
     });
     const data = await res.json();
+
     if (!res.ok || !data?.success || !data?.clientSecret) {
       throw new Error(data?.message || "No se pudo iniciar el pago");
     }
 
-    // 2) Confirmar el pago con billing_details (¡aquí “viven” los datos!)
-    const { error } = await stripe.confirmCardPayment(data.clientSecret, {
-      payment_method: {
-        card: cardElement,
-        billing_details: {
-          name: store.payer.full_name,
-          email: store.payer.email,
-          phone: store.payer.phone,
-          address: {
-            line1: store.payer.address,
-            city: store.payer.city,
-            state: store.payer.state,
-            postal_code: store.payer.zip,
-            country: store.payer.country,
+    // IDs para poder cancelar si algo sale mal
+    const clientSecret = data.clientSecret;
+    orderId = data.order_id ?? null;
+    ticketId = data.ticket_id ?? null;
+
+    // 2) Confirmar el pago con Stripe
+    const { error, paymentIntent } = await stripe.confirmCardPayment(
+      clientSecret,
+      {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            name: store.payer.full_name,
+            email: store.payer.email,
+            phone: store.payer.phone,
+            address: {
+              line1: store.payer.address,
+              city: store.payer.city,
+              state: store.payer.state,
+              postal_code: store.payer.zip,
+              country: store.payer.country,
+            },
           },
         },
-      },
-    });
+      }
+    );
 
-    if (error) {
+    // Si hubo error en Stripe → cancelar reserva en backend
+    if (error || paymentIntent?.status !== "succeeded") {
+      try {
+        if (orderId || ticketId) {
+          await fetch(`${import.meta.env.VITE_API_URL}/payment/cancel`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              order_id: orderId,
+              ticket_id: ticketId,
+            }),
+          });
+        }
+      } catch (cancelErr) {
+        console.error("Error limpiando intento fallido:", cancelErr);
+      }
+
       toast?.open?.({
-        message: error.message || "Pago rechazado",
+        message: error?.message || "Pago rechazado. Tu lugar fue liberado.",
         type: "error",
       });
       return;
     }
 
+    // 3) Avisar a tu backend que el pago fue OK para marcar la orden como paid y enviar PDF
+    const confirmRes = await fetch(
+      `${import.meta.env.VITE_API_URL}/payment/confirm`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          payment_intent_id: paymentIntent.id,
+        }),
+      }
+    );
+
+    const confirmData = await confirmRes.json();
+
+    if (!confirmRes.ok || !confirmData?.success) {
+      // Aquí el pago YA se cobró en Stripe, pero algo falló en tu backend.
+      // No cancelamos nada, solo avisamos.
+      toast?.open?.({
+        message:
+          confirmData?.message ||
+          "El pago se cobró, pero hubo un problema al confirmar la reserva. Contáctanos.",
+        type: "warning",
+      });
+      return;
+    }
+
     toast?.open?.({
-      message: "✅ Pago procesado, confirmando reserva...",
+      message: "✅ Pago procesado y reserva confirmada. Revisa tu correo 📩",
       type: "success",
     });
+
     setTimeout(() => {
       store.reset();
       window.location.reload();
     }, 5100);
   } catch (e) {
     console.error(e);
+
+    // Si el error ocurrió DESPUÉS de crear la reserva pero ANTES de confirmar Stripe,
+    // y tenemos IDs, intentamos limpiar.
+    if (orderId || ticketId) {
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL}/payment/cancel`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            order_id: orderId,
+            ticket_id: ticketId,
+          }),
+        });
+      } catch (cancelErr) {
+        console.error("Error limpiando tras excepción:", cancelErr);
+      }
+    }
+
     toast?.open?.({
       message: e?.message || "Error al procesar el pago",
       type: "error",
