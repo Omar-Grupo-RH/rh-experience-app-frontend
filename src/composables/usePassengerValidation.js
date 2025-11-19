@@ -95,6 +95,46 @@ export function validatePassengers(passengersRef, selectedSeatsRef) {
 }
 
 /**
+ * Valida que el formulario del payer (el que paga) se llene completamente
+ *
+ */
+
+export function validatePayer(payerRef) {
+  return computed(() => {
+    const payer = payerRef.value || {};
+
+    // 1. Ningún campo vacío (después de hacer trim)
+    const requiredFields = [
+      "full_name",
+      "email",
+      "phone",
+      "address",
+      "city",
+      "state",
+      "zip",
+      "country",
+    ];
+
+    const hasEmpty = requiredFields.some((field) => {
+      const value = payer[field];
+      return !value || String(value).trim() === "";
+    });
+
+    if (hasEmpty) return false;
+
+    // 2. Validaciones básicas de formato
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payer.email);
+
+    const phoneDigits = String(payer.phone).replace(/\D/g, "");
+    const phoneOk = phoneDigits.length >= 7 && phoneDigits.length <= 10;
+
+    const postalOk = String(payer.zip).trim().length >= 3;
+
+    return emailOk && phoneOk && postalOk;
+  });
+}
+
+/**
  * Valida los emails de envío/confirmación
  */
 export function validateEmails(emailSendTicketsRef) {

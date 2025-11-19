@@ -53,9 +53,26 @@ const breakdown = computed(() => store.priceBreakdown());
 
 function buildCheckoutPayload() {
   return {
-    date: store.date,
-    trip_id: store.selectedTripId,
-    seats: store.selectedSeats,
+    trip_data: {
+      date: store.date,
+      trip_id: store.selectedTripId,
+      seats: store.selectedSeats,
+
+      // 👇 para envío de boletos como ya lo tenías
+      tickets_email: store.emailSendTickets.emailSent,
+      tickets_name: store.emailSendTickets.nameSent || "Cliente",
+    },
+
+    price_data: {
+      // 👇 precio/cupones
+      unit_price: store.pricePerSeat,
+      total: store.total,
+      subtotal: store.subtotal,
+      discount: store.discountAmount,
+      couponId: store.couponId || null,
+      currency: "mxn",
+    },
+
     passengers: store.passengers.map((p) => ({
       seat_id: p.seat,
       first_name: p.first_name,
@@ -65,19 +82,25 @@ function buildCheckoutPayload() {
       born_date: p.born_date,
       allergies: p.allergies,
     })),
-    tickets_email: store.emailSendTickets.emailSent,
-    tickets_name: store.emailSendTickets.nameSent || "Cliente",
-    unit_price: store.pricePerSeat,
-    total: store.total,
-    couponId: store.couponId || null,
-    currency: "mxn",
+
+    // 👇 NUEVO: info de facturación/comprador para tu BD
+    buyer: {
+      full_name: store.payer.full_name,
+      email: store.payer.email,
+      phone: store.payer.phone,
+      address: store.payer.address,
+      city: store.payer.city,
+      state: store.payer.state,
+      zip: store.payer.zip,
+      country: store.payer.country,
+    },
   };
 }
 
 async function startCheckout() {
-  if (!store.aceptedTerms) {
+  if (!store.canPay) {
     toast?.open?.({
-      message: "Debes aceptar términos y condiciones.",
+      message: "Debes aceptar términos y condiciones y llenar el formulario.",
       type: "warning",
     });
     return;
@@ -96,32 +119,46 @@ async function startCheckout() {
 
   loading.value = true;
   try {
+    // 1) Creas PI en backend con buyer en payload
     const payload = buildCheckoutPayload();
-    const res = await fetch("http://localhost:4000/api/payment", {
+
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/payment`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-
     const data = await res.json();
     if (!res.ok || !data?.success || !data?.clientSecret) {
       throw new Error(data?.message || "No se pudo iniciar el pago");
     }
 
-    // 2) Confirmar pago con la tarjeta
-    const { error, paymentIntent } = await stripe.confirmCardPayment(
-      data.clientSecret,
-      { payment_method: { card: cardElement } }
-    );
+    // 2) Confirmar el pago con billing_details (¡aquí “viven” los datos!)
+    const { error } = await stripe.confirmCardPayment(data.clientSecret, {
+      payment_method: {
+        card: cardElement,
+        billing_details: {
+          name: store.payer.full_name,
+          email: store.payer.email,
+          phone: store.payer.phone,
+          address: {
+            line1: store.payer.address,
+            city: store.payer.city,
+            state: store.payer.state,
+            postal_code: store.payer.zip,
+            country: store.payer.country,
+          },
+        },
+      },
+    });
 
     if (error) {
-      // El webhook marcará failed y liberará locks
       toast?.open?.({
         message: error.message || "Pago rechazado",
         type: "error",
       });
       return;
     }
+
     toast?.open?.({
       message: "✅ Pago procesado, confirmando reserva...",
       type: "success",
@@ -144,7 +181,6 @@ async function startCheckout() {
 
 <template>
   <div class="max-w-5xl mx-auto">
-    
     <div
       class="rounded-lg border-gray-200 p-5 lg:p-10 border max-w-xl mx-auto lg:text-lg"
     >
@@ -171,16 +207,28 @@ async function startCheckout() {
             store.selectedSeats.join(", ")
           }}</span>
         </p>
-        <p class="text-lg font-semibold" v-if="store.discountAmount">
-          Descuento:
-          {{ currencyFormat(store.discountAmount) }} MXN
-        </p>
-        <p
-          class="text-xl font-bold uppercase mt-5"
-          v-if="store.selectedSeats.length"
-        >
-          Total: {{ currencyFormat(store.total) }} MXN
-        </p>
+
+        <div class="mt-5 space-y-2">
+          <p
+            class="text-xl font-bold uppercase"
+            v-if="store.selectedSeats.length"
+          >
+            Subtotal: {{ currencyFormat(store.subtotal) }} MXN
+          </p>
+          <p
+            class="text-xl font-bold uppercase"
+            v-if="store.selectedSeats.length"
+          >
+            Descuento:
+            {{ currencyFormat(store.discountAmount) }} MXN
+          </p>
+          <p
+            class="text-xl font-bold uppercase"
+            v-if="store.selectedSeats.length"
+          >
+            Total: {{ currencyFormat(store.total) }} MXN
+          </p>
+        </div>
 
         <div class="flex my-3">
           <input
@@ -219,15 +267,97 @@ async function startCheckout() {
           >
         </div>
 
-        <div class="mt-5 space-y-2">
-          <div class="payment-container">
-            <div id="card-element"></div>
+        <!-- ...dentro de tu <template> -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium">Nombre completo</label>
+            <input
+              v-model="store.payer.full_name"
+              type="text"
+              class="w-full border rounded-md p-2"
+              placeholder="Nombre en el recibo"
+            />
           </div>
+
+          <div>
+            <label class="block text-sm font-medium">Email</label>
+            <input
+              v-model="store.payer.email"
+              type="email"
+              class="w-full border rounded-md p-2"
+              placeholder="correo@dominio.com"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">Teléfono</label>
+            <input
+              v-model="store.payer.phone"
+              type="tel"
+              class="w-full border rounded-md p-2"
+              placeholder="10 dígitos"
+            />
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium">Calle y número</label>
+            <input
+              v-model="store.payer.address"
+              type="text"
+              class="w-full border rounded-md p-2"
+              placeholder="Calle 123 Interior X"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">Ciudad</label>
+            <input
+              v-model="store.payer.city"
+              type="text"
+              class="w-full border rounded-md p-2"
+              placeholder="Mérida"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">Estado</label>
+            <input
+              v-model="store.payer.state"
+              type="text"
+              class="w-full border rounded-md p-2"
+              placeholder="Yucatán"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">Código postal</label>
+            <input
+              v-model="store.payer.zip"
+              type="text"
+              class="w-full border rounded-md p-2"
+              placeholder="97XXX"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">País (ISO2)</label>
+            <input
+              v-model="store.payer.country"
+              maxlength="2"
+              class="w-full border rounded-md p-2 uppercase"
+              placeholder="MX"
+            />
+          </div>
+        </div>
+
+        <!-- Elemento de tarjeta -->
+        <div class="payment-container !mt-5">
+          <div id="card-element"></div>
         </div>
 
         <div class="mt-5 flex gap-2 items-center flex-col md:flex-row-reverse">
           <button
-            :disabled="!store.aceptedTerms || loading"
+            :disabled="!store.canPay || loading"
             @click="startCheckout"
             class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >

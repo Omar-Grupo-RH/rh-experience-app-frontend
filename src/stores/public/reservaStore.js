@@ -9,15 +9,14 @@ import { useEventsStore } from "./eventsStore";
 import {
   validatePassengers,
   validateEmails,
+  validatePayer,
 } from "@/composables/usePassengerValidation";
 
 export const useReservaStore = defineStore("reserva", () => {
-  // ---------- Sub-stores
   const coupons = useCouponsStore();
   const seats = useSeatsStore();
   const evts = useEventsStore();
 
-  // ---------- Refs reales desde sub-stores (evita "Invalid watch source")
   const { selectedSeats, selectedTripId, date, passengers, pricePerSeat } =
     storeToRefs(seats);
 
@@ -26,11 +25,11 @@ export const useReservaStore = defineStore("reserva", () => {
 
   const { events } = storeToRefs(evts);
 
-  // ---------- Estado raíz (igual que antes)
   const toast = inject("toast");
   const step = ref(1);
   const aceptedTerms = ref(false);
   const modal = ref(false);
+  const subtotal = ref(0);
 
   const emailSendTickets = ref({
     emailSent: "",
@@ -38,7 +37,17 @@ export const useReservaStore = defineStore("reserva", () => {
     nameSent: "",
   });
 
-  // ---------- Validaciones (composable) — mismos getters públicos
+  const payer = ref({
+    full_name: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    country: "",
+  });
+
   const validationErrors = ref([]);
 
   const _passengersValidation = validatePassengers(passengers, selectedSeats);
@@ -48,6 +57,8 @@ export const useReservaStore = defineStore("reserva", () => {
   );
 
   const sameEmails = validateEmails(emailSendTickets);
+
+  const validatePayerForm = validatePayer(payer);
 
   // Sincroniza errores para depuración/UI
   watch(
@@ -73,6 +84,10 @@ export const useReservaStore = defineStore("reserva", () => {
     return ok;
   });
 
+  const canPay = computed(() => {
+    return validatePayerForm.value && aceptedTerms.value;
+  });
+
   // ---------- Precios (misma lógica / mismos nombres)
   function priceBreakdown() {
     const count = selectedSeats.value.length;
@@ -93,7 +108,7 @@ export const useReservaStore = defineStore("reserva", () => {
     const standardCount = isEven ? 0 : 1;
     const baseTotal =
       discountedCount * discountedPrice + standardCount * standardPrice;
-
+    subtotal.value = baseTotal;
     let breakdownText = "";
     if (count === 1) {
       breakdownText = `1 x $${standardPrice.toLocaleString("es-MX")} MXN`;
@@ -126,7 +141,7 @@ export const useReservaStore = defineStore("reserva", () => {
   // 👇 Ahora sí: refs reales, sin warnings
   watch([selectedSeats, discountPercent], updateTotal, {
     immediate: true,
-    deep: true, 
+    deep: true,
   });
 
   // ---------- Cupones (fachada con mismo nombre getCoupon)
@@ -197,10 +212,13 @@ export const useReservaStore = defineStore("reserva", () => {
     total,
     couponId,
     modal,
+    subtotal,
+    payer,
 
     // Getters
     priceBreakdown,
     canContinuePassengers,
+    canPay,
     allAdults,
     sameEmails,
     couponEmpy,
