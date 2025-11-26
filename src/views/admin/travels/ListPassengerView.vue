@@ -158,8 +158,8 @@ const generatePDF = () => {
               :key="p.id"
               class="border-b border-gray-200 hover:bg-gray-50 text-center"
             >
-              <td class="p-3 text-sm">{{ p.first_name }}</td>
-              <td class="p-3 text-sm">{{ p.last_name }}</td>
+              <td class="p-3 text-sm capitalize">{{ p.first_name }}</td>
+              <td class="p-3 text-sm capitalize">{{ p.last_name }}</td>
               <td class="p-3 text-sm">{{ p.email }}</td>
               <td class="p-3 text-sm">{{ p.phone }}</td>
               <td class="p-3 text-sm">

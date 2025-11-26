@@ -4,6 +4,7 @@ import { VueDatePicker } from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { formatDateToSpanish } from "@/utils/formatDate";
 import { useEarningStore } from "@/stores/admin/earningStore";
+import { currencyFormat } from "@/utils/formatMoney";
 
 const store = useEarningStore();
 
@@ -19,14 +20,6 @@ watch(
     store.fetchEarnings();
   }
 );
-
-const formatMoney = (cents) => {
-  if (cents == null) return "-";
-  return new Intl.NumberFormat("es-MX", {
-    style: "currency",
-    currency: "MXN",
-  }).format(cents / 100);
-};
 </script>
 
 <template>
@@ -76,10 +69,10 @@ const formatMoney = (cents) => {
           Cargando...
         </div>
 
-        <table class="w-full" v-if="store.loading && store.rows.length">
+        <table class="w-full" v-if="store.rows.length">
           <thead class="bg-gray-50 sticky top-0 z-10">
             <tr class="border-b border-gray-200 text-sm">
-              <th class="text-center py-2 font-normal">Cliente</th>
+              <th class="text-center py-2 font-normal">Comprador</th>
               <th class="text-center py-2 font-normal">Subtotal</th>
               <th class="text-center py-2 font-normal">Descuento</th>
               <th class="text-center py-2 font-normal">Total</th>
@@ -95,17 +88,17 @@ const formatMoney = (cents) => {
               :key="order.id"
               class="border-b border-gray-200 text-center"
             >
-              <td class="p-3 text-center">
+              <td class="p-3 text-center capitalize">
                 {{ order.buyer_name }}
               </td>
               <td class="p-3 text-center">
-                {{ formatMoney(order.subtotal_cents) }}
+                {{ currencyFormat(order.subtotal_cents) }}
               </td>
               <td class="p-3 text-center">
-                {{ formatMoney(order.discount_cents) }}
+                {{ currencyFormat(order.discount_cents) }}
               </td>
               <td class="p-3 text-center">
-                {{ formatMoney(order.total_cents) }}
+                {{ currencyFormat(order.total_cents) }}
               </td>
               <td class="p-3 text-center">
                 <span
@@ -122,13 +115,14 @@ const formatMoney = (cents) => {
               </td>
               <td class="p-3 text-center">
                 {{ formatDateToSpanish(order.trip_date) }}
-                <!-- o solo {{ order.trip_title }} si prefieres -->
               </td>
             </tr>
           </tbody>
         </table>
         <div v-else>
-          <h3 class="text-center text-gray-400 text-sm">No se encontraron registros para los filtros seleccionados.</h3>
+          <h3 class="text-center text-gray-400 text-sm">
+            No se encontraron registros para los filtros seleccionados.
+          </h3>
         </div>
       </div>
     </div>

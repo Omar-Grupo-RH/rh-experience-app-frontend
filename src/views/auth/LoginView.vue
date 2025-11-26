@@ -6,7 +6,7 @@ import AuthAPI from "@/api/AuthAPI";
 import { useAuth } from "@/composables/useAuth";
 
 const toast = inject("toast");
-const { login } = useAuth(); // <- usamos el composable
+const { login } = useAuth();
 
 const handleSubmit = async (formData) => {
   try {
@@ -35,7 +35,6 @@ const handleSubmit = async (formData) => {
 
 <template>
   <div class="h-dvh">
-    
     <div
       class="h-full flex justify-center items-center lg:items-start bg-experience-pink relative"
     >
@@ -49,7 +48,9 @@ const handleSubmit = async (formData) => {
         />
       </div>
 
-      <div class="p-5 md:p-10 w-[95%] max-w-xl rounded-2xl shadow  mt-0 lg:mt-20 md:w-[80%] bg-white relative">
+      <div
+        class="p-5 md:p-10 w-[95%] max-w-xl rounded-2xl shadow mt-0 lg:mt-20 md:w-[80%] bg-white relative"
+      >
         <h2
           class="text-xl md:text-2xl mb-5 uppercase xl:text-3xl font-semibold text-center"
         >
@@ -84,8 +85,13 @@ const handleSubmit = async (formData) => {
             }"
           />
 
-          <FormKit type="submit">Iniciar sesión</FormKit>
+          <div>
+            <FormKit type="submit">Iniciar sesión</FormKit>
+          </div>
         </FormKit>
+        <RouterLink :to="{ name: 'home' }" class="block text-sm text-gray-500 mt-10">
+          Regresar a la pagina principal
+        </RouterLink>
       </div>
     </div>
   </div>

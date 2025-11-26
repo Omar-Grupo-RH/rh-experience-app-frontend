@@ -1,7 +1,11 @@
 // src/stores/admin/earningStore.js
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useEarning } from "@/composables/useEarning";
+import {
+  formatDateToSpanish,
+  formatDateToSpanishShort,
+} from "@/utils/formatDate";
 
 export const useEarningStore = defineStore("earnings", () => {
   const date = ref("");
@@ -57,6 +61,22 @@ export const useEarningStore = defineStore("earnings", () => {
     await fetchEarnings();
   };
 
+  const chartEarningsByDay = computed(() => {
+    const map = {};
+
+    rows.value.forEach((order) => {
+      const date = formatDateToSpanishShort(order.created_at.split(" ")[0]); 
+
+      if (!map[date]) map[date] = 0;
+      map[date] += order.total_cents; 
+    });
+
+    return {
+      labels: Object.keys(map),
+      values: Object.values(map),
+    };
+  });
+
   return {
     date,
     order,
@@ -66,5 +86,6 @@ export const useEarningStore = defineStore("earnings", () => {
     fetchEarnings,
     toggleOrder,
     resetDate,
+    chartEarningsByDay,
   };
 });

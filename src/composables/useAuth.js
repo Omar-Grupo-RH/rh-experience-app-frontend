@@ -86,7 +86,7 @@ export function useAuth() {
     
 
     if (user.value.admin) {
-      router.push({ name: "dashboard" });
+      router.push({ name: "earnings" });
       return;
     }
 

@@ -1,86 +1,185 @@
 <script setup>
-import { Line } from "vue-chartjs";
+import { ref, computed } from "vue";
+import { Line, Bar, Doughnut } from "vue-chartjs";
 import {
   Chart as ChartJS,
   Title,
   Tooltip,
   Legend,
-  LineElement,
   CategoryScale,
   LinearScale,
   PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
 } from "chart.js";
 
 ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  LineElement,
   CategoryScale,
   LinearScale,
-  PointElement
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement
 );
 
-// 🧮 Supongamos que cada persona paga $1500
-const pricePerPerson = 2100;
-
-// Datos semanales (número de personas por tour)
-const weeklyData = [12, 15, 10, 8, 14, 15, 9]; // 7 semanas de ejemplo
-
-// Calculamos ingresos por semana
-const weeklyIncome = weeklyData.map((count) => count * pricePerPerson);
-
-// Etiquetas (nombres de las semanas)
-const labels = [
-  "Semana 1",
-  "Semana 2",
-  "Semana 3",
-  "Semana 4",
-  "Semana 5",
-  "Semana 6",
-  "Semana 7",
-];
-
-// Configuración del gráfico
-const data = {
-  labels,
-  datasets: [
-    {
-      label: "Ingresos Semanales (MXN)",
-      data: weeklyIncome,
-      borderColor: "#d94a93", // verde Tailwind (emerald)
-      backgroundColor: "#d94a93",
-      tension: 0.3,
-
-    },
-  ],
-};
-
-const options = {
-  responsive: true,
-  plugins: {
-    legend: {
-      display: true,
-      position: "top",
-    },
-    title: {
-      display: true,
-      text: "Ingreso Semanal",
-    },
+const props = defineProps({
+  // Array de gráficas
+  // Cada item: {
+  //   key: 'daily',
+  //   label: 'Ingresos por día',
+  //   type: 'line' | 'bar' | 'doughnut',
+  //   title: 'Texto del título',
+  //   labels: [...],
+  //   values: [...],
+  //   color: '#hex',
+  //   datasetLabel: 'Etiqueta del dataset',
+  //   currency: 'mxn' | null,
+  //   showLegend: true/false
+  // }
+  charts: {
+    type: Array,
+    required: true,
   },
-  scales: {
-    y: {
-      beginAtZero: true,
-      ticks: {
-        callback: (value) => "$" + value.toLocaleString(),
+  defaultKey: {
+    type: String,
+    default: null,
+  },
+  height: {
+    type: String,
+    default: "20rem",
+  },
+  showTabs: {
+    type: Boolean,
+    default: true,
+  },
+});
+
+const activeKey = ref(props.defaultKey || (props.charts[0]?.key ?? null));
+
+const activeChart = computed(() => {
+  return (
+    props.charts.find((c) => c.key === activeKey.value) ||
+    props.charts[0] ||
+    null
+  );
+});
+
+const chartComponent = computed(() => {
+  if (!activeChart.value) return Line;
+  switch (activeChart.value.type) {
+    case "bar":
+      return Bar;
+    case "doughnut":
+      return Doughnut;
+    default:
+      return Line;
+  }
+});
+
+const chartData = computed(() => {
+  if (!activeChart.value) {
+    return { labels: [], datasets: [] };
+  }
+
+  const c = activeChart.value;
+
+  return {
+    labels: c.labels || [],
+    datasets: [
+      {
+        label: c.datasetLabel || c.title || "",
+        data: c.values || [],
+        borderColor: c.borderColor || c.color || "#2c5da7",
+        backgroundColor: c.backgroundColor || c.color || "#2c5da7",
+        tension: c.tension != null ? c.tension : c.type === "line" ? 0.3 : 0,
+        fill: c.fill != null ? c.fill : c.type === "line" ? false : true,
+      },
+    ],
+  };
+});
+
+const options = computed(() => {
+  const c = activeChart.value || {};
+
+  const isDoughnut = c.type === "doughnut";
+
+  const yTicks =
+    c.currency === "mxn"
+      ? {
+          callback: (value) =>
+            "$" + Number(value).toLocaleString("es-MX", { maximumFractionDigits: 0 }),
+        }
+      : {};
+
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: c.showLegend !== false,
+        position: "top",
+      },
+      title: {
+        display: !!c.title,
+        text: c.title,
       },
     },
-  },
-};
+    scales: isDoughnut
+      ? {} // doughnut no necesita ejes
+      : {
+          x: {
+            ticks: {
+              autoSkip: true,
+              maxRotation: 45,
+              minRotation: 0,
+            },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: yTicks,
+          },
+        },
+  };
+});
 </script>
 
 <template>
   <div class="bg-white p-5 rounded-lg shadow w-full">
-    <Line :data="data" :options="options" />
+    <!-- Tabs -->
+    <div
+      v-if="showTabs && charts.length > 1"
+      class="flex gap-2 border-b mb-4 text-sm"
+    >
+      <button
+        v-for="c in charts"
+        :key="c.key"
+        @click="activeKey = c.key"
+        class="px-3 py-1 rounded-t-md transition"
+        :class="
+          activeKey === c.key
+            ? 'bg-gray-100 font-semibold text-gray-900'
+            : 'text-gray-500 hover:text-gray-800'
+        "
+      >
+        {{ c.label }}
+      </button>
+    </div>
+
+    <!-- Chart -->
+    <div :style="{ height }">
+      <component
+        :is="chartComponent"
+        v-if="activeChart"
+        :data="chartData"
+        :options="options"
+      />
+      <p v-else class="text-center text-gray-400 text-sm mt-10">
+        No hay datos para mostrar.
+      </p>
+    </div>
   </div>
 </template>
