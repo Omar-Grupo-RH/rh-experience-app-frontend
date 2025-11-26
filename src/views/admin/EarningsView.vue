@@ -2,6 +2,9 @@
 import CardInfo from "@/components/admin/Earning/CardInfo.vue";
 import EarningsTable from "@/components/admin/Earning/EarningsTable.vue";
 import { currencyFormat } from "@/utils/formatMoney";
+import { useEarningStore } from "@/stores/admin/earningStore";
+
+const store = useEarningStore();
 </script>
 
 <template>
@@ -14,24 +17,29 @@ import { currencyFormat } from "@/utils/formatMoney";
       <div class="grid grid-cols-4 gap-x-5">
         <CardInfo
           title="Ganancia bruta"
-          :text="currencyFormat(13000)"
+          :text="currencyFormat(store.summary.gross_cents / 100)"
           color="#2c5da7"
         >
           <img src="/svg/money.svg" class="w-5" alt="" />
         </CardInfo>
+
         <CardInfo
           title="Ganancia neta"
-          :text="currencyFormat(9360)"
+          :text="currencyFormat(store.summary.net_cents / 100)"
           color="#69c2be"
         >
           <img src="/svg/money.svg" class="w-5" alt="" />
         </CardInfo>
-        <CardInfo title="Transacciones completas" text="5" color="#88bf73">
+
+        <CardInfo
+          title="Transacciones completas"
+          :text="String(store.summary.completed_transactions)"
+          color="#88bf73"
+        >
           <img src="/svg/cart.svg" class="w-6" alt="" />
         </CardInfo>
-        <CardInfo title="Ganancia del dia de hoy"     :text="currencyFormat(1200)" color="#d94a93">
-          <img src="/svg/money.svg" class="w-6" alt="" />
-        </CardInfo>
+
+       
       </div>
 
       <div class="rounded-lg shadow bg-white p-5 mt-10">
