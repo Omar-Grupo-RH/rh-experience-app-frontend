@@ -1,3 +1,4 @@
+// useAuth.js
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 
@@ -7,8 +8,10 @@ const STORAGE_USER = "AUTH_USER";
 const token = ref(localStorage.getItem(STORAGE_KEY) || null);
 const user = ref(JSON.parse(localStorage.getItem(STORAGE_USER) || "null"));
 
-function toBoolAdmin(val) {
-  return val === true || val === 1 || val === "1" || val === "true";
+function toAdminLevel(val) {
+  if (val === null || val === undefined) return 0;
+  const n = Number(val);
+  return Number.isNaN(n) ? 0 : n; // 0,1,2...
 }
 
 function decodeJwtPayload(jwt) {
@@ -37,18 +40,18 @@ function hydrateFromToken(logoutFn) {
   }
 
   const base = user.value || {};
-  const adminValue =
-    typeof payload.admin !== "undefined"
-      ? toBoolAdmin(payload.admin)
-      : typeof base.admin !== "undefined"
-      ? toBoolAdmin(base.admin)
-      : false;
+  const adminLevel =
+    payload.admin !== undefined
+      ? toAdminLevel(payload.admin)
+      : base.admin !== undefined
+      ? toAdminLevel(base.admin)
+      : 0;
 
   user.value = {
     id: payload.sub || payload.id || base.id || null,
     first_name: payload.first_name || base.first_name,
     last_name: payload.last_name || base.last_name,
-    admin: adminValue,
+    admin: adminLevel, // 👈 ahora es 0,1,2
     raw: payload,
   };
 
@@ -58,6 +61,10 @@ function hydrateFromToken(logoutFn) {
 export function useAuth() {
   const router = useRouter();
   const isAuthenticated = computed(() => !!token.value && !!user.value);
+
+  const adminLevel = computed(() => user.value?.admin ?? 0);
+  const isAdmin = computed(() => adminLevel.value > 0); // 1 o 2
+  const isFullAdmin = computed(() => adminLevel.value === 1); // solo 1
 
   function logout() {
     token.value = null;
@@ -74,18 +81,19 @@ export function useAuth() {
     hydrateFromToken(logout);
 
     if (profile) {
+      const level = toAdminLevel(profile.admin);
+
       user.value = {
         ...user.value,
         ...profile,
         id: profile.id ?? user.value?.id ?? null,
-        admin: toBoolAdmin(profile.admin),
+        admin: level,
       };
       localStorage.setItem(STORAGE_USER, JSON.stringify(user.value));
     }
 
-    
-
-    if (user.value.admin) {
+    // cualquier admin (1 o 2) va al dashboard de ingresos
+    if (user.value.admin > 0) {
       router.push({ name: "earnings" });
       return;
     }
@@ -98,5 +106,15 @@ export function useAuth() {
   // inicializamos al cargar el composable
   hydrateFromToken(logout);
 
-  return { token, user, isAuthenticated, login, logout, hydrateFromToken };
+  return {
+    token,
+    user,
+    isAuthenticated,
+    adminLevel,
+    isAdmin,
+    isFullAdmin,
+    login,
+    logout,
+    hydrateFromToken,
+  };
 }

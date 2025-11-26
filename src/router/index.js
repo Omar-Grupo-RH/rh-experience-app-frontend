@@ -35,50 +35,74 @@ const router = createRouter({
         {
           path: "agenda",
           name: "calendar",
-          meta: { title: "Agenda de viajes", adminOnly: true },
+          meta: {
+            title: "Agenda de viajes",
+            adminOnly: true,
+            fullAdminOnly: true, // 👈 solo admin === 1
+          },
           component: () => import("@/views/admin/ToursView.vue"),
         },
         {
           path: "viajes",
           name: "travels",
-          meta: { title: "Mis Viajes", adminOnly: true },
+          meta: {
+            title: "Mis Viajes",
+            adminOnly: true,
+            fullAdminOnly: true,
+          },
           component: () => import("@/views/admin/travels/TravelsView.vue"),
         },
         {
           path: "lista-pasajeros/:id",
           name: "list-passenger",
-          meta: { title: "Lista de pasajeros ", adminOnly: true },
+          meta: {
+            title: "Lista de pasajeros ",
+            adminOnly: true,
+            fullAdminOnly: true,
+          },
           component: () =>
             import("@/views/admin/travels/ListPassengerView.vue"),
         },
         {
           path: "cupones",
           name: "coupons",
-          meta: { title: "Cupones", adminOnly: true },
+          meta: { title: "Cupones", adminOnly: true, fullAdminOnly: true },
           component: () => import("@/views/admin/CouponsView.vue"),
         },
         {
           path: "agregar-cupon",
           name: "new-coupon",
-          meta: { title: "Cupones - Agregar", adminOnly: true },
+          meta: {
+            title: "Cupones - Agregar",
+            adminOnly: true,
+            fullAdminOnly: true,
+          },
           component: () => import("@/views/admin/coupons/NewCouponView.vue"),
         },
         {
           path: "editar-cupon/:id",
           name: "update-coupon",
-          meta: { title: "Cupones - Editar", adminOnly: true },
+          meta: {
+            title: "Cupones - Editar",
+            adminOnly: true,
+            fullAdminOnly: true,
+          },
           component: () => import("@/views/admin/coupons/EditCouponView.vue"),
         },
         {
           path: "ingresos",
           name: "earnings",
-          meta: { title: "Ingresos", adminOnly: true }, // 👈
+          meta: {
+            title: "Ingresos",
+            adminOnly: true,
+            // sin fullAdminOnly → la ven admin 1 y 2
+          },
           component: () => import("@/views/admin/EarningsView.vue"),
         },
         {
           path: "comentarios",
           name: "comments",
-          meta: { title: "Comentarios", adminOnly: true }, // 👈
+          meta: { title: "Comentarios", adminOnly: true, fullAdminOnly: true },
           component: () => import("@/views/admin/CommentsView.vue"),
         },
       ],
@@ -93,13 +117,14 @@ router.beforeEach((to) => {
   const requiresAuth = to.matched.some((r) => r.meta?.requiresAuth);
   const guestOnly = to.matched.some((r) => r.meta?.guestOnly);
   const adminOnly = to.matched.some((r) => r.meta?.adminOnly);
+  const fullAdminOnly = to.matched.some((r) => r.meta?.fullAdminOnly);
 
-  // Si requiere auth y NO está logueado → a login
+  // requiere auth
   if (requiresAuth && !isAuthenticated.value) {
     return { name: "login", query: { next: to.fullPath }, replace: true };
   }
 
-  // Si es solo para invitados y SÍ está logueado → a home (o next)
+  // solo invitados
   if (guestOnly && isAuthenticated.value) {
     const next = to.query?.next ?? { name: "home" };
     return typeof next === "string"
@@ -107,9 +132,14 @@ router.beforeEach((to) => {
       : { ...next, replace: true };
   }
 
-  // rutas solo para admin
+  // rutas solo para algún admin (1 o 2)
   if (adminOnly && (!user.value || !user.value.admin)) {
-    return { name: "home", replace: true }; // o una vista 403
+    return { name: "home", replace: true };
+  }
+
+  // rutas solo para admin full (admin === 1)
+  if (fullAdminOnly && (!user.value || user.value.admin !== 1)) {
+    return { name: "earnings", replace: true };
   }
 });
 

@@ -51,7 +51,7 @@ const closeMobileMenu = () => {
               class="hover:bg-pink-700 transition-colors duration-200 rounded-md"
             >
               <Link 
-                to="dashboard" 
+                to="earnings" 
                 class="block px-4 py-2 font-medium"
               >
                 Dashboard

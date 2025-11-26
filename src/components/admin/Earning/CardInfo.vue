@@ -1,9 +1,19 @@
 <script setup>
 defineProps({
-  text: String,
-  title: String,
-  color: String,
+  text: {
+    type: [String, Number],
+    required: true,
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+  color: {
+    type: String,
+    required: true,
+  },
 });
+
 </script>
 
 <template>
