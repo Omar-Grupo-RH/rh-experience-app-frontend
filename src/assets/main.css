@@ -126,11 +126,14 @@ html {
   font-style: italic;
   font-display: swap;
 }
-
+.dp__cell_inner,
+.dp__calendar_header_item {
+  font-size: 12px !important;
+}
 @theme {
-  --font-luxe: "Luxe", ui-sans-serif, system-ui, sans-serif;
-  --font-thugolatz: "Thugolatz", ui-sans-serif, system-ui, sans-serif;
-  --font-lefitica: "Lefitica", ui-sans-serif, system-ui, sans-serif;
+  /* --font-luxe: "Luxe", ui-sans-serif, system-ui, sans-serif; */
+  /* --font-thugolatz: "Thugolatz", ui-sans-serif, system-ui, sans-serif; */
+  /* --font-lefitica: "Lefitica", ui-sans-serif, system-ui, sans-serif; */
   --color-experience-blue: #2c5da7;
   --color-experience-pink: #d94a93;
   --color-experience-yellow: #feec82;

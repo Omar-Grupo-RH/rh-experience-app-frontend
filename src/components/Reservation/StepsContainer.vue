@@ -29,10 +29,10 @@ const isCurrent = (s) => store.step === s.id;
   <nav aria-label="Progreso de compra" class="w-full max-w-4xl mx-auto px-4">
     <div class="relative">
       <div
-        class="absolute top-4 lg:top-6 left-5 right-5 h-0.5 bg-gray-200 rounded-full"
+        class="absolute top-4  left-5 right-5 h-0.5 bg-gray-200 rounded-full"
       ></div>
 
-      <div class="absolute top-4 lg:top-6 left-5 right-5 h-0.5">
+      <div class="absolute top-4  left-5 right-5 h-0.5">
         <div
           class="h-full bg-experience-pink rounded-full transition-[width] duration-500"
           :style="{ width: progress + '%' }"
@@ -47,7 +47,7 @@ const isCurrent = (s) => store.step === s.id;
         >
           <!-- Punto del paso -->
           <div
-            class="size-8 lg:size-12 rounded-full border-2 flex items-center justify-center transition-all duration-300"
+            class="size-8  rounded-full border-2 flex items-center justify-center transition-all duration-300"
             :class="[
               isCompleted(s)
                 ? 'bg-experience-pink border-experience-pink text-white scale-100'
@@ -63,7 +63,7 @@ const isCurrent = (s) => store.step === s.id;
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
               stroke="#FFFFFF"
-              class="size-5 lg:size-8"
+              class="size-5"
             >
               <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
               <g
@@ -81,12 +81,12 @@ const isCurrent = (s) => store.step === s.id;
                 ></path>
               </g>
             </svg>
-            <span v-else class="font-semibold text-sm lg:text-lg">{{ s.id }}</span>
+            <span v-else class="font-semibold text-sm ">{{ s.id }}</span>
           </div>
 
           <!-- Etiqueta -->
           <span
-            class="mt-2 text-xs sm:text-sm font-medium transition-colors lg:text-base"
+            class="mt-2 text-xs font-medium transition-colors lg:text-base"
             :class="[
               isCompleted(s) || isCurrent(s)
                 ? 'text-experience-pink'

@@ -3,7 +3,7 @@ import IncomeChart from "@/components/admin/Graphics/IncomeChart.vue";
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto p-5 space-y-10">
+  <div class="mx-auto p-5 space-y-10">
     <h2 class="text-4xl font-semibold">Panel de control</h2>
     <div class="flex gap-5">
       <div
@@ -11,7 +11,7 @@ import IncomeChart from "@/components/admin/Graphics/IncomeChart.vue";
       >
         <div class="flex justify-between items-center">
           <p>Total de Clientes</p>
-          <div><img src="/svg/user.svg" class="w-8" alt="" /></div>
+          <div><img src="/svg/cart.svg" class="w-8" alt="" /></div>
         </div>
         <div>
           <p class="text-lg font-black lg:text-xl">100 clientes</p>

@@ -119,6 +119,7 @@ async function startCheckout() {
   loading.value = true;
   let orderId = null;
   let ticketId = null;
+  let paymentSucceeded = false;
 
   try {
     // 1) Crear PaymentIntent + guardar en BD (ticket, pasajeros, buyer, order pending)
@@ -212,15 +213,12 @@ async function startCheckout() {
       return;
     }
 
+    paymentSucceeded = true;
+    loading.value = false;
     toast?.open?.({
       message: "✅ Pago procesado y reserva confirmada. Revisa tu correo 📩",
       type: "success",
     });
-
-    setTimeout(() => {
-      store.reset();
-      window.location.reload();
-    }, 5100);
   } catch (e) {
     console.error(e);
 
@@ -246,13 +244,22 @@ async function startCheckout() {
       type: "error",
     });
   } finally {
-    loading.value = false;
+    if (paymentSucceeded) {
+      // Mantener el overlay hasta recargar
+      setTimeout(() => {
+        store.reset();
+        window.location.reload();
+      }, 5000);
+    } else {
+      // Hubo error: quitamos overlay
+      loading.value = false;
+    }
   }
 }
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto">
+  <div class="max-w-5xl mx-auto relative">
     <div
       class="rounded-lg border-gray-200 p-5 lg:p-10 border max-w-xl mx-auto lg:text-lg"
     >
@@ -339,7 +346,6 @@ async function startCheckout() {
           >
         </div>
 
-        <!-- ...dentro de tu <template> -->
         <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
           <div class="md:col-span-2">
             <label class="block text-sm font-medium">Nombre completo</label>
@@ -422,7 +428,6 @@ async function startCheckout() {
           </div>
         </div>
 
-        <!-- Elemento de tarjeta -->
         <div class="payment-container !mt-5">
           <div id="card-element"></div>
         </div>
@@ -446,6 +451,24 @@ async function startCheckout() {
             Regresar
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- 🔒 OVERLAY DE CARGA -->
+    <div
+      v-if="loading"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+    >
+      <div
+        class="bg-white rounded-lg p-6 shadow-lg text-center max-w-sm mx-auto"
+      >
+        <div
+          class="h-10 w-10 border-4 border-gray-300 border-t-experience-pink rounded-full animate-spin mx-auto mb-4"
+        ></div>
+        <p class="font-semibold text-lg mb-1">Procesando tu pago...</p>
+        <p class="text-sm text-gray-600">
+          Por favor no cierres esta ventana ni recargues la página.
+        </p>
       </div>
     </div>
   </div>
