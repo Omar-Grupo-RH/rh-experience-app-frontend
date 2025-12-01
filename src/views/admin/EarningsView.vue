@@ -62,7 +62,7 @@ const chartConfigs = computed(() => [
 
     <!-- Cards -->
     <div>
-      <div class="grid grid-cols-4 gap-x-5">
+      <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-5">
         <CardInfo
           title="Ganancia bruta"
           :text="currencyFormat(store.summary.gross_cents)"
@@ -96,10 +96,6 @@ const chartConfigs = computed(() => [
       <!-- Tabla -->
       <div class="rounded-lg shadow bg-white p-5 mt-10">
         <EarningsTable />
-      </div>
-
-      <!-- Gráficas reutilizables con tabs -->
-      <div class="mt-10">
         <ChartTabs :charts="chartConfigs" defaultKey="daily" height="320px" />
       </div>
     </div>

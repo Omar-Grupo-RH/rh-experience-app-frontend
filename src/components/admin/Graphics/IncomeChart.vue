@@ -148,11 +148,11 @@ const options = computed(() => {
 </script>
 
 <template>
-  <div class="bg-white p-5 rounded-lg shadow w-full">
+  <div >
     <!-- Tabs -->
     <div
       v-if="showTabs && charts.length > 1"
-      class="flex gap-2 border-b mb-4 text-sm"
+      class="flex gap-2 mb-4 text-sm"
     >
       <button
         v-for="c in charts"
