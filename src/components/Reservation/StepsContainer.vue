@@ -86,7 +86,7 @@ const isCurrent = (s) => store.step === s.id;
 
           <!-- Etiqueta -->
           <span
-            class="mt-2 text-xs font-medium transition-colors lg:text-base"
+            class="mt-2 text-[10px] font-medium transition-colors lg:text-base"
             :class="[
               isCompleted(s) || isCurrent(s)
                 ? 'text-experience-pink'

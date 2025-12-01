@@ -32,6 +32,8 @@ const calendarOptions = ref({
   initialView: "dayGridMonth",
   selectable: true,
   editable: false,
+  fixedWeekCount: false,
+  showNonCurrentDates: false,
   headerToolbar: {
     left: "prev",
     center: "title",
@@ -54,7 +56,7 @@ const calendarOptions = ref({
       dayHeaderFormat: isMobile.value
         ? { weekday: "short" }
         : { weekday: "long" },
-      dayMaxEvents: isMobile.value ? 1 : 2, // Menos eventos en móvil
+      dayMaxEvents: isMobile.value ? 1 : 2,
     },
   },
 
@@ -192,7 +194,7 @@ function updateCalendarView() {
 onMounted(async () => {
   await store.loadEvents();
   loading.value = false;
-  // Agregar listener para resize
+
   window.addEventListener("resize", handleResize);
 
   // Actualizar calendario cuando cambie el tamaño
@@ -263,8 +265,9 @@ watch([isMobile, isTablet], () => {
 }
 
 :deep(.fc .fc-toolbar-title) {
-  font-size: clamp(1rem, 3vw, 2.5rem);
+  font-size: clamp(1rem, 2vw, 2rem);
   text-align: center;
+  text-transform: capitalize;
 }
 
 :deep(.fc .fc-toolbar-chunk) {
@@ -274,7 +277,7 @@ watch([isMobile, isTablet], () => {
 }
 
 :deep(.fc .fc-button) {
-  font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+  font-size: clamp(0.7rem, 1.5vw, 1rem);
   padding: 0.4rem 0.8rem;
   background-color: #d94a93 !important;
   border: none !important;
@@ -286,12 +289,18 @@ watch([isMobile, isTablet], () => {
 }
 
 :deep(.fc .fc-daygrid-day-number) {
-  font-size: clamp(0.7rem, 1.5vw, 1.2rem);
+  font-size: clamp(0.7rem, 1.5vw, 1rem);
   padding: 2px 4px;
 }
 
+:deep(.fc-day-has-event) {
+  cursor: pointer !important;
+}
+
+
+
 :deep(.fc .fc-col-header-cell-cushion) {
-  font-size: clamp(0.5rem, 1.5vw, 1.1rem);
+  font-size: clamp(0.5rem, 1vw, 1rem);
   padding: 4px 2px;
   font-weight: normal;
   text-transform: uppercase;
@@ -311,7 +320,7 @@ watch([isMobile, isTablet], () => {
 }
 
 :deep(.fc-event) {
-  font-size: clamp(0.6rem, 1.2vw, 0.8rem);
+  font-size: clamp(0.6rem, 1vw, 0.8rem);
   padding: 1px 3px;
   margin: 1px 0;
 }
@@ -355,12 +364,8 @@ watch([isMobile, isTablet], () => {
 }
 
 @media (min-width: 1024px) {
-  .calendar-container {
-    padding: 1rem;
-  }
   :deep(.fc-event) {
-    font-size: 1rem;
-    line-height: 1.2;
+    font-size: 14px;
   }
 
   :deep(.fc .fc-toolbar) {
@@ -370,9 +375,5 @@ watch([isMobile, isTablet], () => {
   :deep(.fc .fc-daygrid-day-frame) {
     min-height: 120px;
   }
-}
-
-.swal2-title {
-  color: red !important;
 }
 </style>

@@ -4,7 +4,7 @@ import Calendar from "@/components/Reservation/Calendar.vue";
 
 <template>
   <div>
-    <div class="mx-auto">
+    <div class="mx-auto xl:w-[80%]">
         <Calendar />
     </div>
   </div>

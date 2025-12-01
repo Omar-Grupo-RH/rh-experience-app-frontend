@@ -3,7 +3,7 @@ import Menu from "@/components/Navigation/Menu.vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 import TermsCondModal from "@/components/Reservation/TermsCondModal.vue";
 import Comments from "@/components/Comments/Comments.vue";
-import StepDateVue from "@/components/Reservation/StepDate.vue";
+import StepDate from "@/components/Reservation/StepDate.vue";
 import StepFormPassengers from "@/components/Reservation/stepFormPassengers.vue";
 import StepConfirmData from "@/components/Reservation/StepConfirmData.vue";
 import StepPayTickets from "@/components/Reservation/StepPayTickets.vue";
@@ -28,7 +28,7 @@ const store = useReservaStore();
               v-if="store.step === 1"
               class="bg-white p-3 lg:p-10 rounded-lg w-full h-auto shadow-sm space-y-4"
             >
-              <StepDateVue />
+              <StepDate />
             </div>
             <!-- Paso 2 -->
             <div
@@ -67,7 +67,7 @@ const store = useReservaStore();
     </section>
 
     <div
-      class="rounded-2xl w-[95%] xl:w-[80%] mt-10 py-5 pb-10 relative mx-auto"
+      class="rounded-2xl w-[95%] xl:w-[80%] lg:mt-10 lg:py-5 lg:pb-10 relative mx-auto"
       v-if="store.step === 1"
     >
       <Comments />

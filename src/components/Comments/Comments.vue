@@ -43,13 +43,13 @@ const handleSubmit = async (formData) => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto pb-10">
+  <div class="max-w-7xl mx-auto lg:pb-10">
     <h2 class="text-2xl font-semibold lg:text-4xl xl:text-5xl text-center">
       Comparte tu experiencia con nuestra comunidad
     </h2>
 
     <div
-      class="w-full p-10 bg-white rounded-lg border shadow border-gray-100 my-10"
+      class="w-full p-5 lg:p-10 bg-white rounded-lg border shadow border-gray-100 my-10"
     >
       <h3 class="text-xl font-semibold mb-5">Deja tu comentario</h3>
 
