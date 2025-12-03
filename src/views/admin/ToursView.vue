@@ -11,7 +11,7 @@ import CalendarAdmin from "@/components/admin/Calendar/CalendarAdmin.vue";
       </div>
     </div>
 
-    <div class="rounded-lg shadow bg-white p-5">
+    <div class="rounded-lg shadow bg-white p-5 lg:h-[750px]">
       <CalendarAdmin />
     </div>
   </div>

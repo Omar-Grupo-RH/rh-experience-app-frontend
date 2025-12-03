@@ -246,10 +246,7 @@ async function startCheckout() {
   } finally {
     if (paymentSucceeded) {
       // Mantener el overlay hasta recargar
-      setTimeout(() => {
-        store.reset();
-        window.location.reload();
-      }, 5000);
+      console.log("paymentSucceeded", paymentSucceeded);
     } else {
       // Hubo error: quitamos overlay
       loading.value = false;
