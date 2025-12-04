@@ -11,7 +11,7 @@ const user = ref(JSON.parse(localStorage.getItem(STORAGE_USER) || "null"));
 function toAdminLevel(val) {
   if (val === null || val === undefined) return 0;
   const n = Number(val);
-  return Number.isNaN(n) ? 0 : n; // 0,1,2...
+  return Number.isNaN(n) ? 0 : n; // 0,1,2,3...
 }
 
 function decodeJwtPayload(jwt) {
@@ -51,7 +51,7 @@ function hydrateFromToken(logoutFn) {
     id: payload.sub || payload.id || base.id || null,
     first_name: payload.first_name || base.first_name,
     last_name: payload.last_name || base.last_name,
-    admin: adminLevel, // 👈 ahora es 0,1,2
+    admin: adminLevel, // 0,1,2,...
     raw: payload,
   };
 
@@ -63,8 +63,8 @@ export function useAuth() {
   const isAuthenticated = computed(() => !!token.value && !!user.value);
 
   const adminLevel = computed(() => user.value?.admin ?? 0);
-  const isAdmin = computed(() => adminLevel.value > 0); // 1 o 2
-  const isFullAdmin = computed(() => adminLevel.value === 1); // solo 1
+  const isAdmin = computed(() => adminLevel.value > 0); // cualquier admin (1,2,3...)
+  const isFullAdmin = computed(() => adminLevel.value === 1); // admin nivel 1
 
   function logout() {
     token.value = null;
@@ -78,10 +78,12 @@ export function useAuth() {
     token.value = jwt;
     localStorage.setItem(STORAGE_KEY, jwt);
 
+    // primero hidratar desde el token
     hydrateFromToken(logout);
 
+    // si viene perfil extra desde el backend, lo fusionamos
     if (profile) {
-      const level = toAdminLevel(profile.admin);
+      const level = toAdminLevel(profile.admin ?? user.value?.admin ?? 0);
 
       user.value = {
         ...user.value,
@@ -92,12 +94,28 @@ export function useAuth() {
       localStorage.setItem(STORAGE_USER, JSON.stringify(user.value));
     }
 
-    // cualquier admin (1 o 2) va al dashboard de ingresos
-    if (user.value.admin > 0) {
+    const level = user.value?.admin ?? 0;
+
+    // 🔹 RUTAS POR NIVEL DE ADMIN
+    if (level === 1) {
+      // Admin principal → panel clásico
+      router.push({ name: "earnings" }); // /admin/ingresos
+      return;
+    }
+
+    if (level === 2) {
+      // Admin de cobranza → su panel propio
+      router.push({ name: "cobranza" }); // /cobranza
+      return;
+    }
+
+    if (level >= 3) {
+      // futuros niveles → elige un default por ahora
       router.push({ name: "earnings" });
       return;
     }
 
+    // 🔹 Usuario normal (no admin): respetar "next" o ir a home
     const url = new URL(window.location.href);
     const next = url.searchParams.get("next");
     router.push(next || { name: "home" });

@@ -26,10 +26,11 @@ const router = createRouter({
       ],
     },
 
+    // 🔹 PANEL ADMIN 1 (super admin)
     {
       path: "/admin",
       name: "admin",
-      meta: { adminOnly: true },
+      meta: { adminOnly: true, fullAdminOnly: true }, // 👈 solo admin === 1
       component: () => import("@/views/admin/AdminLayout.vue"),
       children: [
         {
@@ -38,7 +39,7 @@ const router = createRouter({
           meta: {
             title: "Agenda de viajes",
             adminOnly: true,
-            fullAdminOnly: true, // 👈 solo admin === 1
+            fullAdminOnly: true,
           },
           component: () => import("@/views/admin/ToursView.vue"),
         },
@@ -95,29 +96,65 @@ const router = createRouter({
           meta: {
             title: "Ingresos",
             adminOnly: true,
-            // sin fullAdminOnly → la ven admin 1 y 2
+            // solo admin 1 porque el padre ya tiene fullAdminOnly: true
           },
           component: () => import("@/views/admin/EarningsView.vue"),
         },
         {
           path: "comentarios",
           name: "comments",
-          meta: { title: "Comentarios", adminOnly: true, fullAdminOnly: true },
+          meta: {
+            title: "Comentarios",
+            adminOnly: true,
+            fullAdminOnly: true,
+          },
           component: () => import("@/views/admin/CommentsView.vue"),
         },
+      ],
+    },
+
+    // 🔹 PANEL ADMIN 2 (cobranza, comercio, etc.)
+    {
+      path: "/cobranza",
+      name: "cobranza-root",
+      meta: {
+        adminOnly: true,
+        requiredAdminLevel: 2, // 👈 solo admin === 2
+      },
+      component: () => import("@/views/cobranza/CobranzaLayout.vue"), // tu layout para admin 2
+      children: [
+        {
+          path: "listado",
+          name: "cobranza",
+          meta: {
+            title: "Cobranza",
+            adminOnly: true,
+            requiredAdminLevel: 2,
+          },
+          component: () => import("@/views/cobranza/CobranzaView.vue"),
+        },
+        // aquí en el futuro agregas más vistas para admin 2
       ],
     },
   ],
 });
 
 router.beforeEach((to) => {
-  const { isAuthenticated, user, hydrateFromToken } = useAuth();
+  const { isAuthenticated, user, adminLevel, hydrateFromToken } = useAuth();
   hydrateFromToken();
 
   const requiresAuth = to.matched.some((r) => r.meta?.requiresAuth);
   const guestOnly = to.matched.some((r) => r.meta?.guestOnly);
   const adminOnly = to.matched.some((r) => r.meta?.adminOnly);
   const fullAdminOnly = to.matched.some((r) => r.meta?.fullAdminOnly);
+
+  // nivel exacto requerido (si alguna ruta lo define)
+  const requiredAdminLevel = to.matched.reduce((lvl, r) => {
+    if (r.meta?.requiredAdminLevel !== undefined) {
+      return r.meta.requiredAdminLevel;
+    }
+    return lvl;
+  }, null);
 
   // requiere auth
   if (requiresAuth && !isAuthenticated.value) {
@@ -132,14 +169,19 @@ router.beforeEach((to) => {
       : { ...next, replace: true };
   }
 
-  // rutas solo para algún admin (1 o 2)
-  if (adminOnly && (!user.value || !user.value.admin)) {
+  // rutas solo para algún admin (nivel > 0)
+  if (adminOnly && (!user.value || adminLevel.value <= 0)) {
     return { name: "home", replace: true };
   }
 
   // rutas solo para admin full (admin === 1)
-  if (fullAdminOnly && (!user.value || user.value.admin !== 1)) {
-    return { name: "earnings", replace: true };
+  if (fullAdminOnly && adminLevel.value !== 1) {
+    return { name: "home", replace: true };
+  }
+
+  // rutas con nivel de admin exacto (ej: requiredAdminLevel: 2)
+  if (requiredAdminLevel !== null && adminLevel.value !== requiredAdminLevel) {
+    return { name: "home", replace: true };
   }
 });
 
