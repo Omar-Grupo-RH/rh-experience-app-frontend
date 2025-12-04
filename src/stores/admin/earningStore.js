@@ -10,7 +10,7 @@ import {
 export const useEarningStore = defineStore("earnings", () => {
   const date = ref("");
   const order = ref("asc");
-  const rows = ref([]);
+  const buyers = ref([]);
   const summary = ref({
     gross_cents: 0,
     net_cents: 0,
@@ -28,7 +28,7 @@ export const useEarningStore = defineStore("earnings", () => {
       const normalizedOrder = order.value.toUpperCase();
       const res = await listEarnings(date.value || undefined, normalizedOrder);
 
-      rows.value = res.rows || [];
+      buyers.value = res.buyers || [];
       summary.value = res.summary || {
         gross_cents: 0,
         net_cents: 0,
@@ -38,7 +38,7 @@ export const useEarningStore = defineStore("earnings", () => {
       };
     } catch (error) {
       console.error("Error cargando earnings", error);
-      rows.value = [];
+      buyers.value = [];
       summary.value = {
         gross_cents: 0,
         net_cents: 0,
@@ -64,7 +64,7 @@ export const useEarningStore = defineStore("earnings", () => {
   const chartEarningsByDay = computed(() => {
     const map = {};
 
-    rows.value.forEach((order) => {
+    buyers.value.forEach((order) => {
       const date = formatDateToSpanishShort(order.created_at.split(" ")[0]); 
 
       if (!map[date]) map[date] = 0;
@@ -80,7 +80,7 @@ export const useEarningStore = defineStore("earnings", () => {
   return {
     date,
     order,
-    rows,
+    buyers,
     summary,
     loading,
     fetchEarnings,

@@ -1,10 +1,11 @@
 <script setup>
-import { onMounted, watch } from "vue";
+import { onMounted, watch, ref } from "vue";
 import { VueDatePicker } from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { formatDateToSpanish } from "@/utils/formatDate";
 import { useEarningStore } from "@/stores/admin/earningStore";
 import { currencyFormat } from "@/utils/formatMoney";
+import html2pdf from "html2pdf.js";
 
 const store = useEarningStore();
 
@@ -20,6 +21,77 @@ watch(
     store.fetchEarnings();
   }
 );
+
+const generatePDF = () => {
+  const element = document.createElement("div");
+
+  element.innerHTML = `
+    <div style="font-family: Arial, sans-serif; padding: 5px;">
+      <h1 style="color: #1e40af; font-size: 24px; margin-bottom: 10px;">RH EXPERIENCE</h1>
+      <p style="color: #666; margin-bottom: 20px;">
+        Ganancias ${store.date ? formatDateToSpanish(store.date) : "totales"}
+      </p>
+      <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+        <thead>
+          <tr style="background-color: #f3f4f6; border-bottom: 1px solid #d1d5db;">
+            <th style="padding: 4px; text-align: left; font-weight: bold;">Comprador</th>
+            <th style="padding: 4px; text-align: left; font-weight: bold;">Email</th>
+            <th style="padding: 4px; text-align: left; font-weight: bold;">Celular</th>
+            <th style="padding: 4px; text-align: left; font-weight: bold;">Direccion</th>
+            <th style="padding: 4px; text-align: left; font-weight: bold;">Locacion</th>
+            <th style="padding: 4px; text-align: left; font-weight: bold;">Subtotal</th>
+            <th style="padding: 4px; text-align: left; font-weight: bold;">Descuento</th>
+            <th style="padding: 4px; text-align: left; font-weight: bold;">Total</th>
+            <th style="padding: 4px; text-align: left; font-weight: bold;">Estado</th>
+            <th style="padding: 4px; text-align: left; font-weight: bold;">Fecha compra</th>
+            <th style="padding: 4px; text-align: left; font-weight: bold;">Fecha Viaje</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${store.buyers
+            .map(
+              (b) => `
+            <tr style="border-bottom: 1px solid #e5e7eb;">
+              <td style="padding: 4px;">${b.buyer_name}</td>
+              <td style="padding: 4px;">${b.email}</td>
+              <td style="padding: 4px;">${b.phone}</td>
+              <td style="padding: 4px;">${b.address}</td>
+              <td style="padding: 4px;">${b.city}, ${b.state},${b.zip}</td>
+              <td style="padding: 4px;">${currencyFormat(b.subtotal_cents)}</td>
+              <td style="padding: 4px;">${currencyFormat(b.discount_cents)}</td>
+              <td style="padding: 4px;">${currencyFormat(b.total_cents)}</td>
+              <td style="padding: 4px;">${b.status}</td>
+              <td style="padding: 4px;">${formatDateToSpanish(
+                b.created_at
+              )}</td>
+              <td style="padding: 4px;">${formatDateToSpanish(b.trip_date)}</td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
+      </table>
+    </div>
+      `;
+
+  const options = {
+    margin: 1,
+    filename: `ganancias-${store.date ? store.date : "totales"}.pdf`,
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: "#ffffff",
+    },
+    jsPDF: {
+      unit: "cm",
+      format: "a4",
+      orientation: "landscape",
+    },
+  };
+
+  html2pdf().set(options).from(element).save();
+};
 </script>
 
 <template>
@@ -46,16 +118,22 @@ watch(
         <div class="flex gap-3 items-center">
           <button
             @click="store.toggleOrder"
-            class="px-2 py-1 rounded-sm text-sm cursor-pointer transition w-32 border border-gray-400 flex gap-2 justify-center"
+            class="p-2 rounded-sm text-sm cursor-pointer transition w-32 border border-gray-400 flex gap-2 justify-center"
           >
             <img src="/svg/arrows.svg" class="w-3" alt="" />
             {{ store.order === "asc" ? "Ascendente" : "Descendente" }}
           </button>
           <button
-            class="px-2 py-1 rounded-sm text-sm cursor-pointer transition w-32 border border-gray-400 flex gap-2 justify-center"
+            class="p-2 rounded-sm text-sm cursor-pointer transition w-32 border border-gray-400 flex gap-2 justify-center"
             @click="store.resetDate()"
           >
             Mostrar todo
+          </button>
+          <button
+            class="bg-experience-blue text-white p-2 w-32 rounded-sm text-sm cursor-pointer"
+            @click="generatePDF"
+          >
+            Exportar PDF
           </button>
         </div>
       </div>
@@ -70,7 +148,7 @@ watch(
         </div>
 
         <table
-          v-if="store.rows.length"
+          v-if="store.buyers.length"
           class="w-full text-xs lg:text-sm hidden md:table"
         >
           <thead class="bg-gray-50 sticky top-0 z-10">
@@ -87,7 +165,7 @@ watch(
 
           <tbody class="text-xs">
             <tr
-              v-for="order in store.rows"
+              v-for="order in store.buyers"
               :key="order.id"
               class="border-b border-gray-200 text-center"
             >
@@ -122,9 +200,9 @@ watch(
             </tr>
           </tbody>
         </table>
-        <div v-if="store.rows.length" class="space-y-3 md:hidden">
+        <div v-if="store.buyers.length" class="space-y-3 md:hidden">
           <div
-            v-for="order in store.rows"
+            v-for="order in store.buyers"
             :key="order.id"
             class="border border-gray-200 rounded-lg p-4 text-xs bg-white shadow-sm"
           >
