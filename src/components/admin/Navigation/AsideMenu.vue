@@ -11,7 +11,7 @@ const menuItems = computed(() => {
 
   if (!user.value || level <= 0) return [];
 
-  // 👑 Admin 1 – panel completo
+  //  Admin 1 – panel completo
   if (level === 1) {
     return [
       { to: "earnings", label: "Panel de control" },
@@ -22,7 +22,7 @@ const menuItems = computed(() => {
     ];
   }
 
-  // 💳 Admin 2 – panel de cobranza
+  //  Admin 2 – panel de cobranza
   if (level === 2) {
     return [
       { to: "cobranza", label: "Panel de control" },
@@ -30,7 +30,7 @@ const menuItems = computed(() => {
     ];
   }
 
-  // 📈 Futuro: admin 3+ (ejemplo)
+  // Futuro: admin 3+ (ejemplo)
   if (level >= 3) {
     return [
       { to: "earnings", label: "Dashboard" },
