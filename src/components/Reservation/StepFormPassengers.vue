@@ -63,6 +63,7 @@ const adult = ({ value }) => {
                     validation="required|length:3"
                     :validation-messages="{
                       required: 'El nombre es obligatorio',
+                      length: 'El nombre debe tener al menos 3 caracteres',
                     }"
                   />
                   <FormKit
@@ -74,6 +75,7 @@ const adult = ({ value }) => {
                     validation="required|length:3"
                     :validation-messages="{
                       required: 'El apellido es obligatorio',
+                      length: 'El apellido debe tener al menos 3 caracteres',
                     }"
                   />
                   <FormKit
@@ -208,7 +210,6 @@ const adult = ({ value }) => {
               }"
             />
           </div>
-          
         </div>
       </div>
 

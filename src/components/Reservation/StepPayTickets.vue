@@ -345,82 +345,146 @@ async function startCheckout() {
 
         <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
           <div class="md:col-span-2">
-            <label class="block text-sm font-medium">Nombre completo</label>
-            <input
-              v-model="store.payer.full_name"
+            <FormKit
               type="text"
-              class="w-full border rounded-md p-2"
-              placeholder="Nombre en el recibo"
+              name="full_name"
+              label="Nombre completo"
+              v-model="store.payer.full_name"
+              placeholder="Jhon Doe"
+              validation="required|length:3"
+              :validation-messages="{
+                required: 'El nombre es obligatorio',
+                length: 'El nombre debe tener al menos 3 caracteres',
+              }"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium">Email</label>
-            <input
-              v-model="store.payer.email"
+            <FormKit
               type="email"
-              class="w-full border rounded-md p-2"
-              placeholder="correo@dominio.com"
+              name="email"
+              label="Correo electrónico"
+              v-model="store.payer.email"
+              placeholder="ejemplo@correo.com"
+              validation="required|email"
+              :validation-messages="{
+                required: 'Correo obligatorio',
+                email: 'Email no válido',
+              }"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium">Teléfono</label>
-            <input
-              v-model="store.payer.phone"
+            <FormKit
               type="tel"
-              class="w-full border rounded-md p-2"
+              name="phone"
+              label="Teléfono"
+              v-model="store.payer.phone"
               placeholder="10 dígitos"
+              validation="required|matches:/^[0-9]{10}$/"
+              :validation-messages="{
+                required: 'Teléfono obligatorio',
+                matches: 'Debe tener 10 dígitos',
+              }"
             />
           </div>
 
           <div class="md:col-span-2">
-            <label class="block text-sm font-medium">Calle y número</label>
-            <input
+            <FormKit
+              type="text"
+              name="address"
+              label="Domicilio"
               v-model="store.payer.address"
-              type="text"
-              class="w-full border rounded-md p-2"
               placeholder="Calle 123 Interior X"
+              validation="required|length:3"
+              :validation-messages="{
+                required: 'El domicilio es obligatorio',
+                length: 'El domicilio debe tener al menos 3 caracteres',
+              }"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium">Ciudad</label>
-            <input
+            <FormKit
+              type="text"
+              name="city"
+              label="Ciudad"
               v-model="store.payer.city"
-              type="text"
-              class="w-full border rounded-md p-2"
               placeholder="Mérida"
+              validation="required|length:3"
+              :validation-messages="{
+                required: 'La ciudad es obligatoria',
+                length: 'La ciudad debe tener al menos 3 caracteres',
+              }"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium">Estado</label>
-            <input
+            <FormKit
+              type="text"
+              name="state"
+              label="Estado"
               v-model="store.payer.state"
-              type="text"
-              class="w-full border rounded-md p-2"
               placeholder="Yucatán"
+              validation="required|length:3"
+              :validation-messages="{
+                required: 'El estado es obligatorio',
+                length: 'El estado debe tener al menos 3 caracteres',
+              }"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium">Código postal</label>
-            <input
-              v-model="store.payer.zip"
+            <FormKit
               type="text"
-              class="w-full border rounded-md p-2"
+              name="zip"
+              label="Código postal"
+              v-model="store.payer.zip"
               placeholder="97XXX"
+              validation="required|length:3"
+              :validation-messages="{
+                required: 'El código postal es obligatorio',
+                length: 'El código postal debe tener al menos 3 caracteres',
+              }"
             />
           </div>
-
           <div>
-            <label class="block text-sm font-medium">País (ISO2)</label>
-            <input
+            <FormKit
+              type="select"
+              label="País"
+              name="country"
+              placeholder="Seleccionar"
               v-model="store.payer.country"
-              maxlength="2"
-              class="w-full border rounded-md p-2 uppercase"
-              placeholder="MX"
+              :options="[
+                { label: 'Seleccionar', value: '', attrs: { disabled: true } },
+                { label: 'Argentina', value: 'ar' },
+                { label: 'Canadá', value: 'ca' },
+                {
+                  label: 'Chile',
+                  value: 'cl',
+                },
+                {
+                  label: 'Colombia',
+                  value: 'co',
+                },
+                {
+                  label: 'Estados Unidos',
+                  value: 'us',
+                },
+                {
+                  label: 'España',
+                  value: 'es',
+                },
+                {
+                  label: 'México',
+                  value: 'mx',
+                },
+              ]"
+              validation="required"
+              validation-visibility="dirty"
+              :validation-messages="{
+                required: 'El país es obligatorio',
+              }"
             />
           </div>
         </div>
