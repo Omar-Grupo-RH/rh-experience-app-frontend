@@ -118,7 +118,7 @@ const router = createRouter({
             adminOnly: true,
             fullAdminOnly: true,
           },
-          component: () => import("@/views/admin/UsersView.vue"),
+          component: () => import("@/views/admin/programmer/UsersView.vue"),
         },
       ],
     },

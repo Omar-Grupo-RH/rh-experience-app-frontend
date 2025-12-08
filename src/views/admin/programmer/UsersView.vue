@@ -14,8 +14,8 @@ onMounted(async () => {
   <div class="max-w-7xl mx-auto p-5 space-y-10">
     <div class="flex justify-between items-center">
       <div class="space-y-1">
-        <h2 class="text-4xl font-semibold">Gestion de usuarios</h2>
-        <p class="text-gray-400">Administra los usuarios aqui.</p>
+        <h2 class="text-4xl font-semibold">Gestión de usuarios</h2>
+        <p class="text-gray-400">Administra los usuarios aquí.</p>
       </div>
     </div>
 
@@ -61,6 +61,7 @@ onMounted(async () => {
                   validation="required|length:3"
                   :validation-messages="{
                     required: 'El usuario es obligatorio',
+                    length: 'El usuario debe tener al menos 3 caracteres',
                   }"
                 />
 
@@ -72,6 +73,7 @@ onMounted(async () => {
                   validation="length:6"
                   :validation-messages="{
                     required: 'La nueva contraseña es obligatoria',
+                    length: 'La contraseña debe tener al menos 6 caracteres',
                   }"
                 />
 

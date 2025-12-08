@@ -90,7 +90,7 @@ const calendarOptions = ref({
     if (!event) {
       Swal.fire({
         title: `Opps!`,
-        text: "Solamente puedes seleccionar los dias donde hay RH EXPERIENCE",
+        text: "Solamente puedes seleccionar los días donde hay RH EXPERIENCE",
         icon: "warning",
         timer: 3000,
       });
@@ -130,9 +130,7 @@ const calendarOptions = ref({
     } else {
       selectedDate.value = info.event.startStr;
       Swal.fire({
-        title: `Reservar para el RH EXPERIENCE del ${formatDateToSpanish(
-          info.event.startStr
-        )}?`,
+        title: `¿Reservar para el ${formatDateToSpanish(info.event.startStr)}?`,
         icon: "question",
         showCancelButton: true,
         confirmButtonColor: "#d94a93",
@@ -156,9 +154,7 @@ function selectDay(dayEl, dateStr) {
   dayEl.classList.add("fc-day-selected");
   selectedDate.value = dateStr;
   Swal.fire({
-    title: `Reservar para el RH EXPERIENCE del ${formatDateToSpanish(
-      dateStr
-    )}?`,
+    title: `¿Reservar para el ${formatDateToSpanish(dateStr)}?`,
     icon: "question",
     showCancelButton: true,
     cancelButtonColor: "#adadad",
@@ -296,8 +292,6 @@ watch([isMobile, isTablet], () => {
 :deep(.fc-day-has-event) {
   cursor: pointer !important;
 }
-
-
 
 :deep(.fc .fc-col-header-cell-cushion) {
   font-size: clamp(0.5rem, 1vw, 1rem);

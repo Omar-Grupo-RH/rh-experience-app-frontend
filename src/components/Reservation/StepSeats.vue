@@ -72,7 +72,7 @@ onMounted(() => {
                   class="text-xl font-bold uppercase mt-5"
                   v-if="store.selectedSeats.length"
                 >
-                  Total: {{ currencyFormat(store.total) }} MXN
+                  Total: {{ currencyFormat(store.subtotal) }} MXN
                 </p>
               </div>
             </div>

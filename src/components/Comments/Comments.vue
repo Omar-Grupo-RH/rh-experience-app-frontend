@@ -128,13 +128,13 @@ const handleSubmit = async (formData) => {
           <div class="flex-1">
             <FormKit
               type="email"
-              label="Correo electronico"
+              label="Correo electrónico"
               name="email"
               placeholder="johndoe@correo.com"
               v-model="commentPayload.email"
               validation="required|length:3"
               :validation-messages="{
-                required: 'Tu email es obligatorio',
+                required: 'Tu correo electrónico es obligatorio',
               }"
             />
           </div>

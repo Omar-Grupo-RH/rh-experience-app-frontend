@@ -20,7 +20,7 @@ const handleSubmit = async (formData) => {
 
     reset("loginForm");
     toast?.open?.({
-      message: `¡Bienvenido! ${username}`,
+      message: `¡Bienvenido ${username}!`,
       type: "success",
     });
   } catch (error) {
@@ -92,7 +92,7 @@ const handleSubmit = async (formData) => {
           :to="{ name: 'home' }"
           class="block text-sm text-gray-500 mt-10"
         >
-          Regresar a la pagina principal
+          Regresar a la página principal
         </RouterLink>
       </div>
     </div>

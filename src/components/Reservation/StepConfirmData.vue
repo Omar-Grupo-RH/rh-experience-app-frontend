@@ -102,12 +102,14 @@ const breakdown = computed(() => store.priceBreakdown());
                 class="text-xl font-bold uppercase mt-5"
                 v-if="store.selectedSeats.length"
               >
-                Total: {{ currencyFormat(store.total) }} MXN
+                Total: {{ currencyFormat(store.subtotal) }} MXN
               </p>
             </div>
           </div>
 
-          <div class="mt-5 flex gap-2 items-center flex-col md:flex-row-reverse">
+          <div
+            class="mt-5 flex gap-2 items-center flex-col md:flex-row-reverse"
+          >
             <button
               class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               @click="store.next"
