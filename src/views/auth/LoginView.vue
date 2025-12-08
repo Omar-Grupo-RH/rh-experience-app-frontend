@@ -11,17 +11,16 @@ const { login } = useAuth();
 const handleSubmit = async (formData) => {
   try {
     const {
-      data: { token, first_name, last_name, admin },
+      data: { token, username, admin },
     } = await AuthAPI.login(formData);
     await login(token, {
-      first_name,
-      last_name,
+      username,
       admin,
     });
 
     reset("loginForm");
     toast?.open?.({
-      message: `¡Bienvenido! ${first_name} ${last_name}`,
+      message: `¡Bienvenido! ${username}`,
       type: "success",
     });
   } catch (error) {
@@ -65,13 +64,13 @@ const handleSubmit = async (formData) => {
           :actions="false"
         >
           <FormKit
-            type="email"
-            label="Correo electrónico"
-            name="email"
-            placeholder="Ingresa tu correo electronico"
+            type="text"
+            label="Usuario"
+            name="username"
+            placeholder="Ingresa tu usuario"
             validation="required"
             :validation-messages="{
-              required: 'El correo electrónico es obligatorio',
+              required: 'El usuario es obligatorio',
             }"
           />
           <FormKit
@@ -89,7 +88,10 @@ const handleSubmit = async (formData) => {
             <FormKit type="submit">Iniciar sesión</FormKit>
           </div>
         </FormKit>
-        <RouterLink :to="{ name: 'home' }" class="block text-sm text-gray-500 mt-10">
+        <RouterLink
+          :to="{ name: 'home' }"
+          class="block text-sm text-gray-500 mt-10"
+        >
           Regresar a la pagina principal
         </RouterLink>
       </div>

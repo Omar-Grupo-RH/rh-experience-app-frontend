@@ -1,4 +1,4 @@
-// src/stores/admin/earningStore.js
+
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { useEarning } from "@/composables/useEarning";

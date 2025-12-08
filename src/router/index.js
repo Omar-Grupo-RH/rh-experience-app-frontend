@@ -110,6 +110,16 @@ const router = createRouter({
           },
           component: () => import("@/views/admin/CommentsView.vue"),
         },
+        {
+          path: "usuarios",
+          name: "users",
+          meta: {
+            title: "Usuarios",
+            adminOnly: true,
+            fullAdminOnly: true,
+          },
+          component: () => import("@/views/admin/UsersView.vue"),
+        },
       ],
     },
 

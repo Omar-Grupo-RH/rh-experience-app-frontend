@@ -1,17 +1,28 @@
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { useAuth } from "@/composables/useAuth";
 import Link from "./Link.vue";
 
 const { user, adminLevel, logout } = useAuth();
 
-// Menú según nivel de admin
 const menuItems = computed(() => {
   const level = adminLevel.value;
 
   if (!user.value || level <= 0) return [];
 
   //  Admin 1 – panel completo
+
+  if (level === 1 && user.value.username === "dev_omar") {
+    return [
+      { to: "earnings", label: "Panel de control" },
+      { to: "calendar", label: "Agenda de viajes" },
+      { to: "travels", label: "Mis Viajes" },
+      { to: "coupons", label: "Cupones" },
+      { to: "comments", label: "Comentarios" },
+      { to: "users", label: "Usuarios" },
+    ];
+  }
+
   if (level === 1) {
     return [
       { to: "earnings", label: "Panel de control" },
@@ -59,12 +70,17 @@ const exitRouteName = computed(() => {
       <div class="space-y-2">
         <!-- Menú según el nivel -->
         <template v-if="user && adminLevel > 0">
+          <div class="mb-5 py-2 px-4">
+            <h1 class="text-xl lg:text-xl text-white">
+              Hola:
+              <span class="font-black">{{ user.username }}</span>
+            </h1>
+          </div>
           <Link v-for="item in menuItems" :key="item.to" :to="item.to">
             {{ item.label }}
           </Link>
         </template>
       </div>
-
       <div class="space-y-2">
         <!-- Link para salir del dashboard (visible para cualquier admin) -->
         <Link v-if="user && adminLevel > 0" :to="exitRouteName">

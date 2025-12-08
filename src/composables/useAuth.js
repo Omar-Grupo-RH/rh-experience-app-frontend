@@ -49,8 +49,7 @@ function hydrateFromToken(logoutFn) {
 
   user.value = {
     id: payload.sub || payload.id || base.id || null,
-    first_name: payload.first_name || base.first_name,
-    last_name: payload.last_name || base.last_name,
+    username: payload.username || base.username,
     admin: adminLevel, // 0,1,2,...
     raw: payload,
   };
