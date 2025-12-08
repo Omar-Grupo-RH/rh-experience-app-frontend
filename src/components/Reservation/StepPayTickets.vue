@@ -457,27 +457,27 @@ async function startCheckout() {
               v-model="store.payer.country"
               :options="[
                 { label: 'Seleccionar', value: '', attrs: { disabled: true } },
-                { label: 'Argentina', value: 'ar' },
-                { label: 'Canadá', value: 'ca' },
+                { label: 'Argentina', value: 'AR' },
+                { label: 'Canadá', value: 'CA' },
                 {
                   label: 'Chile',
-                  value: 'cl',
+                  value: 'CL',
                 },
                 {
                   label: 'Colombia',
-                  value: 'co',
+                  value: 'CO',
                 },
                 {
                   label: 'Estados Unidos',
-                  value: 'us',
+                  value: 'US',
                 },
                 {
                   label: 'España',
-                  value: 'es',
+                  value: 'ES',
                 },
                 {
                   label: 'México',
-                  value: 'mx',
+                  value: 'MX',
                 },
               ]"
               validation="required"

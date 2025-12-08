@@ -42,12 +42,10 @@ const calendarOptions = ref({
   locale: esLocale,
   events: events.value,
 
-  // Configuraciones responsive
   height: "auto",
   contentHeight: "auto",
-  aspectRatio: isMobile.value ? 0.8 : 1.5, // Proporción según dispositivo
+  aspectRatio: isMobile.value ? 0.8 : 1.5,
 
-  // Views responsive
   views: {
     dayGridMonth: {
       titleFormat: isMobile.value
@@ -112,12 +110,14 @@ const calendarOptions = ref({
 
     const dayEl =
       info.dayEl || info.jsEvent?.target?.closest?.(".fc-daygrid-day");
-    if (dayEl) selectDay(dayEl, clickedDate);
+    if (dayEl) selectDay(dayEl, clickedDate, event);
   },
 
   eventClick(info) {
     store.selectedTripId = info.event.id;
     store.selectedSeats = [];
+    const clickedDate = info.event.startStr;
+    const event = store.events.find((ev) => ev.start === clickedDate);
 
     const clickTarget = info.jsEvent?.target || info.el || null;
     const dayEl = clickTarget ? clickTarget.closest(".fc-daygrid-day") : null;
@@ -126,7 +126,7 @@ const calendarOptions = ref({
       (info.el && info.el.closest ? info.el.closest(".fc-daygrid-day") : null);
 
     if (usedDayEl) {
-      selectDay(usedDayEl, info.event.startStr);
+      selectDay(usedDayEl, info.event.startStr, event);
     } else {
       selectedDate.value = info.event.startStr;
       Swal.fire({
@@ -147,19 +147,40 @@ const calendarOptions = ref({
   },
 });
 
-function selectDay(dayEl, dateStr) {
+function selectDay(dayEl, dateStr, eventInfo) {
+  const { total_seats } = eventInfo;
+  const hasSeats = total_seats >= 1; // validación directa
+
+  // Quitar selección previa
   document.querySelectorAll(".fc-daygrid-day").forEach((day) => {
     day.classList.remove("fc-day-selected");
   });
+
+  // Seleccionar el día actual
   dayEl.classList.add("fc-day-selected");
   selectedDate.value = dateStr;
+
+  // Si NO hay lugares disponibles → mostrar Swal de alerta y salir
+  if (!hasSeats) {
+    Swal.fire({
+      title: "Sin lugares disponibles",
+      text: "Ya no hay asientos disponibles para esta fecha.",
+      icon: "warning",
+      confirmButtonText: "Entendido",
+      confirmButtonColor: "#d94a93",
+    });
+    return; // detener el flujo
+  }
+
+  // Si SÍ hay lugares → mostrar Swal normal de confirmación
   Swal.fire({
     title: `¿Reservar para el ${formatDateToSpanish(dateStr)}?`,
+    text: `Lugares disponibles: ${total_seats}`,
     icon: "question",
+    confirmButtonText: "Confirmar",
     showCancelButton: true,
     cancelButtonColor: "#adadad",
     confirmButtonColor: "#d94a93",
-    confirmButtonText: "Confirmar",
     cancelButtonText: "Cancelar",
   }).then((result) => {
     if (result.isConfirmed) {

@@ -119,7 +119,6 @@ export const useCalendarStore = defineStore("calendar", () => {
     }
   }
 
-  // NUEVO: Mover handleEventDrop al store
   async function handleEventDrop(info) {
     const today = new Date().toISOString().split("T")[0];
     const newDate = info.event.startStr;
@@ -172,14 +171,13 @@ export const useCalendarStore = defineStore("calendar", () => {
     const { data: trip } = await getTrip(id);
     const { title, total_seats, trip_date, unavaible_seats } = trip;
     const soloCerrar = isPast(trip_date);
-    const avaible_seats = total_seats - unavaible_seats;
 
     const res = await Swal.fire({
       title: title,
       html: `
         <div style="text-align:center">
           <p><strong>Fecha:</strong> ${formatDateToSpanish(trip_date)}</p>
-          <p><strong>Lugares Disponibles:</strong> ${avaible_seats}</p>
+          <p><strong>Lugares Disponibles:</strong> ${total_seats}</p>
         </div>
       `,
       icon: "info",
@@ -202,8 +200,8 @@ export const useCalendarStore = defineStore("calendar", () => {
     addEvent,
     removeEvent,
     loadEvents,
-    handleEventDrop, // ← Exportar la nueva función
-    handleEventClick, // ← Opcional: también mover el click
-    isPast, // ← Exportar si se necesita en el componente
+    handleEventDrop,
+    handleEventClick,
+    isPast,
   };
 });

@@ -30,7 +30,7 @@ const router = createRouter({
     {
       path: "/admin",
       name: "admin",
-      meta: { adminOnly: true, fullAdminOnly: true }, // 👈 solo admin === 1
+      meta: { adminOnly: true, fullAdminOnly: true },
       component: () => import("@/views/admin/AdminLayout.vue"),
       children: [
         {
@@ -44,14 +44,14 @@ const router = createRouter({
           component: () => import("@/views/admin/ToursView.vue"),
         },
         {
-          path: "viajes",
+          path: "pasajeros",
           name: "travels",
           meta: {
-            title: "Mis Viajes",
+            title: "Mis Pasajeros",
             adminOnly: true,
             fullAdminOnly: true,
           },
-          component: () => import("@/views/admin/travels/TravelsView.vue"),
+          component: () => import("@/views/admin/TravelsView.vue"),
         },
         {
           path: "lista-pasajeros/:id",

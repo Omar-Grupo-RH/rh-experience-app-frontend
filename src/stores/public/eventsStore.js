@@ -1,4 +1,3 @@
-
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { useReservation } from "@/composables/useReservation";
@@ -13,6 +12,7 @@ export const useEventsStore = defineStore("events", () => {
       id: String(t.id),
       title: t.title,
       start: t.trip_date,
+      total_seats: t.total_seats,
       allDay: true,
     }));
   }

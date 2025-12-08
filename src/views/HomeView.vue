@@ -15,7 +15,7 @@ const store = useReservaStore();
 
 <template>
   <main class="min-h-screen">
-    <Menu />
+    <Menu v-if="store.step === 1" />
     <section class="relative">
       <div class="flex justify-center relative">
         <div class="rounded-2xl w-[95%] xl:w-[80%] mt-10 py-5 pb-10 relative">

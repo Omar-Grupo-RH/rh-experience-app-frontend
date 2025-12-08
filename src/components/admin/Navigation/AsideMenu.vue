@@ -16,7 +16,7 @@ const menuItems = computed(() => {
     return [
       { to: "earnings", label: "Panel de control" },
       { to: "calendar", label: "Agenda de viajes" },
-      { to: "travels", label: "Mis Viajes" },
+      { to: "travels", label: "Mis pasajeros" },
       { to: "coupons", label: "Cupones" },
       { to: "comments", label: "Comentarios" },
       { to: "users", label: "Usuarios" },
@@ -27,7 +27,7 @@ const menuItems = computed(() => {
     return [
       { to: "earnings", label: "Panel de control" },
       { to: "calendar", label: "Agenda de viajes" },
-      { to: "travels", label: "Mis Viajes" },
+      { to: "travels", label: "Mis pasajeros" },
       { to: "coupons", label: "Cupones" },
       { to: "comments", label: "Comentarios" },
     ];
@@ -35,10 +35,7 @@ const menuItems = computed(() => {
 
   //  Admin 2 – panel de cobranza
   if (level === 2) {
-    return [
-      { to: "cobranza", label: "Panel de control" },
-      // aquí después puedes agregar más:
-    ];
+    return [{ to: "cobranza", label: "Panel de control" }];
   }
 
   // Futuro: admin 3+ (ejemplo)
@@ -84,7 +81,7 @@ const exitRouteName = computed(() => {
       <div class="space-y-2">
         <!-- Link para salir del dashboard (visible para cualquier admin) -->
         <Link v-if="user && adminLevel > 0" :to="exitRouteName">
-          Salir del dashboard
+          Salir del panel de control
         </Link>
 
         <button
