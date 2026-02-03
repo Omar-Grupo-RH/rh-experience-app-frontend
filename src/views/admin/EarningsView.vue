@@ -8,7 +8,6 @@ import { useEarningStore } from "@/stores/admin/earningStore";
 
 const store = useEarningStore();
 
-// Definimos las gráficas que queremos en los tabs
 const chartConfigs = computed(() => [
   {
     key: "daily",
@@ -60,7 +59,6 @@ const chartConfigs = computed(() => [
       <p class="text-gray-400">Gestiona tus ingresos por ventas de boletos</p>
     </div>
 
-    <!-- Cards -->
     <div>
       <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-5">
         <CardInfo
@@ -93,10 +91,17 @@ const chartConfigs = computed(() => [
         </CardInfo>
       </div>
 
-      <!-- Tabla -->
+      
       <div class="rounded-lg shadow bg-white p-5 mt-10">
         <EarningsTable />
-        <ChartTabs :charts="chartConfigs" defaultKey="daily" height="320px" />
+        <div v-if="store.summary.gross_cents">
+          <ChartTabs :charts="chartConfigs" defaultKey="daily" height="320px" />
+        </div>
+        <div v-else class="h-36">
+          <h3 class="text-center text-gray-400 text-sm">
+            No se encontraron registros.
+          </h3>
+        </div>
       </div>
     </div>
   </div>

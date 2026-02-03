@@ -46,7 +46,7 @@ watch(
       }
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 const breakdown = computed(() => store.priceBreakdown());
@@ -160,7 +160,7 @@ async function startCheckout() {
             },
           },
         },
-      }
+      },
     );
 
     // Si hubo error en Stripe → cancelar reserva en backend
@@ -196,7 +196,7 @@ async function startCheckout() {
         body: JSON.stringify({
           payment_intent_id: paymentIntent.id,
         }),
-      }
+      },
     );
 
     const confirmData = await confirmRes.json();
@@ -245,10 +245,11 @@ async function startCheckout() {
     });
   } finally {
     if (paymentSucceeded) {
-      // Mantener el overlay hasta recargar
-      console.log("paymentSucceeded", paymentSucceeded);
+      setTimeout(() => {
+        store.reset();
+        window.location.reload();
+      }, 3000);
     } else {
-      // Hubo error: quitamos overlay
       loading.value = false;
     }
   }

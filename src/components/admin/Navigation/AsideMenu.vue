@@ -10,9 +10,8 @@ const menuItems = computed(() => {
 
   if (!user.value || level <= 0) return [];
 
-  //  Admin 1 – panel completo
 
-  if (level === 1 && user.value.username === "dev_omar") {
+  if (level === 1 && user.value.username === "omar_solis") {
     return [
       { to: "earnings", label: "Panel de control" },
       { to: "calendar", label: "Agenda de viajes" },
@@ -78,7 +77,7 @@ const exitRouteName = computed(() => {
           </Link>
         </template>
       </div>
-      <div class="space-y-2">
+      <div class="space-y-2 mt-10 lg:mt-0">
         <!-- Link para salir del dashboard (visible para cualquier admin) -->
         <Link v-if="user && adminLevel > 0" :to="exitRouteName">
           Salir del panel de control

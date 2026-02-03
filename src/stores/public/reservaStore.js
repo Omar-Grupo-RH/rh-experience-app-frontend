@@ -31,6 +31,7 @@ export const useReservaStore = defineStore("reserva", () => {
   const modal = ref(false);
   const subtotal = ref(0);
 
+  
   const emailSendTickets = ref({
     emailSent: "",
     confirmEmail: "",

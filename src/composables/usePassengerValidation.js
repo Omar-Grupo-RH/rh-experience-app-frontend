@@ -1,9 +1,7 @@
-// src/composables/usePassengerValidation.js
+
 import { computed } from "vue";
 
-/**
- * Helpers puros
- */
+
 export function isValidDateStr(s) {
   if (typeof s !== "string" || !s.trim()) return false;
   const d = new Date(s);
@@ -134,13 +132,18 @@ export function validatePayer(payerRef) {
   });
 }
 
-/**
- * Valida los emails de envío/confirmación
- */
 export function validateEmails(emailSendTicketsRef) {
   return computed(() => {
-    const a = (emailSendTicketsRef.value?.emailSent || "").trim();
-    const b = (emailSendTicketsRef.value?.confirmEmail || "").trim();
-    return a !== "" && a === b;
+     const email = (emailSendTicketsRef.value.emailSent || "").trim();
+    const confirm = (emailSendTicketsRef.value.confirmEmail || "").trim();
+    
+     if (!email || !confirm) return false;
+
+     const emailOk = EMAIL_RE.test(email);
+     const confirmOk = EMAIL_RE.test(confirm);
+
+     if (!emailOk || !confirmOk) return false;
+
+     return email.toLowerCase() === confirm.toLowerCase();
   });
 }

@@ -7,7 +7,6 @@ import * as XLSX from "xlsx";
 
 const store = useEarningStore();
 
-// primer llamado al cargar
 onMounted(() => {
   store.fetchEarnings();
 });
@@ -19,7 +18,6 @@ const exportToExcel = () => {
     return;
   }
 
-  // Mapeamos los datos del grid a un formato amigable para Excel
   const rows = store.buyers.map((order) => ({
     "Nombre del cliente": order.buyer_name,
     "Monto pagado": order.total_cents, // en pesos (si viene en centavos)
@@ -59,7 +57,6 @@ const exportToExcel = () => {
         </button>
       </div>
       <div class="h-full relative">
-        <!-- loader -->
         <div
           v-if="store.loading"
           class="absolute inset-0 flex items-center justify-center bg-white/60 z-20"
@@ -89,18 +86,20 @@ const exportToExcel = () => {
                   >
                     Monto Pagado
                   </p>
-                  <p class="text-2xl font-bold text-primary">
+                  <p
+                    class="text-2xl font-bold text-primary text-experience-pink"
+                  >
                     {{ currencyFormat(order.total_cents) }}
                   </p>
                 </div>
-                <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
                   <p
                     class="text-xs text-muted-foreground uppercase tracking-wide"
                   >
                     Estado
                   </p>
                   <p
-                    class="px-1.5 py-1 rounded-2xl text-white text-xs"
+                    class="px-1.5 py-1 rounded-2xl text-white text-xs font-semibold"
                     :class="
                       order.status === 'pagado' ? 'bg-green-600' : 'bg-gray-400'
                     "

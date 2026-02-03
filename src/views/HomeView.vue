@@ -18,9 +18,8 @@ const store = useReservaStore();
     <Menu v-if="store.step === 1" />
     <section class="relative">
       <div class="flex justify-center relative">
-        <div class="rounded-2xl w-[95%] xl:w-[80%] mt-10 py-5 pb-10 relative">
+        <div class="rounded-2xl w-[95%] xl:w-[70%] mt-10 py-5 pb-10 relative">
           <div class="max-w-7xl mx-auto space-y-6">
-            <!-- Pasos -->
             <StepsContainer />
 
             <!-- Paso 1 -->
@@ -67,7 +66,7 @@ const store = useReservaStore();
     </section>
 
     <div
-      class="rounded-2xl w-[95%] xl:w-[80%] lg:mt-10 lg:py-5 lg:pb-10 relative mx-auto"
+      class="rounded-2xl w-[95%] xl:w-[70%] lg:mt-10 lg:py-5 lg:pb-10 relative mx-auto"
       v-if="store.step === 1"
     >
       <Comments />

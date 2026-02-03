@@ -21,19 +21,19 @@ const breakdown = computed(() => store.priceBreakdown());
             <div
               class="flex flex-col justify-center items-center p-4 gap-2 border-gray-300 border-r-2"
             >
-              <p class="lg:text-xl">
+              <p class="lg:text-lg">
                 <strong>Pasajero {{ idx + 1 }}</strong>
               </p>
 
               <div>
                 <img
-                  src="/svg/seat.svg"
+                  src="/svg/seat2.svg"
                   alt="Icono de un asiento"
-                  class="w-5 xl:w-7"
+                  class="w-5 xl:w-10"
                 />
               </div>
 
-              <p class="text-sm">Asiento {{ p.seat }}</p>
+              <p class="text-xs">Asiento {{ p.seat }}</p>
             </div>
 
             <div class="p-4">

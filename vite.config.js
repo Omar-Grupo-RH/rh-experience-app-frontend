@@ -10,7 +10,7 @@ export default defineConfig({
     port: 3000,
     open: true,
   },
-  base: "/frontend-app/",
+  base: "/app",
   plugins: [vue(), vueDevTools(), tailwindcss()],
   resolve: {
     alias: {

@@ -129,7 +129,7 @@ const options = computed(() => {
       },
     },
     scales: isDoughnut
-      ? {} // doughnut no necesita ejes
+      ? {}
       : {
           x: {
             ticks: {
@@ -158,11 +158,11 @@ const options = computed(() => {
         v-for="c in charts"
         :key="c.key"
         @click="activeKey = c.key"
-        class="px-3 py-1 rounded-t-md transition"
+        class="px-3 py-1 rounded-t-md transition cursor-pointer"
         :class="
           activeKey === c.key
-            ? 'bg-gray-100 font-semibold text-gray-900'
-            : 'text-gray-500 hover:text-gray-800'
+            ? 'bg-experience-blue font-semibold text-white'
+            : 'text-gray-500 hover:text-experience-blue'
         "
       >
         {{ c.label }}

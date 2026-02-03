@@ -1,7 +1,7 @@
 <script setup>
 import { useAuth } from "@/composables/useAuth";
 import Link from "./Link.vue";
-import { ref , computed} from "vue";
+import { ref, computed } from "vue";
 
 const auth = useAuth();
 const { user, isAuthenticated, logout, adminLevel } = auth;
@@ -12,8 +12,8 @@ const mobileMenuOpen = ref(false);
 const dashboardRouteName = computed(() => {
   if (!user.value || adminLevel.value <= 0) return null;
 
-  if (adminLevel.value === 1) return "earnings"; // /admin/ingresos
-  if (adminLevel.value === 2) return "cobranza"; // /cobranza
+  if (adminLevel.value === 1) return "earnings";
+  if (adminLevel.value === 2) return "cobranza";
 
   // futuros roles
   if (adminLevel.value >= 3) return "home";
@@ -27,7 +27,6 @@ const handleLogout = () => {
   mobileMenuOpen.value = false;
 };
 
-// Función para cerrar menú móvil al hacer clic en un enlace
 const closeMobileMenu = () => {
   mobileMenuOpen.value = false;
 };
@@ -54,9 +53,9 @@ const closeMobileMenu = () => {
           <div v-if="!isAuthenticated" class="ml-4">
             <Link
               to="login"
-              class="text-sm lg:text-base bg-experience-pink hover:bg-experience-pink/90 uppercase transition-colors duration-200 px-4 py-2 rounded-md font-medium"
+              class="text-sm lg:text-base hover:underline uppercase transition-colors duration-200 px-4 py-2 rounded-md font-medium"
             >
-              Administrar
+              Iniciar Sesión
             </Link>
           </div>
 
@@ -67,7 +66,7 @@ const closeMobileMenu = () => {
             >
               <Link
                 :to="dashboardRouteName"
-                class="block px-4 py-2 font-medium"
+                class="block px-4 py-2  uppercase"
               >
                 Dashboard
               </Link>
@@ -75,22 +74,9 @@ const closeMobileMenu = () => {
 
             <button
               @click="logout"
-              class="hover:bg-pink-700 transition-colors duration-200 px-4 py-2 rounded-md font-medium flex items-center cursor-pointer"
+              class="hover:bg-pink-700 transition-colors duration-200 px-4 py-2 rounded-md text-lg tracking-widest text-center flex items-center cursor-pointer uppercase"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 mr-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
-              </svg>
+             
               Cerrar sesión
             </button>
           </template>
@@ -135,7 +121,7 @@ const closeMobileMenu = () => {
           <Link
             to="login"
             @click="closeMobileMenu"
-            class="block w-full bg-experience-blue hover:bg-blue-700 transition-colors duration-200 px-4 py-2 rounded-md font-medium text-center"
+            class="block text-left px-4 py-3 font-bold text-lg uppercase cursor-pointer hover:bg-pink-600 "
           >
             Iniciar sesión
           </Link>
@@ -149,7 +135,7 @@ const closeMobileMenu = () => {
             <Link
               :to="dashboardRouteName"
               @click="closeMobileMenu"
-              class="block px-4 py-3 font-medium border-b border-pink-600"
+              class="block text-left px-4 py-3 font-bold text-lg uppercase cursor-pointer"
             >
               Dashboard
             </Link>
@@ -157,22 +143,8 @@ const closeMobileMenu = () => {
 
           <button
             @click="handleLogout"
-            class="w-full text-left hover:bg-pink-600 transition-colors duration-200 px-4 py-3 font-medium flex items-center cursor-pointer"
+            class="w-full text-left hover:bg-pink-600 transition-colors duration-200 px-4 py-3 font-bold text-lg uppercase flex items-center cursor-pointer"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-              />
-            </svg>
             Cerrar sesión
           </button>
         </template>

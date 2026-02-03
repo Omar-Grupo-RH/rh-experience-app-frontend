@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, watch, ref } from "vue";
+import { onMounted, watch } from "vue";
 import { VueDatePicker } from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { formatDateToSpanish } from "@/utils/formatDate";
@@ -9,12 +9,10 @@ import html2pdf from "html2pdf.js";
 
 const store = useEarningStore();
 
-// primer llamado al cargar
 onMounted(() => {
   store.fetchEarnings();
 });
 
-// cuando cambie la fecha
 watch(
   () => store.date,
   () => {
@@ -71,6 +69,17 @@ const generatePDF = () => {
             .join("")}
         </tbody>
       </table>
+
+        <p style="color: #666; margin-top: 20px;">
+        Ingresos brutos  <span style="color: #1e40af;">${currencyFormat(
+          store.summary.gross_cents
+        )}</span>
+      </p>
+       <p style="color: #666; margin-top: 5px;">
+        Ingresos netos <span style="color: #1e40af;">${currencyFormat(
+          store.summary.net_cents
+        )}</span>
+      </p>
     </div>
       `;
 
@@ -139,7 +148,6 @@ const generatePDF = () => {
       </div>
 
       <div class="overflow-y-scroll h-96 relative">
-        <!-- loader -->
         <div
           v-if="store.loading"
           class="absolute inset-0 flex items-center justify-center bg-white/60 z-20"
@@ -200,6 +208,7 @@ const generatePDF = () => {
             </tr>
           </tbody>
         </table>
+        
         <div v-if="store.buyers.length" class="space-y-3 md:hidden">
           <div
             v-for="order in store.buyers"

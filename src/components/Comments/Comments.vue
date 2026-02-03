@@ -22,7 +22,6 @@ onMounted(async () => {
 });
 
 const handleSubmit = async (formData) => {
-  // Generar iniciales del nombre
   const letterFirstName = formData.first_name.charAt(0);
   const letterLastName = formData.last_name.charAt(0);
   const inicial = letterFirstName + letterLastName;
@@ -33,9 +32,6 @@ const handleSubmit = async (formData) => {
 
   try {
     await commentsStore.storeComment(payload);
-    Object.keys(commentPayload.value).forEach((key) => {
-      commentPayload.value[key] = "";
-    });
   } catch (error) {
     console.error("Error al enviar el comentario:", error);
   }
