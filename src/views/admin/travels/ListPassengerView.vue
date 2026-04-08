@@ -6,13 +6,11 @@ import { useTravelStore } from "@/stores/admin/travelStore";
 import html2pdf from "html2pdf.js";
 
 const route = useRoute();
-const id = ref(null);
 const store = useTravelStore();
 
 onMounted(async () => {
-  id.value = Number(route.params.id);
   try {
-    await store.getPassengersByTravel(id.value);
+    await store.getPassengersByTravel(Number(route.params.id));
   } catch (error) {
     console.log(error);
   }

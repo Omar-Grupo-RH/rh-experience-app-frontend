@@ -44,8 +44,8 @@ function hydrateFromToken(logoutFn) {
     payload.admin !== undefined
       ? toAdminLevel(payload.admin)
       : base.admin !== undefined
-      ? toAdminLevel(base.admin)
-      : 0;
+        ? toAdminLevel(base.admin)
+        : 0;
 
   user.value = {
     id: payload.sub || payload.id || base.id || null,
@@ -96,25 +96,19 @@ export function useAuth() {
     const level = user.value?.admin ?? 0;
 
     // 🔹 RUTAS POR NIVEL DE ADMIN
-    if (level === 1) {
+    if (level === 1 || level === 2) {
       // Admin principal → panel clásico
-      router.push({ name: "earnings" }); // /admin/ingresos
+      router.push({ name: "calendar" }); // /admin/ingresos
       return;
     }
 
-    if (level === 2) {
-      // Admin de cobranza → su panel propio
-      router.push({ name: "cobranza" }); // /cobranza
-      return;
-    }
+    // if (level >= 3) {
+    //   // futuros niveles → elige un default por ahora
+    //   router.push({ name: "cobranza" });
+    //   return;
+    // }
 
-    if (level >= 3) {
-      // futuros niveles → elige un default por ahora
-      router.push({ name: "earnings" });
-      return;
-    }
-
-    // 🔹 Usuario normal (no admin): respetar "next" o ir a home
+    // Usuario normal (no admin): respetar "next" o ir a home
     const url = new URL(window.location.href);
     const next = url.searchParams.get("next");
     router.push(next || { name: "home" });

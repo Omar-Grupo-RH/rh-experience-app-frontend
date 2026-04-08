@@ -11,8 +11,8 @@ defineProps({
 <template>
   <RouterLink
     :to="{ name: to }"
-    class="block py-2 px-4 rounded lg:text-xl text-white hover:bg-experience-white/20"
-    active-class="bg-experience-white/20 font-semibold"
+    class="block py-2 px-4 rounded text-white hover:bg-experience-white/20"
+    active-class="bg-experience-white/20 "
   >
     <slot></slot>
   </RouterLink>

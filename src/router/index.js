@@ -26,11 +26,10 @@ const router = createRouter({
       ],
     },
 
-    // 🔹 PANEL ADMIN 1 (super admin)
     {
       path: "/admin",
       name: "admin",
-      meta: { adminOnly: true, fullAdminOnly: true },
+      meta: { adminOnly: true },
       component: () => import("@/views/admin/AdminLayout.vue"),
       children: [
         {
@@ -39,7 +38,6 @@ const router = createRouter({
           meta: {
             title: "Agenda de viajes",
             adminOnly: true,
-            fullAdminOnly: true,
           },
           component: () => import("@/views/admin/ToursView.vue"),
         },
@@ -49,7 +47,6 @@ const router = createRouter({
           meta: {
             title: "Mis Pasajeros",
             adminOnly: true,
-            fullAdminOnly: true,
           },
           component: () => import("@/views/admin/TravelsView.vue"),
         },
@@ -57,48 +54,11 @@ const router = createRouter({
           path: "lista-pasajeros/:id",
           name: "list-passenger",
           meta: {
-            title: "Lista de pasajeros ",
+            title: "Lista de pasajeros",
             adminOnly: true,
-            fullAdminOnly: true,
           },
           component: () =>
             import("@/views/admin/travels/ListPassengerView.vue"),
-        },
-        {
-          path: "cupones",
-          name: "coupons",
-          meta: { title: "Cupones", adminOnly: true, fullAdminOnly: true },
-          component: () => import("@/views/admin/CouponsView.vue"),
-        },
-        {
-          path: "agregar-cupon",
-          name: "new-coupon",
-          meta: {
-            title: "Cupones - Agregar",
-            adminOnly: true,
-            fullAdminOnly: true,
-          },
-          component: () => import("@/views/admin/coupons/NewCouponView.vue"),
-        },
-        {
-          path: "editar-cupon/:id",
-          name: "update-coupon",
-          meta: {
-            title: "Cupones - Editar",
-            adminOnly: true,
-            fullAdminOnly: true,
-          },
-          component: () => import("@/views/admin/coupons/EditCouponView.vue"),
-        },
-        {
-          path: "ingresos",
-          name: "earnings",
-          meta: {
-            title: "Ingresos",
-            adminOnly: true,
-            // solo admin 1 porque el padre ya tiene fullAdminOnly: true
-          },
-          component: () => import("@/views/admin/EarningsView.vue"),
         },
         {
           path: "comentarios",
@@ -106,7 +66,6 @@ const router = createRouter({
           meta: {
             title: "Comentarios",
             adminOnly: true,
-            fullAdminOnly: true,
           },
           component: () => import("@/views/admin/CommentsView.vue"),
         },
@@ -122,30 +81,28 @@ const router = createRouter({
         },
       ],
     },
-
-    // 🔹 PANEL ADMIN 2 (cobranza, comercio, etc.)
-    {
-      path: "/cobranza",
-      name: "cobranza-root",
-      meta: {
-        adminOnly: true,
-        requiredAdminLevel: 2, // 👈 solo admin === 2
-      },
-      component: () => import("@/views/cobranza/CobranzaLayout.vue"), // tu layout para admin 2
-      children: [
-        {
-          path: "listado",
-          name: "cobranza",
-          meta: {
-            title: "Cobranza",
-            adminOnly: true,
-            requiredAdminLevel: 2,
-          },
-          component: () => import("@/views/cobranza/CobranzaView.vue"),
-        },
-        // aquí en el futuro agregas más vistas para admin 2
-      ],
-    },
+    // {
+    //   path: "/cobranza",
+    //   name: "cobranza-root",
+    //   meta: {
+    //     adminOnly: true,
+    //     requiredAdminLevel: 3, //solo admin === 2
+    //   },
+    //   component: () => import("@/views/cobranza/CobranzaLayout.vue"), // tu layout para admin 2
+    //   children: [
+    //     {
+    //       path: "listado",
+    //       name: "cobranza",
+    //       meta: {
+    //         title: "Cobranza",
+    //         adminOnly: true,
+    //         requiredAdminLevel: 3,
+    //       },
+    //       component: () => import("@/views/cobranza/CobranzaView.vue"),
+    //     },
+    //     // aquí en el futuro agregas más vistas para admin 2
+    //   ],
+    // },
   ],
 });
 

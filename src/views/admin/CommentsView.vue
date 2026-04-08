@@ -22,7 +22,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div class="rounded-lg shadow bg-white p-5">
+    <div class="rounded-lg  bg-white p-5">
       <div
         class="grid grid-cols-1 gap-5 lg:grid-cols-3 lg:mt-5"
         v-if="commentsStore.hasComments"

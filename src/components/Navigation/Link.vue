@@ -11,7 +11,7 @@ defineProps({
 <template>
   <RouterLink
     :to="{ name: to }"
-    class="text-lg tracking-widest text-center "
+    class="tracking-widest text-center text-sm"
     active-class="font-bold"
   >
     <slot></slot>

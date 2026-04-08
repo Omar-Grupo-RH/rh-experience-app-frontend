@@ -2,6 +2,7 @@ import "./assets/main.css";
 
 import { createApp } from "vue";
 import { createPinia } from "pinia";
+import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import { plugin, defaultConfig } from "@formkit/vue";
 import { useToast } from "vue-toast-notification";
 
@@ -34,7 +35,9 @@ router.afterEach((to) => {
 
 const app = createApp(App);
 app.provide("toast", $toast);
-app.use(createPinia());
+const pinia = createPinia();
+pinia.use(piniaPluginPersistedstate);
+app.use(pinia);
 app.use(plugin, defaultConfig(config));
 app.use(VueSweetalert2);
 

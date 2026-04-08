@@ -106,11 +106,7 @@ export function validatePayer(payerRef) {
       "full_name",
       "email",
       "phone",
-      "address",
       "city",
-      "state",
-      "zip",
-      "country",
     ];
 
     const hasEmpty = requiredFields.some((field) => {

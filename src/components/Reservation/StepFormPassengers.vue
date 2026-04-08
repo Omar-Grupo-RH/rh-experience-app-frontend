@@ -235,26 +235,14 @@ const adult = ({ value }) => {
                   Origen:
                   <span class="font-semibold">Oficinas de Grupo RH</span>
                 </p>
-                <div v-if="store.selectedSeats.length">
-                  <p>
-                    Boletos:
-                    <span class="font-semibold">{{
-                      breakdown.breakdownText
-                    }}</span>
-                  </p>
-                </div>
+                
                 <p>
                   Asientos seleccionados:
                   <span class="font-semibold">{{
                     store.selectedSeats.join(", ")
                   }}</span>
                 </p>
-                <p
-                  class="text-xl font-bold uppercase mt-5"
-                  v-if="store.selectedSeats.length"
-                >
-                  Total: {{ currencyFormat(store.subtotal) }} MXN
-                </p>
+                
               </div>
             </div>
           </div>

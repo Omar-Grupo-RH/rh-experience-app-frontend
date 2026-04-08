@@ -131,7 +131,6 @@ watch(
 .calendar-container {
   width: 100%;
   height: 100%;
-  padding: 0.5rem;
 }
 
 /* Estilos responsive para el calendario */
@@ -208,6 +207,7 @@ watch(
   padding: 0 2px;
 }
 
+
 /* Media queries específicas */
 @media (max-width: 768px) {
   .calendar-container {
@@ -225,6 +225,7 @@ watch(
   :deep(.fc-event) {
     min-height: 16px;
   }
+  
 }
 
 @media (max-width: 480px) {

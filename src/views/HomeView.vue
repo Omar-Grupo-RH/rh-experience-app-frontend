@@ -4,9 +4,9 @@ import { useReservaStore } from "@/stores/public/reservaStore";
 import TermsCondModal from "@/components/Reservation/TermsCondModal.vue";
 import Comments from "@/components/Comments/Comments.vue";
 import StepDate from "@/components/Reservation/StepDate.vue";
-import StepFormPassengers from "@/components/Reservation/stepFormPassengers.vue";
+import StepFormPassengers from "@/components/Reservation/StepFormPassengers.vue";
 import StepConfirmData from "@/components/Reservation/StepConfirmData.vue";
-import StepPayTickets from "@/components/Reservation/StepPayTickets.vue";
+import StepConfirm from "@/components/Reservation/StepConfirm.vue";
 import StepsContainer from "@/components/Reservation/StepsContainer.vue";
 import StepSeats from "@/components/Reservation/StepSeats.vue";
 
@@ -57,7 +57,7 @@ const store = useReservaStore();
               v-else-if="store.step === 5"
               class="bg-white p-3 lg:p-10 rounded-lg shadow-sm"
             >
-              <StepPayTickets />
+              <StepConfirm />
             </div>
           </div>
         </div>

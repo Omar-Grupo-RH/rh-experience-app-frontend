@@ -60,20 +60,7 @@ onMounted(() => {
                   >
                   <span v-else class="text-gray-400">— ninguno —</span>
                 </p>
-                <div v-if="store.selectedSeats.length">
-                  <p>
-                    Boletos:
-                    <span class="font-semibold">{{
-                      breakdown.breakdownText
-                    }}</span>
-                  </p>
-                </div>
-                <p
-                  class="text-xl font-bold uppercase mt-5"
-                  v-if="store.selectedSeats.length"
-                >
-                  Total: {{ currencyFormat(store.subtotal) }} MXN
-                </p>
+                
               </div>
             </div>
             <div class="mt-5 flex flex-col md:flex-row gap-3 w-full">

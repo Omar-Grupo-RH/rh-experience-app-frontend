@@ -19,7 +19,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div class="rounded-lg shadow bg-white p-5">
+    <div class="rounded-lg  bg-white p-5">
       <div class="flex justify-end">
         <button
           class="bg-experience-pink text-white px-4 py-2 rounded cursor-pointer shadow"
@@ -129,12 +129,21 @@ onMounted(async () => {
                   placeholder="Selecciona una opcion"
                   v-model="userStore.formNewUser.admin"
                   :options="[
-                    { label: 'Selecciona una opcion', value: '' },
-                    { label: 'Adminstrador', value: '1' },
                     {
-                      label: 'Cobranza',
-                      value: '2',
+                      label: 'Selecciona una opcion',
+                      value: '',
+                      attrs: { disabled: true },
                     },
+                    { label: 'Super administrador', value: '1' },
+                    { label: 'Adminstrador', value: '2' },
+                    // {
+                    //   label: 'Cobranza',
+                    //   value: '3',
+                    // },
+                    // {
+                    //   label: 'Usuario',
+                    //   value: '4',
+                    // },
                   ]"
                   validation="required"
                   validation-visibility="dirty"
