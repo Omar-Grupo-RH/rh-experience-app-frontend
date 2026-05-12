@@ -1,5 +1,5 @@
 <script setup>
-import { computed, watch, ref, nextTick, inject, onMounted } from "vue";
+import { ref, inject } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 import { formatDateToSpanish } from "@/utils/formatDate";
 import router from "@/router";
@@ -15,8 +15,8 @@ function buildPayload() {
       date: store.date,
       trip_id: store.selectedTripId,
       seats: store.selectedSeats,
-      tickets_email: store.emailSendTickets.emailSent,
-      tickets_name: store.emailSendTickets.nameSent || "Cliente",
+      tickets_email: store.passengers[0]?.email,
+      tickets_name: store.passengers[0]?.first_name || "Cliente",
     },
 
     passengers: store.passengers.map((p) => ({
@@ -28,31 +28,21 @@ function buildPayload() {
       born_date: p.born_date,
       allergies: p.allergies,
     })),
-
-    buyer: {
-      full_name: store.payer.full_name,
-      email: store.payer.email,
-      phone: store.payer.phone,
-      city: store.payer.city,
-      advisor_name: store.payer.advisor_name,
-      is_client: store.payer.is_client,
-      is_first_visit: store.payer.is_first_visit,
-    },
   };
 }
 
 async function startCheckout() {
   if (!store.canPay) {
     toast?.open?.({
-      message: "Debes aceptar términos y condiciones y llenar el formulario.",
-      type: "warning",
+      message: "Debes aceptar términos y condiciones.",
+      type: "error",
     });
     return;
   }
   if (!store.canContinuePassengers) {
     toast?.open?.({
       message: "Revisa los datos de pasajeros.",
-      type: "warning",
+      type: "error",
     });
     return;
   }
@@ -60,23 +50,33 @@ async function startCheckout() {
   const payload = buildPayload();
 
   try {
-    loading.value = true;
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/reservation`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    console.log("Respuesta del servidor:", data);
+    console.log("Iniciando checkout con payload:", payload);
   } catch (error) {
     console.error("Error al iniciar el checkout:", error);
     toast?.open?.({
       message: "Ocurrió un error al procesar tu solicitud.",
       type: "error",
     });
-  } finally {
-    loading.value = false;
   }
+
+  // try {
+  //   loading.value = true;
+  //   const res = await fetch(`${import.meta.env.VITE_API_URL}/reservation`, {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify(payload),
+  //   });
+  //   const data = await res.json();
+  //   console.log("Respuesta del servidor:", data);
+  // } catch (error) {
+  //   console.error("Error al iniciar el checkout:", error);
+  //   toast?.open?.({
+  //     message: "Ocurrió un error al procesar tu solicitud.",
+  //     type: "error",
+  //   });
+  // } finally {
+  //   loading.value = false;
+  // }
 }
 </script>
 
@@ -120,93 +120,6 @@ async function startCheckout() {
               términos y condiciones
             </button></label
           >
-        </div>
-
-        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="md:col-span-2">
-            <FormKit
-              type="text"
-              name="full_name"
-              label="Nombre completo"
-              v-model="store.payer.full_name"
-              placeholder="Jhon Doe"
-              validation="required|length:3"
-              :validation-messages="{
-                required: 'El nombre es obligatorio',
-                length: 'El nombre debe tener al menos 3 caracteres',
-              }"
-            />
-          </div>
-
-          <div>
-            <FormKit
-              type="email"
-              name="email"
-              label="Correo electrónico"
-              v-model="store.payer.email"
-              placeholder="ejemplo@correo.com"
-              validation="required|email"
-              :validation-messages="{
-                required: 'Correo obligatorio',
-                email: 'Email no válido',
-              }"
-            />
-          </div>
-
-          <div>
-            <FormKit
-              type="tel"
-              name="phone"
-              label="Teléfono"
-              v-model="store.payer.phone"
-              placeholder="10 dígitos"
-              validation="required|matches:/^[0-9]{10}$/"
-              :validation-messages="{
-                required: 'Teléfono obligatorio',
-                matches: 'Debe tener 10 dígitos',
-              }"
-            />
-          </div>
-          <div>
-            <FormKit
-              type="checkbox"
-              name="is_visitor"
-              label="¿Es cliente de Grupo RH?"
-              v-model="store.payer.is_client"
-            />
-
-            <FormKit
-              type="checkbox"
-              name="is_first_visit"
-              label="¿Es su primera visita?"
-              v-model="store.payer.is_first_visit"
-            />
-          </div>
-
-          <div class="md:col-span-2">
-            <FormKit
-              type="text"
-              name="city"
-              label="Ciudad"
-              v-model="store.payer.city"
-              placeholder="Mérida"
-              validation="required|length:3"
-              :validation-messages="{
-                required: 'La ciudad es obligatoria',
-                length: 'La ciudad debe tener al menos 3 caracteres',
-              }"
-            />
-          </div>
-
-          <div class="md:col-span-2">
-            <FormKit
-              type="text"
-              name="advisor_name"
-              label="Nombre del asesor"
-              v-model="store.payer.advisor_name"
-              placeholder="Jhon Doe"
-            />
-          </div>
         </div>
 
         <div class="mt-5 flex gap-2 items-center flex-col md:flex-row-reverse">

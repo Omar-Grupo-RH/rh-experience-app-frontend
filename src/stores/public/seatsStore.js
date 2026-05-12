@@ -7,7 +7,6 @@ export const useSeatsStore = defineStore("seats", () => {
   const date = ref(null);
   const selectedSeats = ref([]);
   const passengers = ref([]);
-  const pricePerSeat = ref(2100);
 
   const normSeat = (s) => String(s);
 
@@ -25,9 +24,6 @@ export const useSeatsStore = defineStore("seats", () => {
           born_date: "",
           allergies: [],
           city: "",
-          is_client: false,
-          advisor_name: "",
-          is_first_visit: false,
         },
     );
   }
@@ -56,7 +52,7 @@ export const useSeatsStore = defineStore("seats", () => {
     date,
     selectedSeats,
     passengers,
-    pricePerSeat,
+
     // actions
     toggleSeat,
     setDate,

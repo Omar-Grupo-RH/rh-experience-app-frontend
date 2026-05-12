@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 import ResumeCard from "@/components/Reservation/ResumeCard.vue";
-import { formatDateToSpanish } from "@/utils/formatDate";
+
 
 const store = useReservaStore();
 const openPassengers = ref([0]);
@@ -224,7 +224,7 @@ const handleAllergyBlur = (event, passenger) => {
                       </div>
                     </div>
 
-                    <FormKit
+                    <!-- <FormKit
                       type="checkbox"
                       name="is_visitor"
                       label="¿Es cliente de Grupo RH?"
@@ -246,7 +246,7 @@ const handleAllergyBlur = (event, passenger) => {
                         v-model="p.advisor_name"
                         placeholder="Jhon Doe"
                       />
-                    </div>
+                    </div> -->
                   </div>
                 </div>
               </div>

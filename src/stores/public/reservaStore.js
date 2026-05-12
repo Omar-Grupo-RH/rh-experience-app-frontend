@@ -5,47 +5,26 @@ import { ref, computed, watch, inject } from "vue";
 import { useSeatsStore } from "./seatsStore";
 import { useEventsStore } from "./eventsStore";
 
-import {
-  validatePassengers,
-  validateEmails,
-  validatePayer,
-} from "@/composables/usePassengerValidation";
+import { validatePassengers } from "@/composables/usePassengerValidation";
 
 export const useReservaStore = defineStore("reserva", () => {
   const seats = useSeatsStore();
   const evts = useEventsStore();
 
-  const { selectedSeats, selectedTripId, date, passengers, pricePerSeat } =
+  const { selectedSeats, selectedTripId, date, passengers } =
     storeToRefs(seats);
 
   const { events } = storeToRefs(evts);
 
   const toast = inject("toast");
+
   const step = ref(1);
   const aceptedTerms = ref(false);
   const modal = ref(false);
-  //const subtotal = ref(0);
-
-  const emailSendTickets = ref({
-    emailSent: "",
-    confirmEmail: "",
-    nameSent: "",
-  });
-
-  const payer = ref({
-    full_name: "",
-    email: "",
-    phone: "",
-    city: "",
-    is_client: false,
-    advisor_name: "",
-    is_first_visit: false,
-  });
 
   const validationErrors = ref([]);
 
   /**
-   * NUEVO:
    * Tipo de inscripción
    *
    * Valores posibles:
@@ -160,9 +139,7 @@ export const useReservaStore = defineStore("reserva", () => {
   const registrationTotal = computed(() => {
     if (!requiresPayment.value) return 0;
 
-    const seatsCount = selectedSeats.value.length || 1;
-
-    return seatsCount * registrationPricePerPerson.value;
+    return selectedSeats.value.length * registrationPricePerPerson.value;
   });
 
   const canContinueRegistrationType = computed(() => {
@@ -229,12 +206,12 @@ export const useReservaStore = defineStore("reserva", () => {
       prize_code: "",
     };
 
-    extraPassenger.value = {
-      full_name: "",
-      email: "",
-      phone: "",
-      birthdate: "",
-    };
+  
+
+    // Opcional pero recomendado:
+    // Si cambia el tipo de inscripción, limpiamos los asientos
+    // para evitar que alguien conserve 2 asientos al cambiar a prospecto.
+    seats.resetSeats();
   }
 
   function resetRegistration() {
@@ -254,25 +231,41 @@ export const useReservaStore = defineStore("reserva", () => {
       prize_code: "",
     };
 
-    extraPassenger.value = {
-      full_name: "",
-      email: "",
-      phone: "",
-      birthdate: "",
-    };
+    
+  }
+
+  function toggleReservationSeat(id) {
+    const seat = String(id);
+    const isAlreadySelected = selectedSeats.value.includes(seat);
+
+    // Si ya está seleccionado, siempre permitir quitarlo
+    if (isAlreadySelected) {
+      seats.toggleSeat(seat);
+      return;
+    }
+
+    // Validar máximo de asientos según el tipo de registro
+    if (selectedSeats.value.length >= maxPassengers.value) {
+      const max = maxPassengers.value;
+
+      toast?.error?.(
+        `Solo puedes seleccionar ${max} asiento${max > 1 ? "s" : ""} para este tipo de registro.`,
+      );
+
+      return;
+    }
+
+    seats.toggleSeat(seat);
   }
 
   const _passengersValidation = validatePassengers(passengers, selectedSeats);
+
   const allAdults = computed(() => _passengersValidation.value.allAdults);
-  const requiredFieldsFilled = computed(
-    () => _passengersValidation.value.requiredFilled,
-  );
 
-  const sameEmails = validateEmails(emailSendTickets);
+  const requiredFieldsFilled = computed(() => {
+    return _passengersValidation.value.requiredFilled;
+  });
 
-  const validatePayerForm = validatePayer(payer);
-
-  // Sincroniza errores para depuración/UI
   watch(
     _passengersValidation,
     (v) => {
@@ -290,15 +283,16 @@ export const useReservaStore = defineStore("reserva", () => {
 
   const canContinuePassengers = computed(() => {
     const ok = allAdults.value && requiredFieldsFilled.value;
+
     validationState.value.canContinuePassengers = ok;
+
     return ok;
   });
 
   const canPay = computed(() => {
-    return validatePayerForm.value && aceptedTerms.value;
+    return aceptedTerms.value;
   });
 
-  // ---------- Eventos (fachada con mismos nombres)
   async function loadEvents() {
     try {
       await evts.loadEvents();
@@ -311,9 +305,17 @@ export const useReservaStore = defineStore("reserva", () => {
     return await evts.seatsSold(id);
   }
 
-  // ---------- Navegación y reset (misma API)
-  const next = () => step.value < maxStep.value && step.value++;
-  const prev = () => step.value > 1 && step.value--;
+  const next = () => {
+    if (step.value < maxStep.value) {
+      step.value++;
+    }
+  };
+
+  const prev = () => {
+    if (step.value > 1) {
+      step.value--;
+    }
+  };
 
   function reset() {
     step.value = 1;
@@ -321,7 +323,6 @@ export const useReservaStore = defineStore("reserva", () => {
     resetRegistration();
   }
 
-  // ---------- Exposición (MISMO contrato público)
   return {
     // State
     step,
@@ -331,24 +332,22 @@ export const useReservaStore = defineStore("reserva", () => {
     passengers,
     events,
     aceptedTerms,
-    emailSendTickets,
-    modal,
-    payer,
 
-    // Nuevo state
+    modal,
+
+    // Registro
     registrationType,
     registrationData,
     registrationTypes,
-    extraPassenger,
+    
 
     // Getters
     canContinuePassengers,
     canPay,
     allAdults,
-    sameEmails,
+
     validationErrors,
 
-    // Nuevos getters
     currentRegistrationType,
     isFreeRegistration,
     requiresPayment,
@@ -366,10 +365,9 @@ export const useReservaStore = defineStore("reserva", () => {
     reset,
     setDate: seats.setDate,
     loadEvents,
-    toggleSeat: seats.toggleSeat,
+    toggleSeat: toggleReservationSeat,
     seatsSold,
 
-    // Nuevas actions
     setRegistrationType,
     resetRegistration,
   };

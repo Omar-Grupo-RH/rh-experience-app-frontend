@@ -31,7 +31,7 @@ const handleNext = () => {
         v-for="type in store.registrationTypes"
         :key="type.value"
         type="button"
-        class="group text-left rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+        class="group text-left rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer"
         :class="
           store.registrationType === type.value
             ? 'border-experience-blue bg-blue-50 ring-2 ring-experience-blue/20'
