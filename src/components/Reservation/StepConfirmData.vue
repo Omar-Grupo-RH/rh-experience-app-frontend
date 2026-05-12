@@ -51,19 +51,6 @@ const breakdown = computed(() => store.priceBreakdown());
             </div>
           </li>
         </ul>
-
-        <div class="mt-5">
-          <p class="text-gray-400 italic">
-            Los boletos se enviarán al correo
-            <span class="font-semibold">{{
-              store.emailSendTickets.emailSent
-            }}</span>
-            a nombre de
-            <span class="font-semibold">{{
-              store.emailSendTickets.nameSent
-            }}</span>
-          </p>
-        </div>
       </div>
 
       <div
@@ -71,7 +58,7 @@ const breakdown = computed(() => store.priceBreakdown());
       >
         <div class="flex flex-col gap-1.5 w-full p-5">
           <h3 class="font-bold uppercase mb-5 lg:text-xl xl:text-2xl">
-            Resumen de compra
+            Resumen de reservación
           </h3>
           <div>
             <div>

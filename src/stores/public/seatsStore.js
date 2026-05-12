@@ -24,7 +24,11 @@ export const useSeatsStore = defineStore("seats", () => {
           phone: "",
           born_date: "",
           allergies: [],
-        }
+          city: "",
+          is_client: false,
+          advisor_name: "",
+          is_first_visit: false,
+        },
     );
   }
 

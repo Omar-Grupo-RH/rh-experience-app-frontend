@@ -1,11 +1,19 @@
 <script setup>
-import { computed } from "vue";
+import { ref } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
+import ResumeCard from "@/components/Reservation/ResumeCard.vue";
 import { formatDateToSpanish } from "@/utils/formatDate";
-import { currencyFormat } from "@/utils/formatMoney";
-const store = useReservaStore();
 
-const breakdown = computed(() => store.priceBreakdown());
+const store = useReservaStore();
+const openPassengers = ref([0]);
+
+const togglePassenger = (idx) => {
+  if (openPassengers.value.includes(idx)) {
+    openPassengers.value = openPassengers.value.filter((i) => i !== idx);
+  } else {
+    openPassengers.value.push(idx);
+  }
+};
 
 const adult = ({ value }) => {
   if (!value) return false;
@@ -20,6 +28,49 @@ const adult = ({ value }) => {
     age--;
   }
   return age >= 18;
+};
+
+const normalizeTags = (value) => {
+  return value
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+};
+
+const addTagsToPassenger = (
+  passenger,
+  rawValue,
+  clearInput = true,
+  target = null,
+) => {
+  if (!rawValue?.trim()) return;
+
+  const tags = normalizeTags(rawValue);
+
+  passenger.allergies = Array.from(
+    new Set([...(passenger.allergies || []), ...tags]),
+  );
+
+  if (clearInput && target) {
+    target.value = "";
+  }
+};
+
+const handleAllergyInput = (event, passenger) => {
+  const value = event.target.value;
+
+  if (!value.includes(",")) return;
+
+  addTagsToPassenger(passenger, value, true, event.target);
+};
+
+const handleAllergyEnter = (event, passenger) => {
+  event.preventDefault();
+  addTagsToPassenger(passenger, event.target.value, true, event.target);
+};
+
+const handleAllergyBlur = (event, passenger) => {
+  addTagsToPassenger(passenger, event.target.value, true, event.target);
 };
 </script>
 
@@ -40,124 +91,161 @@ const adult = ({ value }) => {
               label-class="block font-medium text-gray-800 mb-2"
               :value="p"
             >
-              <div class="p-4 rounded-lg border border-gray-200">
-                <div>
-                  <p class="font-semibold text-2xl">
-                    Pasajero
-                    <span class="font-normal">{{ idx + 1 }}</span>
-                  </p>
-                  <div>
+              <div class="rounded-lg border border-gray-200 overflow-hidden">
+                <button
+                  type="button"
+                  class="w-full p-4 flex items-center justify-between gap-4 text-left cursor-pointer bg-white"
+                  @click="togglePassenger(idx)"
+                >
+                  <div class="min-w-0">
+                    <p class="font-semibold text-2xl">
+                      Pasajero
+                      <span class="font-normal">{{ idx + 1 }}</span>
+                    </p>
+
                     <p class="font-semibold text-xl">
                       Asiento
                       <span class="font-normal">{{ p.seat }}</span>
                     </p>
                   </div>
-                </div>
-                <div class="grid md:grid-cols-2 gap-4 mt-5">
-                  <FormKit
-                    type="text"
-                    name="first_name"
-                    label="Nombre(s)"
-                    v-model="p.first_name"
-                    placeholder="Jhon"
-                    validation="required|length:3"
-                    :validation-messages="{
-                      required: 'El nombre es obligatorio',
-                      length: 'El nombre debe tener al menos 3 caracteres',
-                    }"
-                  />
-                  <FormKit
-                    type="text"
-                    name="last_name"
-                    label="Apellido(s)"
-                    v-model="p.last_name"
-                    placeholder="Doe"
-                    validation="required|length:3"
-                    :validation-messages="{
-                      required: 'El apellido es obligatorio',
-                      length: 'El apellido debe tener al menos 3 caracteres',
-                    }"
-                  />
-                  <FormKit
-                    type="email"
-                    name="email"
-                    label="Correo electrónico"
-                    v-model="p.email"
-                    placeholder="ejemplo@correo.com"
-                    validation="required|email"
-                    :validation-messages="{
-                      required: 'Correo obligatorio',
-                      email: 'Email no válido',
-                    }"
-                  />
-                  <FormKit
-                    type="tel"
-                    name="phone"
-                    label="Teléfono"
-                    v-model="p.phone"
-                    placeholder="10 dígitos"
-                    validation="required|matches:/^[0-9]{10}$/"
-                    :validation-messages="{
-                      required: 'Teléfono obligatorio',
-                      matches: 'Debe tener 10 dígitos',
-                    }"
-                  />
-                  <FormKit
-                    type="date"
-                    name="born_date"
-                    label="Fecha de nacimiento"
-                    v-model="p.born_date"
-                    placeholder="AAAA-MM-DD"
-                    validation="required|date|adult"
-                    validation-visibility="live"
-                    :validation-messages="{
-                      required: 'Fecha obligatoria',
-                      date: 'Fecha no válida',
-                      adult: 'Debes ser mayor de edad (18 años o más)',
-                    }"
-                    :validation-rules="{ adult }"
-                  />
 
-                  <!-- Alergias -->
-                  <div class="mb-2 md:col-span-2">
-                    <label class="block font-medium text-gray-700 mb-1"
-                      >Alergias (separadas por coma)</label
-                    >
-                    <input
+                  <span
+                    class="w-8 h-8 flex items-center justify-center shrink-0 text-2xl leading-none transition-transform duration-200"
+                    :class="{ 'rotate-180': openPassengers.includes(idx) }"
+                  >
+                    ⌄
+                  </span>
+                </button>
+
+                <div v-show="openPassengers.includes(idx)" class="p-4 pt-0">
+                  <div class="grid md:grid-cols-2 gap-4 mt-5">
+                    <FormKit
                       type="text"
-                      class="w-full outline-none border-0 bg-white rounded-md p-2 text-sm"
-                      @keydown.enter.prevent
-                      @blur="
-                        (ev) => {
-                          const raw = ev.target.value.trim();
-                          if (!raw) return;
-                          const tags = raw
-                            .split(',')
-                            .map((t) => t.trim())
-                            .filter(Boolean);
-                          p.allergies = Array.from(
-                            new Set([...(p.allergies || []), ...tags])
-                          );
-                          ev.target.value = '';
-                        }
-                      "
-                      placeholder="Ej. mariscos, cacahuate"
+                      name="first_name"
+                      label="Nombre(s)"
+                      v-model="p.first_name"
+                      placeholder="Jhon"
+                      validation="required|length:3"
+                      :validation-messages="{
+                        required: 'El nombre es obligatorio',
+                        length: 'El nombre debe tener al menos 3 caracteres',
+                      }"
                     />
-                    <div class="flex flex-wrap gap-2 mt-2">
-                      <span
-                        v-for="(tag, aidx) in p.allergies"
-                        :key="aidx"
-                        class="bg-blue-100 text-experience-pink text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1"
+                    <FormKit
+                      type="text"
+                      name="last_name"
+                      label="Apellido(s)"
+                      v-model="p.last_name"
+                      placeholder="Doe"
+                      validation="required|length:3"
+                      :validation-messages="{
+                        required: 'El apellido es obligatorio',
+                        length: 'El apellido debe tener al menos 3 caracteres',
+                      }"
+                    />
+                    <FormKit
+                      type="email"
+                      name="email"
+                      label="Correo electrónico"
+                      v-model="p.email"
+                      placeholder="ejemplo@correo.com"
+                      validation="required|email"
+                      :validation-messages="{
+                        required: 'Correo obligatorio',
+                        email: 'Email no válido',
+                      }"
+                    />
+                    <FormKit
+                      type="tel"
+                      name="phone"
+                      label="Teléfono"
+                      v-model="p.phone"
+                      placeholder="10 dígitos"
+                      validation="required|matches:/^[0-9]{10}$/"
+                      :validation-messages="{
+                        required: 'Teléfono obligatorio',
+                        matches: 'Debe tener 10 dígitos',
+                      }"
+                    />
+                    <FormKit
+                      type="date"
+                      name="born_date"
+                      label="Fecha de nacimiento"
+                      v-model="p.born_date"
+                      placeholder="AAAA-MM-DD"
+                      validation="required|date|adult"
+                      validation-visibility="live"
+                      :validation-messages="{
+                        required: 'Fecha obligatoria',
+                        date: 'Fecha no válida',
+                        adult: 'Debes ser mayor de edad (18 años o más)',
+                      }"
+                      :validation-rules="{ adult }"
+                    />
+                    <FormKit
+                      type="text"
+                      name="city"
+                      label="Ciudad"
+                      v-model="p.city"
+                      placeholder="Mérida"
+                      validation="required|length:3"
+                      :validation-messages="{
+                        required: 'La ciudad es obligatoria',
+                        length: 'La ciudad debe tener al menos 3 caracteres',
+                      }"
+                    />
+                    <div class="mb-2 md:col-span-2">
+                      <label class="block font-medium text-gray-700 mb-1"
+                        >Alergias (separadas por coma)</label
                       >
-                        {{ tag }}
-                        <button
-                          type="button"
-                          class="text-red-500 hover:text-red-700 cursor-pointer"
-                          @click="p.allergies.splice(aidx, 1)"
+                      <input
+                        type="text"
+                        class="w-full outline-none border-0 bg-white rounded-md p-2 text-sm"
+                        @input="handleAllergyInput($event, p)"
+                        @keydown.enter="handleAllergyEnter($event, p)"
+                        @blur="handleAllergyBlur($event, p)"
+                        placeholder="Ej. mariscos, cacahuate"
+                      />
+                      <div class="flex flex-wrap gap-2 mt-2">
+                        <span
+                          v-for="(tag, aidx) in p.allergies"
+                          :key="aidx"
+                          class="bg-blue-100 text-experience-blue text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1"
                         >
-                          ✕
-                        </button>
-                      </span>
+                          {{ tag }}
+                          <button
+                            type="button"
+                            class="text-red-500 hover:text-red-700 cursor-pointer"
+                            @click="p.allergies.splice(aidx, 1)"
+                          >
+                            ✕
+                          </button>
+                        </span>
+                      </div>
+                    </div>
+
+                    <FormKit
+                      type="checkbox"
+                      name="is_visitor"
+                      label="¿Es cliente de Grupo RH?"
+                      v-model="p.is_client"
+                    />
+
+                    <FormKit
+                      type="checkbox"
+                      name="is_first_visit"
+                      label="¿Es su primera visita?"
+                      v-model="p.is_first_visit"
+                    />
+
+                    <div class="md:col-span-2">
+                      <FormKit
+                        type="text"
+                        name="advisor_name"
+                        label="Nombre del asesor"
+                        v-model="p.advisor_name"
+                        placeholder="Jhon Doe"
+                      />
                     </div>
                   </div>
                 </div>
@@ -167,107 +255,13 @@ const adult = ({ value }) => {
 
           <div class="flex justify-between mt-6"></div>
         </FormKit>
-
-        <div>
-          <h3 class="text-xl font-semibold mb-1">
-            Ingresa los datos de la persona que recibirá los boletos
-          </h3>
-          <p v-if="!store.sameEmails" class="text-red-500 text-sm">
-            Los correos deben coincidir para continuar.
-          </p>
-          <div class="flex flex-col gap-1 mt-3">
-            <FormKit
-              type="text"
-              name="nameSent"
-              v-model="store.emailSendTickets.nameSent"
-              placeholder="Ingresa el nombre del destinatario"
-              validation="required"
-              :validation-messages="{
-                required: 'Nombre obligatorio',
-              }"
-            />
-
-            <FormKit
-              type="email"
-              name="emailSent"
-              v-model="store.emailSendTickets.emailSent"
-              placeholder="Ingresa correo electrónico"
-              validation="required|email"
-              :validation-messages="{
-                required: 'Correo obligatorio',
-                email: 'Email no válido',
-              }"
-            />
-            <FormKit
-              type="email"
-              name="confirmEmail"
-              v-model="store.emailSendTickets.confirmEmail"
-              placeholder="Confirmar correo electrónico"
-              validation="required|email"
-              :validation-messages="{
-                required: 'Correo obligatorio',
-                email: 'Email no válido',
-              }"
-            />
-          </div>
-        </div>
       </div>
 
-      <div
-        class="space-y-5 w-full lg:w-[40%] lg:sticky lg:top-8 rounded-lg border p-5 border-gray-200"
-      >
-        <div
-          class="flex w-full items-center justify-between mt-3 lg:mt-0 lg:flex-1"
-        >
-          <div class="flex flex-col gap-1.5 w-full">
-            <h3 class="font-bold uppercase mb-5 lg:text-xl xl:text-2xl">
-              Resumen de compra
-            </h3>
-            <div>
-              <div>
-                <p>
-                  Fecha de RH EXPERIENCE:
-                  <span class="font-semibold">
-                    {{ formatDateToSpanish(store.date) }}</span
-                  >
-                </p>
-                <p>
-                  Origen:
-                  <span class="font-semibold">Oficinas de Grupo RH</span>
-                </p>
-                
-                <p>
-                  Asientos seleccionados:
-                  <span class="font-semibold">{{
-                    store.selectedSeats.join(", ")
-                  }}</span>
-                </p>
-                
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-5 flex gap-2 items-center flex-col md:flex-row-reverse">
-          <button
-            class="px-4 py-2 bg-experience-pink w-full text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            :disabled="!store.canContinuePassengers"
-            @click="store.next"
-          >
-            Continuar
-          </button>
-          <button
-            class="py-2 px-4 rounded-md bg-gray-200 w-full cursor-pointer"
-            @click="store.prev"
-          >
-            Regresar
-          </button>
-        </div>
-
-        <p v-if="!store.allAdults" class="text-red-600 text-sm mt-2">
-          Es obligatorio que los pasajeros sean mayores de edad.
-        </p>
-      </div>
+      <ResumeCard
+        next-label="Continuar"
+        :disabled-next="!store.canContinuePassengers"
+        :show-adult-error="true"
+      />
     </div>
   </div>
 </template>

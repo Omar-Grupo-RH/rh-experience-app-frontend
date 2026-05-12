@@ -44,16 +44,16 @@ const calendarOptions = ref({
 
   height: "auto",
   contentHeight: "auto",
-  aspectRatio: isMobile.value ? 0.8 : 1.5,
+  aspectRatio:  1,
 
   views: {
     dayGridMonth: {
       titleFormat: isMobile.value
         ? { year: "numeric", month: "short" }
-        : { year: "numeric", month: "long" },
+        : { year: "numeric", month: "short" },
       dayHeaderFormat: isMobile.value
         ? { weekday: "short" }
-        : { weekday: "long" },
+        : { weekday: "short" },
       dayMaxEvents: isMobile.value ? 1 : 2,
     },
   },

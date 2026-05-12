@@ -19,7 +19,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div class="rounded-lg  bg-white p-5">
+    <div class="rounded-lg bg-white p-5">
       <div class="flex justify-end">
         <button
           class="bg-experience-pink text-white px-4 py-2 rounded cursor-pointer shadow"
@@ -49,9 +49,22 @@ onMounted(async () => {
               <FormKit
                 type="form"
                 id="editUserForm"
+                @submit="userStore.handleUpdateUser"
                 :actions="false"
                 incomplete-message="No se pudo enviar, revisa las notificaciones"
               >
+                <FormKit
+                  type="text"
+                  label="Nombre completo"
+                  name="full_name"
+                  v-model="userStore.selectedUser.full_name"
+                  placeholder="Jhon Doe"
+                  validation="required|length:3"
+                  :validation-messages="{
+                    required: 'El usuario es obligatorio',
+                    length: 'El usuario debe tener al menos 3 caracteres',
+                  }"
+                />
                 <FormKit
                   type="text"
                   label="Nombre de usuario"
@@ -110,11 +123,23 @@ onMounted(async () => {
                 :actions="false"
                 incomplete-message="No se pudo enviar, revisa las notificaciones"
               >
+              <FormKit
+                  type="text"
+                  label="Nombre completo"
+                  name="full_name"
+                  v-model="userStore.formNewUser.full_name"
+                  placeholder="Jhon Doe"
+                  validation="required|length:3"
+                  :validation-messages="{
+                    required: 'El nombre es obligatorio',
+                    length: 'El nombre debe tener al menos 3 caracteres',
+                  }"
+                />
                 <FormKit
                   type="text"
                   label="Nombre de usuario"
                   name="username"
-                  placeholder="Jhon"
+                  placeholder="jhon_doe"
                   v-model="userStore.formNewUser.username"
                   validation="required|length:3"
                   :validation-messages="{

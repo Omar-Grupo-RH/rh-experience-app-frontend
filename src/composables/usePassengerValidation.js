@@ -29,7 +29,7 @@ export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export function validatePassengers(passengersRef, selectedSeatsRef) {
   return computed(() => {
     const passengers = passengersRef.value || [];
-    const required = ["first_name", "last_name", "email", "phone", "born_date"];
+    const required = ["first_name", "last_name", "email", "phone", "born_date", "city"];
     const errors = [];
 
     // Asientos seleccionados

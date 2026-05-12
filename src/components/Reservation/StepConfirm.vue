@@ -2,7 +2,7 @@
 import { computed, watch, ref, nextTick, inject, onMounted } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 import { formatDateToSpanish } from "@/utils/formatDate";
-import router from '@/router';
+import router from "@/router";
 
 const store = useReservaStore();
 const toast = inject("toast");
@@ -74,20 +74,19 @@ async function startCheckout() {
       message: "Ocurrió un error al procesar tu solicitud.",
       type: "error",
     });
-  }
-  finally {
+  } finally {
     loading.value = false;
   }
 }
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto relative">
+  <div class="max-w-2xl mx-auto relative">
     <div
       class="rounded-lg border-gray-200 p-5 lg:p-10 border max-w-xl mx-auto lg:text-lg"
     >
       <h3 class="font-bold uppercase mb-5 lg:text-xl xl:text-2xl">
-        Resumen de compra
+        Confirmar reservación
       </h3>
       <div>
         <p>
@@ -172,7 +171,7 @@ async function startCheckout() {
             <FormKit
               type="checkbox"
               name="is_visitor"
-              label="¿Es visitante?"
+              label="¿Es cliente de Grupo RH?"
               v-model="store.payer.is_client"
             />
 

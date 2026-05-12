@@ -11,10 +11,15 @@ export function useUser() {
     return data ?? [];
   };
 
+  const updateUser = async (payload) => {
+    const { data } = await UserAPI.update(payload);
+    return data ?? [];
+  };
+
   const deleteUser = async (id) => {
     const { data } = await UserAPI.destroy(id);
     return data ?? [];
   };
 
-  return { listUsers, addUser, deleteUser };
+  return { listUsers, addUser, deleteUser, updateUser };
 }

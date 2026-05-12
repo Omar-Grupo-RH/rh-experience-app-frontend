@@ -12,4 +12,7 @@ export default {
   destroy(id) {
     return api.post("/users/destroy", id);
   },
+  update(payload) {
+    return api.post("/users/update", payload);
+  },
 };

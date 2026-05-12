@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import { useUser } from "@/composables/useUser";
 import Swal from "sweetalert2";
 export const useUserStore = defineStore("users", () => {
-  const { listUsers, addUser, deleteUser } = useUser();
+  const { listUsers, addUser, deleteUser , updateUser} = useUser();
 
   const users = ref([]);
   const loading = ref(false);
@@ -11,6 +11,7 @@ export const useUserStore = defineStore("users", () => {
   const showCreateModal = ref(false);
   const selectedUser = ref(null);
   const formNewUser = ref({
+    full_name: "",
     username: "",
     admin: "",
     password: "",
@@ -37,6 +38,7 @@ export const useUserStore = defineStore("users", () => {
 
   const openCreateModal = () => {
     formNewUser.value = {
+      full_name: "",
       username: "",
       password: "",
     };
@@ -63,6 +65,29 @@ export const useUserStore = defineStore("users", () => {
         timer: 1500,
       });
       showCreateModal.value = false;
+      
+    } catch (error) {
+      const { message } = error.response.data;
+      Swal.fire({ title: message, icon: "error", timer: 2000 });
+    }
+  };
+
+  const handleUpdateUser = async (payload) => {
+    try {
+
+      payload.id = selectedUser.value.id;
+      const { data } = await updateUser(payload);
+      Swal.fire({
+        title: `${data.username} actualizado correctamente`,
+        text: "Los datos del usuario han sido actualizados.",
+        icon: "success",
+        timer: 1500,
+      });
+      showEditModal.value = false; 
+      const index = users.value.findIndex((u) => u.id === data.id);
+      if (index !== -1) {
+        users.value[index] = data;
+      }
     } catch (error) {
       const { message } = error.response.data;
       Swal.fire({ title: message, icon: "error", timer: 2000 });
@@ -114,5 +139,6 @@ export const useUserStore = defineStore("users", () => {
     closeCreateModal,
     formNewUser,
     handleCreateUser,
+    handleUpdateUser
   };
 });
