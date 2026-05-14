@@ -145,7 +145,7 @@ async function startCheckout() {
     <div
       class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
     >
-      <div class="px-6 py-5 sm:px-8">
+      <div class="px-6 pt-5 sm:px-8">
         <h3
           class="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-3"
         >
