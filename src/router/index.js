@@ -66,6 +66,7 @@ const router = createRouter({
           meta: {
             title: "Lista de pasajeros",
             requiresAuth: true,
+            activeMenu: "travels",
             adminOnly: true,
           },
           component: () =>

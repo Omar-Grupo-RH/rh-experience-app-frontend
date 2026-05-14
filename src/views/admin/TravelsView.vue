@@ -14,7 +14,7 @@ onMounted(async () => {
   <div class="max-w-7xl mx-auto p-5 space-y-10">
     <div class="flex justify-between items-center">
       <div class="space-y-1">
-        <h2 class="text-4xl font-semibold">Tus viajes</h2>
+        <h2 class="text-4xl font-semibold">Tus pasajeros</h2>
         <p class="text-gray-400">Administra a tus pasajeros desde aqui.</p>
       </div>
     </div>

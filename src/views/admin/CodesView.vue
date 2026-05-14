@@ -74,12 +74,7 @@ const handleFilterChange = async (event) => {
   <div class="mx-auto space-y-8 p-5">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-1">
-        <p
-          class="text-sm font-semibold uppercase tracking-[0.22em] text-experience-blue"
-        >
-          Panel administrativo
-        </p>
-
+        
         <h2 class="text-3xl font-black text-slate-900 sm:text-4xl">
           Gestión de códigos
         </h2>

@@ -72,7 +72,11 @@ const menuItems = computed(() => {
 
 const isActive = (item) => {
   if (!item?.to?.name) return false;
-  return route.name === item.to.name;
+
+  return (
+    route.name === item.to.name ||
+    route.meta?.activeMenu === item.to.name
+  );
 };
 
 const handleNavigate = () => {

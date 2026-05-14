@@ -66,19 +66,7 @@ const handleNext = () => {
         </div>
 
         <div class="mt-5 flex flex-wrap gap-2">
-          <span
-            v-if="type.free"
-            class="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700"
-          >
-            Sin costo
-          </span>
-
-          <span
-            v-else
-            class="rounded-full bg-yellow-50 px-3 py-1 text-xs font-medium text-yellow-700"
-          >
-            Requiere ficha de pago
-          </span>
+          
 
           <span
             v-if="type.allowsExtra"
