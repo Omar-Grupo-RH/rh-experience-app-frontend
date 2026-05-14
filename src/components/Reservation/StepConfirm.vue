@@ -9,6 +9,63 @@ const toast = inject("toast");
 
 const loading = ref(false);
 
+function buildRegistrationPayload(store) {
+  const data = store.registrationData;
+
+  const base = {
+    registration_type: store.registrationType,
+  };
+
+  if (store.registrationType === "internal") {
+    return {
+      ...base,
+      area_code: data.area_code,
+    };
+  }
+
+  if (store.registrationType === "alliance") {
+    return {
+      ...base,
+      alliance_name: data.alliance_name,
+      alliance_code: data.alliance_code,
+    };
+  }
+
+  if (store.registrationType === "prize") {
+    return {
+      ...base,
+      prize_code: data.prize_code,
+    };
+  }
+
+  if (store.registrationType === "investor") {
+    return {
+      ...base,
+      development: data.development,
+      stage: data.stage,
+      lot_number: data.lot_number,
+    };
+  }
+
+  if (store.registrationType === "prospect") {
+    const payload = {
+      ...base,
+      development: data.development,
+      advisor_name: data.advisor_name,
+      advisor_code: data.advisor_code,
+      origin: data.origin,
+    };
+
+    if (data.origin === "alianza") {
+      payload.origin_alliance_name = data.origin_alliance_name;
+    }
+
+    return payload;
+  }
+
+  return base;
+}
+
 function buildPayload() {
   return {
     trip_data: {
@@ -18,6 +75,8 @@ function buildPayload() {
       tickets_email: store.passengers[0]?.email,
       tickets_name: store.passengers[0]?.first_name || "Cliente",
     },
+
+    RegistrationType: buildRegistrationPayload(store),
 
     passengers: store.passengers.map((p) => ({
       seat_id: p.seat,

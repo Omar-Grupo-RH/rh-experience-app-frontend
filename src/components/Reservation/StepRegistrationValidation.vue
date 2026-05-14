@@ -307,7 +307,7 @@ const handleNext = async () => {
     <div class="mt-8 flex flex-col md:flex-row gap-3 justify-between">
       <button
         type="button"
-        class="px-6 py-3 rounded-md bg-gray-200 text-gray-800 font-medium w-full md:w-auto"
+        class="px-6 py-3 rounded-md cursor-pointer bg-gray-200 text-gray-800 font-medium w-full md:w-auto"
         @click="store.prev"
       >
         Regresar
@@ -315,7 +315,7 @@ const handleNext = async () => {
 
       <button
         type="button"
-        class="px-6 py-3 rounded-md bg-experience-blue text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto"
+        class="px-6 py-3 rounded-md cursor-pointer bg-experience-blue text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto"
         :disabled="!store.canContinueRegistrationValidation"
         @click="handleNext"
       >

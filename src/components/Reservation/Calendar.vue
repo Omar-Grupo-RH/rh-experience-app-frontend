@@ -44,7 +44,7 @@ const calendarOptions = ref({
 
   height: "auto",
   contentHeight: "auto",
-  aspectRatio:  1,
+  aspectRatio:  1.45,
 
   views: {
     dayGridMonth: {
@@ -256,139 +256,219 @@ watch([isMobile, isTablet], () => {
 </script>
 
 <template>
-  <div class="calendar-container">
-    <SkeletonCalendar v-if="loading" />
-    <FullCalendar v-else ref="calendarRef" :options="calendarOptions" />
+  <div class="calendar-wrapper">
+    <div class="calendar-container">
+      <SkeletonCalendar v-if="loading" />
+      <FullCalendar v-else ref="calendarRef" :options="calendarOptions" />
+      <div class="mt-8 flex flex-col md:flex-row gap-3 justify-between">
+      <button
+        type="button"
+        class="px-6 py-3 rounded-md cursor-pointer bg-gray-200 text-gray-800 font-medium w-full md:w-auto"
+        @click="store.prev"
+      >
+        Regresar
+      </button>
+    </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.calendar-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem;
+}
+
 .calendar-container {
   width: 100%;
-  height: 100%;
-  min-height: 400px;
-  padding: 0.5rem;
+  max-width: 860px;
+  min-height: 360px;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  background: #ffffff;
 }
 
-/* Estilos responsive para el calendario */
+/* FullCalendar base */
 :deep(.fc) {
-  font-size: clamp(0.75rem, 2vw, 1rem);
+  width: 100%;
+  font-size: clamp(0.75rem, 1.2vw, 0.95rem);
 }
 
+/* Header */
 :deep(.fc .fc-toolbar) {
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem;
-}
-
-:deep(.fc .fc-toolbar-title) {
-  font-size: clamp(1rem, 2vw, 2rem);
-  text-align: center;
-  text-transform: capitalize;
+  padding: 0.25rem 0 0.75rem;
+  margin-bottom: 0 !important;
 }
 
 :deep(.fc .fc-toolbar-chunk) {
   display: flex;
+  align-items: center;
   justify-content: center;
-  width: 100%;
+  width: auto;
 }
 
+:deep(.fc .fc-toolbar-title) {
+  font-size: clamp(1rem, 2vw, 1.45rem);
+  font-weight: 700;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+/* Botones */
 :deep(.fc .fc-button) {
-  font-size: clamp(0.7rem, 1.5vw, 1rem);
-  padding: 0.4rem 0.8rem;
+  width: 38px;
+  height: 38px;
+  padding: 0 !important;
+  border-radius: 999px !important;
   background-color: #d94a93 !important;
   border: none !important;
+  box-shadow: none !important;
 }
 
+:deep(.fc .fc-button:hover) {
+  background-color: #c43f83 !important;
+}
+
+:deep(.fc .fc-button:focus) {
+  box-shadow: none !important;
+}
+
+/* Tabla */
+:deep(.fc-scrollgrid) {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border-color: #e5e7eb !important;
+}
+
+:deep(.fc-theme-standard td),
+:deep(.fc-theme-standard th) {
+  border-color: #e5e7eb !important;
+}
+
+/* Días de la semana */
+:deep(.fc .fc-col-header-cell) {
+  background-color: #f8fafc;
+}
+
+:deep(.fc .fc-col-header-cell-cushion) {
+  padding: 0.5rem 0.25rem;
+  font-size: clamp(0.65rem, 1vw, 0.8rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+/* Celdas */
 :deep(.fc .fc-daygrid-day-frame) {
-  min-height: 60px;
-  padding: 2px;
+  min-height: 72px;
+  padding: 0.25rem;
 }
 
 :deep(.fc .fc-daygrid-day-number) {
-  font-size: clamp(0.7rem, 1.5vw, 1rem);
-  padding: 2px 4px;
+  padding: 0.25rem;
+  font-size: clamp(0.75rem, 1vw, 0.9rem);
+  font-weight: 600;
+  color: #334155;
 }
 
+/* Eventos */
+:deep(.fc-event) {
+  margin-top: 0.15rem;
+  padding: 0.15rem 0.25rem;
+  border-radius: 0.35rem;
+  font-size: clamp(0.62rem, 0.9vw, 0.78rem);
+  line-height: 1.15;
+}
+
+:deep(.fc-event-title) {
+  padding: 0;
+  white-space: normal;
+}
+
+/* Día con evento */
 :deep(.fc-day-has-event) {
   cursor: pointer !important;
 }
 
-:deep(.fc .fc-col-header-cell-cushion) {
-  font-size: clamp(0.5rem, 1vw, 1rem);
-  padding: 4px 2px;
-  font-weight: normal;
-  text-transform: uppercase;
-}
-
+/* Día seleccionado */
 :deep(.fc-daygrid-day.fc-day-selected) {
   background-color: #fde2e2 !important;
   border-color: #f87171 !important;
 }
 
-:deep(.fc-dayGridMonth-view) {
-  width: 100% !important;
-}
-
-:deep(.fc-day-has-event) {
-  cursor: pointer !important;
-}
-
-:deep(.fc-event) {
-  font-size: clamp(0.6rem, 1vw, 0.8rem);
-  padding: 1px 3px;
-  margin: 1px 0;
-}
-
-:deep(.fc-event-title) {
-  padding: 0 2px;
-}
-
-/* Media queries específicas */
-@media (max-width: 768px) {
-  .calendar-container {
+/* Mobile */
+@media (max-width: 640px) {
+  .calendar-wrapper {
     padding: 0.25rem;
+  }
+
+  .calendar-container {
+    max-width: 100%;
+    padding: 0.35rem;
+    min-height: 320px;
   }
 
   :deep(.fc .fc-toolbar) {
-    padding: 0.25rem;
+    grid-template-columns: 36px 1fr 36px;
+    gap: 0.25rem;
+    padding-bottom: 0.5rem;
   }
 
-  :deep(.fc .fc-daygrid-day-frame) {
-    min-height: 50px;
-  }
-
-  :deep(.fc-event) {
-    min-height: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  :deep(.fc .fc-daygrid-day-frame) {
-    min-height: 40px;
+  :deep(.fc .fc-toolbar-title) {
+    font-size: 1rem;
   }
 
   :deep(.fc .fc-button) {
-    padding: 0.3rem 0.6rem;
-  }
-
-  :deep(.fc-event) {
-    font-size: 0.6rem;
-    line-height: 1.2;
-  }
-}
-
-@media (min-width: 1024px) {
-  :deep(.fc-event) {
-    font-size: 14px;
-  }
-
-  :deep(.fc .fc-toolbar) {
-    flex-direction: row;
+    width: 32px;
+    height: 32px;
   }
 
   :deep(.fc .fc-daygrid-day-frame) {
-    min-height: 120px;
+    min-height: 48px;
+    padding: 0.15rem;
+  }
+
+  :deep(.fc .fc-daygrid-day-number) {
+    font-size: 0.7rem;
+    padding: 0.15rem;
+  }
+
+  :deep(.fc .fc-col-header-cell-cushion) {
+    font-size: 0.62rem;
+    padding: 0.35rem 0.1rem;
+  }
+
+  :deep(.fc-event) {
+    font-size: 0.58rem;
+    padding: 0.08rem 0.15rem;
+  }
+}
+
+/* Tablet */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .calendar-container {
+    max-width: 760px;
+  }
+
+  :deep(.fc .fc-daygrid-day-frame) {
+    min-height: 64px;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .calendar-container {
+    max-width: 820px;
+  }
+
+  :deep(.fc .fc-daygrid-day-frame) {
+    min-height: 76px;
   }
 }
 </style>

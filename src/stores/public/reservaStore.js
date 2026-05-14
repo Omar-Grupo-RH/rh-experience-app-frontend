@@ -59,12 +59,6 @@ export const useReservaStore = defineStore("reserva", () => {
     prize_code: "",
   });
 
-  const extraPassenger = ref({
-    full_name: "",
-    email: "",
-    phone: "",
-    birthdate: "",
-  });
 
   const registrationTypes = [
     {

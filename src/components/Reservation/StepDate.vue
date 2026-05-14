@@ -1,5 +1,8 @@
 <script setup>
 import Calendar from "@/components/Reservation/Calendar.vue";
+import { useReservaStore } from "@/stores/public/reservaStore";
+
+const store = useReservaStore();
 </script>
 
 <template>
@@ -15,5 +18,7 @@ import Calendar from "@/components/Reservation/Calendar.vue";
     </div>
 
     <Calendar />
+
+    
   </div>
 </template>
