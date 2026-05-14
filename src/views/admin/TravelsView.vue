@@ -19,7 +19,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div class="rounded-lg bg-white p-5">
+    <div class="rounded-lg bg-white lg:p-5">
       <TravelsTable v-if="store.hasTravels" :travels="store.travels" />
       <div v-else>
         <p class="text-center text-gray-500">No hay viajes registrados.</p>

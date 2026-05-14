@@ -120,7 +120,7 @@ const generatePDF = () => {
           <p class="text-sm text-gray-500">
             Fecha de salida:
             <span class="block text-lg text-black">{{
-              formatDateToSpanish(store.travelSelected[0].trip_date)
+              formatDateToSpanish(store.travelSelected.trip_date)
             }}</span>
           </p>
         </div>

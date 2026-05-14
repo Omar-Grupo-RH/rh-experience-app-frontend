@@ -1,5 +1,5 @@
 <script setup>
-import { RouterLink, useRoute } from "vue-router";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 import { inject } from "vue";
 import { reset } from "@formkit/vue";
 import AuthAPI from "@/api/AuthAPI";
@@ -8,21 +8,38 @@ import { useAuth } from "@/composables/useAuth";
 const toast = inject("toast");
 const { login } = useAuth();
 
+const route = useRoute();
+const router = useRouter();
+
+const getSafeNextRoute = () => {
+  const next = route.query.next;
+
+  if (typeof next === "string" && next.startsWith("/")) {
+    return next;
+  }
+
+  return { name: "calendar" };
+};
+
 const handleSubmit = async (formData) => {
   try {
     const {
       data: { token, username, admin },
     } = await AuthAPI.login(formData);
+
     await login(token, {
       username,
       admin,
     });
 
     reset("loginForm");
+
     toast?.open?.({
       message: `¡Bienvenido ${username}!`,
       type: "success",
     });
+
+    router.replace(getSafeNextRoute());
   } catch (error) {
     toast?.open?.({
       message: error?.response?.data?.message || "Error al iniciar sesión",
@@ -55,6 +72,7 @@ const handleSubmit = async (formData) => {
         >
           Inicio de sesión
         </h2>
+
         <FormKit
           id="loginForm"
           type="form"
@@ -73,6 +91,7 @@ const handleSubmit = async (formData) => {
               required: 'El usuario es obligatorio',
             }"
           />
+
           <FormKit
             type="password"
             label="Contraseña"
@@ -88,6 +107,7 @@ const handleSubmit = async (formData) => {
             <FormKit type="submit">Iniciar sesión</FormKit>
           </div>
         </FormKit>
+
         <RouterLink
           :to="{ name: 'home' }"
           class="block text-sm text-gray-500 mt-10"

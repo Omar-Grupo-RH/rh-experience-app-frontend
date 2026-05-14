@@ -5,6 +5,7 @@ import { useAuth } from "@/composables/useAuth";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+
   routes: [
     {
       path: "/",
@@ -12,6 +13,7 @@ const router = createRouter({
       meta: { title: "Comprar Tickets" },
       component: HomeView,
     },
+
     {
       path: "/auth",
       name: "auth",
@@ -20,7 +22,10 @@ const router = createRouter({
         {
           path: "iniciar-sesion",
           name: "login",
-          meta: { title: "Iniciar Sesion", guestOnly: true },
+          meta: {
+            title: "Iniciar Sesion",
+            guestOnly: true,
+          },
           component: () => import("@/views/auth/LoginView.vue"),
         },
       ],
@@ -29,7 +34,10 @@ const router = createRouter({
     {
       path: "/admin",
       name: "admin",
-      meta: { adminOnly: true },
+      meta: {
+        requiresAuth: true,
+        adminOnly: true,
+      },
       component: () => import("@/views/admin/AdminLayout.vue"),
       children: [
         {
@@ -37,6 +45,7 @@ const router = createRouter({
           name: "calendar",
           meta: {
             title: "Agenda de viajes",
+            requiresAuth: true,
             adminOnly: true,
           },
           component: () => import("@/views/admin/ToursView.vue"),
@@ -46,6 +55,7 @@ const router = createRouter({
           name: "travels",
           meta: {
             title: "Mis Pasajeros",
+            requiresAuth: true,
             adminOnly: true,
           },
           component: () => import("@/views/admin/TravelsView.vue"),
@@ -55,16 +65,28 @@ const router = createRouter({
           name: "list-passenger",
           meta: {
             title: "Lista de pasajeros",
+            requiresAuth: true,
             adminOnly: true,
           },
           component: () =>
             import("@/views/admin/travels/ListPassengerView.vue"),
         },
         {
+          path: "codes",
+          name: "codes",
+          meta: {
+            title: "Códigos",
+            requiresAuth: true,
+            adminOnly: true,
+          },
+          component: () => import("@/views/admin/CodesView.vue"),
+        },
+        {
           path: "comentarios",
           name: "comments",
           meta: {
             title: "Comentarios",
+            requiresAuth: true,
             adminOnly: true,
           },
           component: () => import("@/views/admin/CommentsView.vue"),
@@ -74,6 +96,7 @@ const router = createRouter({
           name: "users",
           meta: {
             title: "Usuarios",
+            requiresAuth: true,
             adminOnly: true,
             fullAdminOnly: true,
           },
@@ -81,26 +104,28 @@ const router = createRouter({
         },
       ],
     },
+
     // {
     //   path: "/cobranza",
     //   name: "cobranza-root",
     //   meta: {
+    //     requiresAuth: true,
     //     adminOnly: true,
-    //     requiredAdminLevel: 3, //solo admin === 2
+    //     requiredAdminLevel: 3,
     //   },
-    //   component: () => import("@/views/cobranza/CobranzaLayout.vue"), // tu layout para admin 2
+    //   component: () => import("@/views/cobranza/CobranzaLayout.vue"),
     //   children: [
     //     {
     //       path: "listado",
     //       name: "cobranza",
     //       meta: {
     //         title: "Cobranza",
+    //         requiresAuth: true,
     //         adminOnly: true,
     //         requiredAdminLevel: 3,
     //       },
     //       component: () => import("@/views/cobranza/CobranzaView.vue"),
     //     },
-    //     // aquí en el futuro agregas más vistas para admin 2
     //   ],
     // },
   ],
@@ -108,6 +133,7 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   const { isAuthenticated, user, adminLevel, hydrateFromToken } = useAuth();
+
   hydrateFromToken();
 
   const requiresAuth = to.matched.some((r) => r.meta?.requiresAuth);
@@ -115,40 +141,65 @@ router.beforeEach((to) => {
   const adminOnly = to.matched.some((r) => r.meta?.adminOnly);
   const fullAdminOnly = to.matched.some((r) => r.meta?.fullAdminOnly);
 
-  // nivel exacto requerido (si alguna ruta lo define)
   const requiredAdminLevel = to.matched.reduce((lvl, r) => {
     if (r.meta?.requiredAdminLevel !== undefined) {
       return r.meta.requiredAdminLevel;
     }
+
     return lvl;
   }, null);
 
-  // requiere auth
-  if (requiresAuth && !isAuthenticated.value) {
-    return { name: "login", query: { next: to.fullPath }, replace: true };
-  }
-
-  // solo invitados
+  // Si ya está autenticado y quiere entrar al login,
+  // lo mandamos al next o al home.
   if (guestOnly && isAuthenticated.value) {
-    const next = to.query?.next ?? { name: "home" };
-    return typeof next === "string"
-      ? { path: next, replace: true }
-      : { ...next, replace: true };
+    const next =
+      typeof to.query.next === "string" && to.query.next.startsWith("/")
+        ? to.query.next
+        : "/";
+
+    return {
+      path: next,
+      replace: true,
+    };
   }
 
-  // rutas solo para algún admin (nivel > 0)
+  // Si la ruta requiere sesión o es de admin y NO está autenticado,
+  // lo mandamos al login guardando a dónde quería entrar.
+  if ((requiresAuth || adminOnly) && !isAuthenticated.value) {
+    return {
+      name: "login",
+      query: {
+        next: to.fullPath,
+      },
+      replace: true,
+    };
+  }
+
+  // Si es ruta admin pero el usuario no tiene nivel admin.
   if (adminOnly && (!user.value || adminLevel.value <= 0)) {
-    return { name: "home", replace: true };
+    return {
+      name: "home",
+      replace: true,
+    };
   }
 
-  // rutas solo para admin full (admin === 1)
-  if (fullAdminOnly && adminLevel.value !== 1) {
-    return { name: "home", replace: true };
+  // Solo super administrador.
+  if (fullAdminOnly && Number(adminLevel.value) !== 1) {
+    return {
+      name: "home",
+      replace: true,
+    };
   }
 
-  // rutas con nivel de admin exacto (ej: requiredAdminLevel: 2)
-  if (requiredAdminLevel !== null && adminLevel.value !== requiredAdminLevel) {
-    return { name: "home", replace: true };
+  // Ruta con nivel exacto.
+  if (
+    requiredAdminLevel !== null &&
+    Number(adminLevel.value) !== Number(requiredAdminLevel)
+  ) {
+    return {
+      name: "home",
+      replace: true,
+    };
   }
 });
 

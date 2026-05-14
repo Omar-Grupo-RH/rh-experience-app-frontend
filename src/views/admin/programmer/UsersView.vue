@@ -22,7 +22,7 @@ onMounted(async () => {
     <div class="rounded-lg bg-white p-5">
       <div class="flex justify-end">
         <button
-          class="bg-experience-pink text-white px-4 py-2 rounded cursor-pointer shadow"
+          class="bg-experience-blue text-white px-4 py-2 rounded cursor-pointer shadow"
           @click="userStore.openCreateModal"
         >
           + Nuevo usuario

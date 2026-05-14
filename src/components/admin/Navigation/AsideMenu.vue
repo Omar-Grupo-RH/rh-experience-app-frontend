@@ -40,6 +40,7 @@ const menuItems = computed(() => {
     return [
       { to: { name: "calendar" }, label: "Agenda de viajes", icon: "calendar" },
       { to: { name: "travels" }, label: "Mis pasajeros", icon: "users" },
+      { to: { name: "codes" }, label: "Códigos", icon: "codes" },
       { to: { name: "comments" }, label: "Comentarios", icon: "comments" },
       { to: { name: "users" }, label: "Usuarios", icon: "users" },
     ];
@@ -49,6 +50,7 @@ const menuItems = computed(() => {
     return [
       { to: { name: "calendar" }, label: "Agenda de viajes", icon: "calendar" },
       { to: { name: "travels" }, label: "Mis pasajeros", icon: "users" },
+      { to: { name: "codes" }, label: "Códigos", icon: "codes" },
       { to: { name: "comments" }, label: "Comentarios", icon: "comments" },
     ];
   }
@@ -87,17 +89,18 @@ const handleLogout = async () => {
   if (props.mobile) emit("close");
 };
 
+
 const iconPaths = {
   calendar:
     "M8 2v2M16 2v2M3.5 9.5h17M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z",
   users:
     "M16 21v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8.5 10v-1a4 4 0 0 0-3-3.87M14 3.13a4 4 0 0 1 0 7.75",
-  comments:
-    "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z",
+  codes:
+    "M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z",
+  comments: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z",
   wallet:
     "M20 7H5a2 2 0 0 1 0-4h13v4M3 7h17a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Zm14 7h.01",
-  grid:
-    "M3 3h7v7H3V3Zm11 0h7v7h-7V3ZM3 14h7v7H3v-7Zm11 0h7v7h-7v-7Z",
+  grid: "M3 3h7v7H3V3Zm11 0h7v7h-7V3ZM3 14h7v7H3v-7Zm11 0h7v7h-7v-7Z",
 };
 </script>
 
@@ -105,9 +108,7 @@ const iconPaths = {
   <aside
     class="flex h-dvh flex-col bg-experience-blue text-white shadow-[16px_0_40px_rgba(15,23,42,0.18)]"
     :class="
-      mobile
-        ? 'w-full'
-        : 'hidden w-76 shrink-0 lg:sticky lg:top-0 lg:flex'
+      mobile ? 'w-full' : 'hidden w-76 shrink-0 lg:sticky lg:top-0 lg:flex'
     "
   >
     <!-- Header -->
@@ -149,7 +150,9 @@ const iconPaths = {
 
     <!-- User Card -->
     <div class="px-5 pt-5">
-      <div class="rounded-lg border border-white/10 bg-white/[0.07] p-4 shadow-sm">
+      <div
+        class="rounded-lg border border-white/10 bg-white/[0.07] p-4 shadow-sm"
+      >
         <div class="flex items-center gap-3">
           <div class="min-w-0">
             <p class="truncate font-semibold text-white">
