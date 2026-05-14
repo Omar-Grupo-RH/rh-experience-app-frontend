@@ -3,6 +3,10 @@ import { ref, inject } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 import { formatDateToSpanish } from "@/utils/formatDate";
 import PassengersItem from "@/components/Reservation/PassengersItem.vue";
+import ReservationAPI, {
+  clearReservationIdempotencyKey,
+} from "@/api/ReservationAPI";
+
 import router from "@/router";
 
 const store = useReservaStore();
@@ -109,34 +113,57 @@ async function startCheckout() {
 
   const payload = buildPayload();
 
-  try {
-    console.log("Iniciando checkout con payload:", payload);
-  } catch (error) {
-    console.error("Error al iniciar el checkout:", error);
-    toast?.open?.({
-      message: "Ocurrió un error al procesar tu solicitud.",
-      type: "error",
-    });
-  }
-
   // try {
-  //   loading.value = true;
-  //   const res = await fetch(`${import.meta.env.VITE_API_URL}/reservation`, {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify(payload),
-  //   });
-  //   const data = await res.json();
-  //   console.log("Respuesta del servidor:", data);
+  //   console.log("Iniciando checkout con payload:", payload);
   // } catch (error) {
   //   console.error("Error al iniciar el checkout:", error);
   //   toast?.open?.({
   //     message: "Ocurrió un error al procesar tu solicitud.",
   //     type: "error",
   //   });
-  // } finally {
-  //   loading.value = false;
   // }
+
+  try {
+    loading.value = true;
+
+    const { data } = await ReservationAPI.reserveTrip(payload);
+
+    console.log("Respuesta del servidor:", data);
+
+    if (!data.success) {
+      clearReservationIdempotencyKey();
+
+      toast?.open?.({
+        message: data.message || "No se pudo completar la reservación.",
+        type: "error",
+      });
+
+      return;
+    }
+
+    clearReservationIdempotencyKey();
+
+    toast?.open?.({
+      message: data.message || "Reservación completada exitosamente.",
+      type: "success",
+    });
+  } catch (error) {
+    const status = error.response?.status;
+
+    if ([400, 409, 422].includes(status)) {
+      clearReservationIdempotencyKey();
+    }
+
+    toast?.open?.({
+      message:
+        error.userMessage ||
+        error.response?.data?.message ||
+        "Ocurrió un error al procesar tu solicitud.",
+      type: "error",
+    });
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
 

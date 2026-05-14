@@ -1,4 +1,20 @@
+// src/api/ReservationAPI.js
 import api from "@/lib/axios";
+
+function getReservationIdempotencyKey() {
+  let key = sessionStorage.getItem("reservation_idempotency_key");
+
+  if (!key) {
+    key = crypto.randomUUID();
+    sessionStorage.setItem("reservation_idempotency_key", key);
+  }
+
+  return key;
+}
+
+export function clearReservationIdempotencyKey() {
+  sessionStorage.removeItem("reservation_idempotency_key");
+}
 
 export default {
   allTrips() {
@@ -14,6 +30,12 @@ export default {
   },
 
   reserveTrip(payload) {
-    return api.post("/payment", payload);
+    const idempotencyKey = getReservationIdempotencyKey();
+
+    return api.post("/reservation", payload, {
+      headers: {
+        "Idempotency-Key": idempotencyKey,
+      },
+    });
   },
 };
