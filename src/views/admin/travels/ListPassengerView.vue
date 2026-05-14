@@ -24,7 +24,7 @@ const generatePDF = () => {
       <h1 style="color: #1e40af; font-size: 24px; margin-bottom: 10px;">RH EXPERIENCE</h1>
       <p style="color: #666; margin-bottom: 20px;">
         Fecha de salida: ${formatDateToSpanish(
-          store.travelSelected[0]?.trip_date || ""
+          store.travelSelected[0]?.trip_date || "",
         )}
       </p>
       <h2 style="font-size: 18px; margin-bottom: 15px;">
@@ -62,10 +62,10 @@ const generatePDF = () => {
               </td>
               <td style="padding: 8px;">${p.seat_id}</td>
               <td style="padding: 8px;">${formatDateToSpanish(
-                p.created_at
+                p.created_at,
               )}</td>
             </tr>
-          `
+          `,
             )
             .join("")}
         </tbody>
@@ -76,7 +76,7 @@ const generatePDF = () => {
   const options = {
     margin: 1,
     filename: `lista-pasajeros-${formatDateToSpanish(
-      store.travelSelected[0]?.trip_date
+      store.travelSelected[0]?.trip_date,
     )}.pdf`,
     html2canvas: {
       scale: 2,
@@ -120,7 +120,7 @@ const generatePDF = () => {
           <p class="text-sm text-gray-500">
             Fecha de salida:
             <span class="block text-lg text-black">{{
-              formatDateToSpanish(store.travelSelected.trip_date)
+              formatDateToSpanish(store.travelSelected[0]?.trip_date) || ""
             }}</span>
           </p>
         </div>

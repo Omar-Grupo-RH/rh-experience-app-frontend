@@ -6,6 +6,7 @@ import { useSeatsStore } from "./seatsStore";
 import { useEventsStore } from "./eventsStore";
 
 import { validatePassengers } from "@/composables/usePassengerValidation";
+import CodesAPI from "@/api/CodesAPI";
 
 export const useReservaStore = defineStore("reserva", () => {
   const seats = useSeatsStore();
@@ -24,41 +25,27 @@ export const useReservaStore = defineStore("reserva", () => {
 
   const validationErrors = ref([]);
 
-  /**
-   * Tipo de inscripción
-   *
-   * Valores posibles:
-   * internal  = Personal interno / Comunidad RH
-   * alliance  = Alianzas
-   * investor  = Inversionistas
-   * prospect  = Clientes prospectos
-   * prize     = Premios
-   */
+  const validatingRegistrationCode = ref(false);
+  const registrationCodeValid = ref(null);
+  const registrationCodeMessage = ref("");
+  const registrationCodeData = ref(null);
+  const allianceCodes = ref([]);
+  const loadingAllianceCodes = ref(false);
   const registrationType = ref("");
 
   const registrationData = ref({
-    // Personal interno
     area_code: "",
-
-    // Alianzas
     alliance_name: "",
     alliance_code: "",
-
-    // Inversionistas
     development: "",
     stage: "",
     lot_number: "",
-
-    // Clientes prospectos
     advisor_name: "",
     advisor_code: "",
     origin: "",
     origin_alliance_name: "",
-
-    // Premios
     prize_code: "",
   });
-
 
   const registrationTypes = [
     {
@@ -179,9 +166,149 @@ export const useReservaStore = defineStore("reserva", () => {
     return false;
   });
 
+  const requiresBackendCodeValidation = computed(() => {
+    return ["internal", "alliance", "prize"].includes(registrationType.value);
+  });
+
+  const registrationCodeToValidate = computed(() => {
+    const data = registrationData.value;
+
+    if (registrationType.value === "internal") {
+      return {
+        type: "department",
+        code: data.area_code,
+      };
+    }
+
+    if (registrationType.value === "alliance") {
+      return {
+        type: "alliance",
+        code: data.alliance_code,
+      };
+    }
+
+    if (registrationType.value === "prize") {
+      return {
+        type: "discount",
+        code: data.prize_code,
+      };
+    }
+
+    return null;
+  });
+
   const maxStep = computed(() => {
     return 6;
   });
+
+  const allianceOptions = computed(() => {
+    return allianceCodes.value.map((item) => ({
+      id: item.id,
+      name: item.name,
+      code: item.code,
+    }));
+  });
+
+  async function loadAllianceCodes() {
+    try {
+      loadingAllianceCodes.value = true;
+
+      const { data } = await CodesAPI.allCodes({
+        type: "alliance",
+      });
+
+      allianceCodes.value = data.data ?? [];
+    } catch (error) {
+      console.error("Error al cargar alianzas:", error);
+      allianceCodes.value = [];
+
+      toast?.open?.({
+        message: "No se pudieron cargar las alianzas.",
+        type: "error",
+      });
+    } finally {
+      loadingAllianceCodes.value = false;
+    }
+  }
+
+  function resetRegistrationCodeValidation() {
+    registrationCodeValid.value = null;
+    registrationCodeMessage.value = "";
+    registrationCodeData.value = null;
+  }
+
+  async function validateRegistrationCode() {
+    resetRegistrationCodeValidation();
+
+    if (!canContinueRegistrationValidation.value) {
+      registrationCodeValid.value = false;
+      registrationCodeMessage.value =
+        "Completa los campos requeridos antes de continuar.";
+      return false;
+    }
+
+    if (!requiresBackendCodeValidation.value) {
+      registrationCodeValid.value = true;
+      registrationCodeMessage.value = "";
+      return true;
+    }
+
+    const params = registrationCodeToValidate.value;
+
+    if (!params?.type || !params?.code?.trim()) {
+      registrationCodeValid.value = false;
+      registrationCodeMessage.value = "Ingresa un código válido.";
+      return false;
+    }
+
+    try {
+      validatingRegistrationCode.value = true;
+
+      const { data } = await CodesAPI.validateCode({
+        type: params.type,
+        code: params.code.trim(),
+      });
+
+      registrationCodeValid.value = Boolean(data.valid);
+      registrationCodeData.value = data.data ?? null;
+      registrationCodeMessage.value =
+        data.message || "Código validado correctamente.";
+
+      return registrationCodeValid.value;
+    } catch (error) {
+      registrationCodeValid.value = false;
+      registrationCodeData.value = null;
+      registrationCodeMessage.value =
+        error?.response?.data?.message || "El código ingresado no es válido.";
+
+      return false;
+    } finally {
+      validatingRegistrationCode.value = false;
+    }
+  }
+
+  async function validateRegistrationAndNext() {
+    const isValid = await validateRegistrationCode();
+
+    if (!isValid) {
+      toast?.open?.({
+        message:
+          registrationCodeMessage.value || "El código ingresado no es válido.",
+        type: "error",
+      });
+
+      return;
+    }
+
+    toast?.open?.({
+      message: requiresBackendCodeValidation.value
+        ? "Código validado correctamente."
+        : "Datos validados correctamente.",
+      type: "success",
+    });
+
+    next();
+  }
 
   function setRegistrationType(type) {
     registrationType.value = type;
@@ -200,11 +327,8 @@ export const useReservaStore = defineStore("reserva", () => {
       prize_code: "",
     };
 
-  
+    resetRegistrationCodeValidation();
 
-    // Opcional pero recomendado:
-    // Si cambia el tipo de inscripción, limpiamos los asientos
-    // para evitar que alguien conserve 2 asientos al cambiar a prospecto.
     seats.resetSeats();
   }
 
@@ -225,20 +349,18 @@ export const useReservaStore = defineStore("reserva", () => {
       prize_code: "",
     };
 
-    
+    resetRegistrationCodeValidation();
   }
 
   function toggleReservationSeat(id) {
     const seat = String(id);
     const isAlreadySelected = selectedSeats.value.includes(seat);
 
-    // Si ya está seleccionado, siempre permitir quitarlo
     if (isAlreadySelected) {
       seats.toggleSeat(seat);
       return;
     }
 
-    // Validar máximo de asientos según el tipo de registro
     if (selectedSeats.value.length >= maxPassengers.value) {
       const max = maxPassengers.value;
 
@@ -266,6 +388,18 @@ export const useReservaStore = defineStore("reserva", () => {
       validationErrors.value = v.errors.slice();
     },
     { immediate: true },
+  );
+
+  watch(
+    () => [
+      registrationType.value,
+      registrationData.value.area_code,
+      registrationData.value.alliance_code,
+      registrationData.value.prize_code,
+    ],
+    () => {
+      resetRegistrationCodeValidation();
+    },
   );
 
   const validationState = computed(() => ({
@@ -318,7 +452,6 @@ export const useReservaStore = defineStore("reserva", () => {
   }
 
   return {
-    // State
     step,
     selectedSeats,
     selectedTripId,
@@ -326,20 +459,20 @@ export const useReservaStore = defineStore("reserva", () => {
     passengers,
     events,
     aceptedTerms,
-
     modal,
 
-    // Registro
     registrationType,
     registrationData,
     registrationTypes,
-    
 
-    // Getters
+    validatingRegistrationCode,
+    registrationCodeValid,
+    registrationCodeMessage,
+    registrationCodeData,
+
     canContinuePassengers,
     canPay,
     allAdults,
-
     validationErrors,
 
     currentRegistrationType,
@@ -351,9 +484,13 @@ export const useReservaStore = defineStore("reserva", () => {
     registrationTotal,
     canContinueRegistrationType,
     canContinueRegistrationValidation,
+    requiresBackendCodeValidation,
+    registrationCodeToValidate,
     maxStep,
-
-    // Actions
+    allianceCodes,
+    allianceOptions,
+    loadingAllianceCodes,
+    loadAllianceCodes,
     next,
     prev,
     reset,
@@ -364,5 +501,8 @@ export const useReservaStore = defineStore("reserva", () => {
 
     setRegistrationType,
     resetRegistration,
+    validateRegistrationCode,
+    validateRegistrationAndNext,
+    resetRegistrationCodeValidation,
   };
 });

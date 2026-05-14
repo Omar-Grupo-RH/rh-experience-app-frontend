@@ -1,6 +1,5 @@
-
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 
 const store = useReservaStore();
@@ -11,12 +10,6 @@ const developments = [
   "Gran Verona",
   "Cal & Canto",
   "Playa Clara",
-];
-
-const alliances = [
-  "Alianza 1",
-  "Alianza 2",
-  "Alianza 3",
 ];
 
 const title = computed(() => {
@@ -33,8 +26,7 @@ const title = computed(() => {
 
 const description = computed(() => {
   const descriptions = {
-    internal:
-      "Ingresa el código de área otorgado por tu líder o jefx de área.",
+    internal: "Ingresa el código de área otorgado por tu líder o jefx de área.",
     alliance:
       "Selecciona la alianza correspondiente e ingresa el código asignado.",
     investor:
@@ -51,18 +43,14 @@ const description = computed(() => {
 const handleNext = async () => {
   if (!store.canContinueRegistrationValidation) return;
 
-  /**
-   * Aquí después puedes conectar con backend.
-   *
-   * Ejemplo:
-   * await store.validateRegistrationCode()
-   *
-   * Importante:
-   * Los códigos reales no deberían validarse solo en frontend.
-   */
-
-  store.next();
+  await store.validateRegistrationAndNext();
 };
+
+onMounted(async () => {
+  if (!store.allianceOptions.length) {
+    await store.loadAllianceCodes();
+  }
+});
 </script>
 
 <template>
@@ -81,9 +69,7 @@ const handleNext = async () => {
       <!-- Personal interno -->
       <div v-if="store.registrationType === 'internal'" class="space-y-5">
         <label class="block">
-          <span class="font-semibold text-gray-800">
-            Código de área
-          </span>
+          <span class="font-semibold text-gray-800"> Código de área </span>
 
           <input
             v-model="store.registrationData.area_code"
@@ -108,22 +94,28 @@ const handleNext = async () => {
           <select
             v-model="store.registrationData.alliance_name"
             class="mt-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
+            :disabled="store.loadingAllianceCodes"
           >
-            <option value="">Selecciona una alianza</option>
+            <option value="">
+              {{
+                store.loadingAllianceCodes
+                  ? "Cargando alianzas..."
+                  : "Selecciona una alianza"
+              }}
+            </option>
+
             <option
-              v-for="alliance in alliances"
-              :key="alliance"
-              :value="alliance"
+              v-for="alliance in store.allianceOptions"
+              :key="alliance.id"
+              :value="alliance.name"
             >
-              {{ alliance }}
+              {{ alliance.name }}
             </option>
           </select>
         </label>
 
         <label class="block">
-          <span class="font-semibold text-gray-800">
-            Código de alianza
-          </span>
+          <span class="font-semibold text-gray-800"> Código de alianza </span>
 
           <input
             v-model="store.registrationData.alliance_code"
@@ -141,9 +133,7 @@ const handleNext = async () => {
       <!-- Inversionistas -->
       <div v-if="store.registrationType === 'investor'" class="space-y-5">
         <label class="block">
-          <span class="font-semibold text-gray-800">
-            Desarrollo
-          </span>
+          <span class="font-semibold text-gray-800"> Desarrollo </span>
 
           <select
             v-model="store.registrationData.development"
@@ -161,9 +151,7 @@ const handleNext = async () => {
         </label>
 
         <label class="block">
-          <span class="font-semibold text-gray-800">
-            Etapa
-          </span>
+          <span class="font-semibold text-gray-800"> Etapa </span>
 
           <input
             v-model="store.registrationData.stage"
@@ -174,9 +162,7 @@ const handleNext = async () => {
         </label>
 
         <label class="block">
-          <span class="font-semibold text-gray-800">
-            Número de lote
-          </span>
+          <span class="font-semibold text-gray-800"> Número de lote </span>
 
           <input
             v-model="store.registrationData.lot_number"
@@ -227,9 +213,7 @@ const handleNext = async () => {
         </label>
 
         <label class="block">
-          <span class="font-semibold text-gray-800">
-            Código del asesor/a
-          </span>
+          <span class="font-semibold text-gray-800"> Código del asesor/a </span>
 
           <input
             v-model="store.registrationData.advisor_code"
@@ -254,10 +238,7 @@ const handleNext = async () => {
           </select>
         </label>
 
-        <label
-          v-if="store.registrationData.origin === 'alianza'"
-          class="block"
-        >
+        <label v-if="store.registrationData.origin === 'alianza'" class="block">
           <span class="font-semibold text-gray-800">
             Nombre de la alianza
           </span>
@@ -265,14 +246,22 @@ const handleNext = async () => {
           <select
             v-model="store.registrationData.origin_alliance_name"
             class="mt-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
+            :disabled="store.loadingAllianceCodes"
           >
-            <option value="">Selecciona una alianza</option>
+            <option value="">
+              {{
+                store.loadingAllianceCodes
+                  ? "Cargando alianzas..."
+                  : "Selecciona una alianza"
+              }}
+            </option>
+
             <option
-              v-for="alliance in alliances"
-              :key="alliance"
-              :value="alliance"
+              v-for="alliance in store.allianceOptions"
+              :key="alliance.id"
+              :value="alliance.name"
             >
-              {{ alliance }}
+              {{ alliance.name }}
             </option>
           </select>
         </label>
@@ -286,9 +275,7 @@ const handleNext = async () => {
       <!-- Premios -->
       <div v-if="store.registrationType === 'prize'" class="space-y-5">
         <label class="block">
-          <span class="font-semibold text-gray-800">
-            Código de premio
-          </span>
+          <span class="font-semibold text-gray-800"> Código de premio </span>
 
           <input
             v-model="store.registrationData.prize_code"
@@ -307,7 +294,8 @@ const handleNext = async () => {
     <div class="mt-8 flex flex-col md:flex-row gap-3 justify-between">
       <button
         type="button"
-        class="px-6 py-3 rounded-md cursor-pointer bg-gray-200 text-gray-800 font-medium w-full md:w-auto"
+        class="px-6 py-3 rounded-md cursor-pointer bg-gray-200 text-gray-800 font-medium w-full md:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+        :disabled="store.validatingRegistrationCode"
         @click="store.prev"
       >
         Regresar
@@ -316,10 +304,15 @@ const handleNext = async () => {
       <button
         type="button"
         class="px-6 py-3 rounded-md cursor-pointer bg-experience-blue text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto"
-        :disabled="!store.canContinueRegistrationValidation"
+        :disabled="
+          !store.canContinueRegistrationValidation ||
+          store.validatingRegistrationCode
+        "
         @click="handleNext"
       >
-        Siguiente
+        <span v-if="store.validatingRegistrationCode"> Validando... </span>
+
+        <span v-else> Siguiente </span>
       </button>
     </div>
   </div>
