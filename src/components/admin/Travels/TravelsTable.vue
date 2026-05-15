@@ -52,7 +52,7 @@ defineProps({
       <article
         v-for="travel in travels"
         :key="travel.id"
-        class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-experience-blue/20 hover:shadow-lg"
+        class="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300  hover:border-experience-blue/20 hover:shadow-lg"
       >
         <!-- Header -->
         <div class="border-b border-slate-100 bg-slate-50/70 p-5">
@@ -117,7 +117,7 @@ defineProps({
           </div>
 
           <RouterLink
-            class="inline-flex w-full items-center justify-center rounded-lg bg-experience-pink px-4 py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-experience-pink/90 hover:shadow-md active:scale-[0.99]"
+            class="inline-flex w-full items-center justify-center rounded-lg bg-experience-blue px-4 py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:bg-experience-blue/90 hover:shadow-md "
             :to="{ name: 'list-passenger', params: { id: travel.id } }"
           >
             Ver pasajeros

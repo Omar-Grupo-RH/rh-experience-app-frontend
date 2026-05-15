@@ -39,7 +39,7 @@ const calendarOptions = ref({
   // Configuraciones responsive
   height: "100%",
   contentHeight: "100%",
-  aspectRatio: isMobile.value ? 0.8 : 1.5,
+  aspectRatio: isMobile.value ? 0.8 : 1,
 
   views: {
     dayGridMonth: {

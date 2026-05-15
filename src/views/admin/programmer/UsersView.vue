@@ -51,7 +51,9 @@ onMounted(async () => {
                 id="editUserForm"
                 @submit="userStore.handleUpdateUser"
                 :actions="false"
-                incomplete-message="No se pudo enviar, revisa las notificaciones"
+                :classes="{
+                  message: 'hidden',
+                }"
               >
                 <FormKit
                   type="text"
@@ -121,9 +123,11 @@ onMounted(async () => {
                 id="createUserForm"
                 @submit="userStore.handleCreateUser"
                 :actions="false"
-                incomplete-message="No se pudo enviar, revisa las notificaciones"
+                :classes="{
+                  message: 'hidden',
+                }"
               >
-              <FormKit
+                <FormKit
                   type="text"
                   label="Nombre completo"
                   name="full_name"

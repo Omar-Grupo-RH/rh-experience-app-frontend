@@ -63,18 +63,14 @@ const userRol = (rol) => roles[rol] || "Sin rol";
       <li
         v-for="user in usersList"
         :key="user.id"
-        class="group rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-experience-blue/20 hover:shadow-md sm:p-5"
+        class="group rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300  hover:border-experience-blue/20 hover:shadow-md sm:p-5"
       >
         <div
           class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
         >
           <!-- User info -->
           <div class="flex min-w-0 items-center gap-4">
-            <div
-              class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-experience-pink/10 text-base font-black uppercase text-experience-pink ring-1 ring-experience-pink/10"
-            >
-              {{ user.full_name?.charAt(0) || user.username?.charAt(0) || "U" }}
-            </div>
+           
 
             <div class="min-w-0">
               <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -83,7 +79,7 @@ const userRol = (rol) => roles[rol] || "Sin rol";
                 </p>
 
                 <span
-                  class="inline-flex w-fit items-center rounded-full bg-experience-pink/10 px-3 py-1 text-xs font-bold text-experience-pink ring-1 ring-experience-pink/10"
+                  class="inline-flex w-fit items-center rounded-full bg-experience-blue/10 px-3 py-1 text-xs font-bold text-experience-blue ring-1 ring-experience-blue/10"
                 >
                   {{ userRol(user.admin) }}
                 </span>
@@ -98,7 +94,7 @@ const userRol = (rol) => roles[rol] || "Sin rol";
           <!-- Actions -->
           <div class="flex items-center gap-2 sm:justify-end">
             <button
-              class="inline-flex cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-experience-blue transition-all duration-200 hover:border-experience-blue/30 hover:bg-experience-blue/10 focus:outline-none focus:ring-2 focus:ring-experience-blue/20"
+              class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-experience-blue transition-all duration-200 hover:border-experience-blue/30 hover:bg-experience-blue/10 focus:outline-none focus:ring-2 focus:ring-experience-blue/20"
               type="button"
               @click="handleEdit(user)"
             >
@@ -106,7 +102,7 @@ const userRol = (rol) => roles[rol] || "Sin rol";
             </button>
 
             <button
-              class="inline-flex cursor-pointer items-center justify-center rounded-2xl border border-rose-100 bg-rose-50 px-4 py-2 text-sm font-bold text-rose-600 transition-all duration-200 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-200"
+              class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-rose-100 bg-rose-50 px-4 py-2 text-sm font-bold text-rose-600 transition-all duration-200 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-200"
               type="button"
               @click="handleDelete(user)"
             >

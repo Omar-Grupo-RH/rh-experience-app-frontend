@@ -7,8 +7,6 @@ import ReservationAPI, {
   clearReservationIdempotencyKey,
 } from "@/api/ReservationAPI";
 
-import router from "@/router";
-
 const store = useReservaStore();
 const toast = inject("toast");
 
@@ -113,22 +111,10 @@ async function startCheckout() {
 
   const payload = buildPayload();
 
-  // try {
-  //   console.log("Iniciando checkout con payload:", payload);
-  // } catch (error) {
-  //   console.error("Error al iniciar el checkout:", error);
-  //   toast?.open?.({
-  //     message: "Ocurrió un error al procesar tu solicitud.",
-  //     type: "error",
-  //   });
-  // }
-
   try {
     loading.value = true;
 
     const { data } = await ReservationAPI.reserveTrip(payload);
-
-    console.log("Respuesta del servidor:", data);
 
     if (!data.success) {
       clearReservationIdempotencyKey();
@@ -147,6 +133,7 @@ async function startCheckout() {
       message: data.message || "Reservación completada exitosamente.",
       type: "success",
     });
+    store.reset();
   } catch (error) {
     const status = error.response?.status;
 

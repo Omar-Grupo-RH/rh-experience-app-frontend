@@ -15,7 +15,7 @@ const closeSidebar = () => {
 </script>
 
 <template>
-  <div class="min-h-dvh bg-slate-100 lg:flex">
+  <div class="min-h-dvh  lg:flex">
     <!-- Sidebar desktop fijo -->
     <AsideMenu />
 
@@ -100,9 +100,9 @@ const closeSidebar = () => {
 
       <!-- Content -->
       <main class="min-w-0 flex-1">
-        <div class="p-4 sm:p-6 lg:p-8">
+        <div class="p-4 sm:p-6 ">
           <div
-            class="min-h-[calc(100dvh-2rem)] rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-6 lg:min-h-[calc(100dvh-4rem)] lg:p-8"
+            class="min-h-[calc(100dvh-2rem)] rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-6 lg:min-h-[calc(100dvh-4rem)] lg:p-0"
           >
             <RouterView />
           </div>

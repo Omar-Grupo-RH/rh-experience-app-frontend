@@ -171,7 +171,9 @@ const generatePDF = () => {
 
 <template>
   <div class="mx-auto max-w-7xl space-y-8 p-5">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div
+      class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
+    >
       <div class="space-y-1">
         <h2 class="text-3xl font-semibold text-slate-900 sm:text-4xl">
           Listado de pasajeros
@@ -184,9 +186,23 @@ const generatePDF = () => {
 
       <RouterLink
         :to="{ name: 'travels' }"
-        class="inline-flex w-fit items-center justify-center rounded-lg bg-experience-pink px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-experience-pink/90 hover:shadow-md"
+        class="inline-flex gap-2 w-fit items-center justify-center rounded-lg bg-experience-blue px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-experience-blue/90 hover:shadow-md"
       >
-        Volver a tus viajes
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="size-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+          />
+        </svg>
+        Regresar
       </RouterLink>
     </div>
 
@@ -199,7 +215,7 @@ const generatePDF = () => {
           class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between"
         >
           <div>
-            <h2 class="text-3xl font-semibold text-experience-blue sm:text-4xl">
+            <h2 class="text-3xl font-semibold text-experience-pink sm:text-4xl">
               RH EXPERIENCE
             </h2>
 
@@ -216,15 +232,14 @@ const generatePDF = () => {
                 )
               }}
             </p>
+            <button
+              class="inline-flex mt-3 cursor-pointer items-center justify-center rounded-lg bg-experience-pink px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:shadow-md"
+              type="button"
+              @click="generatePDF"
+            >
+              📥 Descargar PDF
+            </button>
           </div>
-
-          <button
-            class="inline-flex cursor-pointer items-center justify-center rounded-lg bg-experience-blue px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-experience-blue/90 hover:shadow-md"
-            type="button"
-            @click="generatePDF"
-          >
-            📥 Descargar PDF
-          </button>
         </div>
       </div>
 
@@ -312,9 +327,7 @@ const generatePDF = () => {
                   >
                     Email
                   </p>
-                  <p
-                    class="mt-1 break-all text-sm font-medium text-slate-700"
-                  >
+                  <p class="mt-1 break-all text-sm font-medium text-slate-700">
                     {{ p.email }}
                   </p>
                 </div>
@@ -546,7 +559,8 @@ const generatePDF = () => {
                     class="rounded-lg bg-white p-4 ring-1 ring-slate-100"
                   >
                     <p class="text-sm font-medium text-slate-500">
-                      No hay datos de inscripción registrados para este pasajero.
+                      No hay datos de inscripción registrados para este
+                      pasajero.
                     </p>
                   </div>
                 </div>
