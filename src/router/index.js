@@ -13,7 +13,12 @@ const router = createRouter({
       meta: { title: "Comprar Tickets" },
       component: HomeView,
     },
-
+    {
+      path: "/encuesta",
+      name: "survey",
+      meta: { title: "Encuesta de Experiencia" },
+      component: import("@/views/SurveyView.vue"),
+    },
     {
       path: "/auth",
       name: "auth",
@@ -71,6 +76,16 @@ const router = createRouter({
           },
           component: () =>
             import("@/views/admin/travels/ListPassengerView.vue"),
+        },
+        {
+          path: "encuestas",
+          name: "survey-responses",
+          meta: {
+            title: "Encuestas",
+            requiresAuth: true,
+            adminOnly: true,
+          },
+          component: () => import("@/views/admin/SurveyResponsesView.vue"),
         },
         {
           path: "codes",

@@ -167,7 +167,7 @@ export const useReservaStore = defineStore("reserva", () => {
   });
 
   const requiresBackendCodeValidation = computed(() => {
-    return ["internal", "alliance", "prize"].includes(registrationType.value);
+    return ["internal", "alliance", "prize", "prospect"].includes(registrationType.value);
   });
 
   const registrationCodeToValidate = computed(() => {
@@ -191,6 +191,12 @@ export const useReservaStore = defineStore("reserva", () => {
       return {
         type: "discount",
         code: data.prize_code,
+      };
+    }
+    if (registrationType.value === "prospect") {
+      return {
+        type: "internal",
+        code: data.advisor_code,
       };
     }
 
@@ -396,6 +402,7 @@ export const useReservaStore = defineStore("reserva", () => {
       registrationData.value.area_code,
       registrationData.value.alliance_code,
       registrationData.value.prize_code,
+      registrationData.value.advisor_code,
     ],
     () => {
       resetRegistrationCodeValidation();

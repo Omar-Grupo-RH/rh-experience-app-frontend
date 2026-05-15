@@ -33,6 +33,10 @@ export const useCodeStore = defineStore("codes", () => {
       label: "Premio",
       value: "discount",
     },
+    {
+      label: "Venta interna",
+      value: "internal",
+    }
   ];
 
   const hasCodes = computed(() => codes.value.length > 0);
@@ -76,7 +80,6 @@ export const useCodeStore = defineStore("codes", () => {
         ...filters.value,
         ...params,
       });
-
       codes.value = await listCodes(finalParams);
     } catch (error) {
       console.error("Error al obtener códigos:", error);

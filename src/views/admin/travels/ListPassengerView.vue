@@ -56,6 +56,15 @@ const togglePassenger = (id) => {
   expandedPassengerIds.value.push(id);
 };
 
+const getOriginLabel = (origin) => {
+  const origins = {
+    directo_rh: "Grupo RH",
+    alianza: "Alianza",
+  };
+
+  return origins[origin] || "No registrado";
+};
+
 const generatePDF = () => {
   const element = document.createElement("div");
 
@@ -561,7 +570,7 @@ const generatePDF = () => {
                       >
                         Código asesor
                       </p>
-                      <p class="mt-1 font-medium text-slate-800">
+                      <p class="mt-1 font-medium text-slate-800 uppercase">
                         {{ p.advisor_code || "No registrado" }}
                       </p>
                     </div>
@@ -573,7 +582,7 @@ const generatePDF = () => {
                         Origen
                       </p>
                       <p class="mt-1 font-medium text-slate-800">
-                        {{ p.origin || "No registrado" }}
+                        {{ getOriginLabel(p.origin) }}
                       </p>
                     </div>
 
