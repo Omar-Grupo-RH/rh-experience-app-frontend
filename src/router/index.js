@@ -46,6 +46,17 @@ const router = createRouter({
       component: () => import("@/views/admin/AdminLayout.vue"),
       children: [
         {
+          path: "dashboard",
+          name: "dashboard",
+          meta: {
+            title: "Dashboard",
+            requiresAuth: true,
+            adminOnly: true,
+          },
+          component: () => import("@/views/admin/DashboardView.vue"),
+        },
+
+        {
           path: "agenda",
           name: "calendar",
           meta: {

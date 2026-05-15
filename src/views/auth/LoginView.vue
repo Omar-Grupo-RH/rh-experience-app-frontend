@@ -18,7 +18,7 @@ const getSafeNextRoute = () => {
     return next;
   }
 
-  return { name: "calendar" };
+  return { name: "dashboard" };
 };
 
 const handleSubmit = async (formData) => {

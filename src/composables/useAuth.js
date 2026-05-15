@@ -98,7 +98,7 @@ export function useAuth() {
     // 🔹 RUTAS POR NIVEL DE ADMIN
     if (level === 1 || level === 2) {
       // Admin principal → panel clásico
-      router.push({ name: "calendar" }); // /admin/ingresos
+      router.push({ name: "dashboard" }); // /admin/ingresos
       return;
     }
 

@@ -38,6 +38,11 @@ const menuItems = computed(() => {
 
   if (level === 1) {
     return [
+      {
+        label: "Dashboard",
+        to: { name: "dashboard" },
+        icon: "grid",
+      },
       { to: { name: "calendar" }, label: "Agenda de viajes", icon: "calendar" },
       { to: { name: "travels" }, label: "Mis pasajeros", icon: "users" },
       { to: { name: "codes" }, label: "Códigos", icon: "codes" },
@@ -53,6 +58,11 @@ const menuItems = computed(() => {
 
   if (level === 2) {
     return [
+      {
+        label: "Dashboard",
+        to: { name: "dashboard" },
+        icon: "grid",
+      },
       { to: { name: "calendar" }, label: "Agenda de viajes", icon: "calendar" },
       { to: { name: "travels" }, label: "Mis pasajeros", icon: "users" },
       { to: { name: "codes" }, label: "Códigos", icon: "codes" },
