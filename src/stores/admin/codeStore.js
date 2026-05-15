@@ -30,7 +30,7 @@ export const useCodeStore = defineStore("codes", () => {
       value: "alliance",
     },
     {
-      label: "Descuento",
+      label: "Premio",
       value: "discount",
     },
   ];

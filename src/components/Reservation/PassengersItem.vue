@@ -162,6 +162,42 @@ defineProps({
           </span>
         </div>
       </div>
+
+      <div
+        v-if="p.health_conditions && p.health_conditions.length > 0"
+        class="col-span-1 sm:col-span-2 lg:col-span-3 mt-2 bg-orange-50 border border-orange-100 p-2.5 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-2.5"
+      >
+        <div
+          class="flex items-center gap-1.5 text-orange-700 font-semibold shrink-0 text-xs"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            ></path>
+          </svg>
+          <span>Condiciones de Salud:</span>
+        </div>
+
+        <div class="flex flex-wrap gap-1.5">
+          <span
+            v-for="(condicion, index) in typeof p.health_conditions === 'string'
+              ? p.health_conditions.split(',')
+              : p.health_conditions"
+            :key="index"
+            class="bg-white border border-orange-200 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-medium shadow-sm lowercase"
+          >
+            {{ typeof condicion === "string" ? condicion.trim() : condicion }}
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 </template>

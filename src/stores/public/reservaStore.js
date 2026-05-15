@@ -447,8 +447,14 @@ export const useReservaStore = defineStore("reserva", () => {
 
   function reset() {
     step.value = 1;
-    seats.resetSeats();
+    aceptedTerms.value = false;
+    modal.value = false;
+    validationErrors.value = [];
+
     resetRegistration();
+    resetRegistrationCodeValidation();
+
+    seats.resetSeats();
   }
 
   return {

@@ -3,7 +3,6 @@ import { ref } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 import ResumeCard from "@/components/Reservation/ResumeCard.vue";
 
-
 const store = useReservaStore();
 const openPassengers = ref([0]);
 
@@ -17,16 +16,20 @@ const togglePassenger = (idx) => {
 
 const adult = ({ value }) => {
   if (!value) return false;
+
   const birthDate = new Date(value);
   const today = new Date();
+
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
+
   if (
     monthDiff < 0 ||
     (monthDiff === 0 && today.getDate() < birthDate.getDate())
   ) {
     age--;
   }
+
   return age >= 18;
 };
 
@@ -40,6 +43,7 @@ const normalizeTags = (value) => {
 const addTagsToPassenger = (
   passenger,
   rawValue,
+  field = "allergies",
   clearInput = true,
   target = null,
 ) => {
@@ -47,8 +51,8 @@ const addTagsToPassenger = (
 
   const tags = normalizeTags(rawValue);
 
-  passenger.allergies = Array.from(
-    new Set([...(passenger.allergies || []), ...tags]),
+  passenger[field] = Array.from(
+    new Set([...(passenger[field] || []), ...tags]),
   );
 
   if (clearInput && target) {
@@ -61,16 +65,65 @@ const handleAllergyInput = (event, passenger) => {
 
   if (!value.includes(",")) return;
 
-  addTagsToPassenger(passenger, value, true, event.target);
+  addTagsToPassenger(passenger, value, "allergies", true, event.target);
 };
 
 const handleAllergyEnter = (event, passenger) => {
   event.preventDefault();
-  addTagsToPassenger(passenger, event.target.value, true, event.target);
+
+  addTagsToPassenger(
+    passenger,
+    event.target.value,
+    "allergies",
+    true,
+    event.target,
+  );
 };
 
 const handleAllergyBlur = (event, passenger) => {
-  addTagsToPassenger(passenger, event.target.value, true, event.target);
+  addTagsToPassenger(
+    passenger,
+    event.target.value,
+    "allergies",
+    true,
+    event.target,
+  );
+};
+
+const handleHealthConditionInput = (event, passenger) => {
+  const value = event.target.value;
+
+  if (!value.includes(",")) return;
+
+  addTagsToPassenger(
+    passenger,
+    value,
+    "health_conditions",
+    true,
+    event.target,
+  );
+};
+
+const handleHealthConditionEnter = (event, passenger) => {
+  event.preventDefault();
+
+  addTagsToPassenger(
+    passenger,
+    event.target.value,
+    "health_conditions",
+    true,
+    event.target,
+  );
+};
+
+const handleHealthConditionBlur = (event, passenger) => {
+  addTagsToPassenger(
+    passenger,
+    event.target.value,
+    "health_conditions",
+    true,
+    event.target,
+  );
 };
 </script>
 
@@ -131,6 +184,7 @@ const handleAllergyBlur = (event, passenger) => {
                         length: 'El nombre debe tener al menos 3 caracteres',
                       }"
                     />
+
                     <FormKit
                       type="text"
                       name="last_name"
@@ -143,6 +197,7 @@ const handleAllergyBlur = (event, passenger) => {
                         length: 'El apellido debe tener al menos 3 caracteres',
                       }"
                     />
+
                     <FormKit
                       type="email"
                       name="email"
@@ -155,6 +210,7 @@ const handleAllergyBlur = (event, passenger) => {
                         email: 'Email no válido',
                       }"
                     />
+
                     <FormKit
                       type="tel"
                       name="phone"
@@ -167,6 +223,7 @@ const handleAllergyBlur = (event, passenger) => {
                         matches: 'Debe tener 10 dígitos',
                       }"
                     />
+
                     <FormKit
                       type="date"
                       name="born_date"
@@ -182,6 +239,7 @@ const handleAllergyBlur = (event, passenger) => {
                       }"
                       :validation-rules="{ adult }"
                     />
+
                     <FormKit
                       type="text"
                       name="city"
@@ -194,10 +252,12 @@ const handleAllergyBlur = (event, passenger) => {
                         length: 'La ciudad debe tener al menos 3 caracteres',
                       }"
                     />
+
                     <div class="mb-2 md:col-span-2">
-                      <label class="block font-medium text-gray-700 mb-1"
-                        >Alergias (separadas por coma)</label
-                      >
+                      <label class="block font-medium text-gray-700 mb-1">
+                        Alergias separadas por coma
+                      </label>
+
                       <input
                         type="text"
                         class="w-full outline-none border-0 bg-white rounded-md p-2 text-sm"
@@ -206,6 +266,7 @@ const handleAllergyBlur = (event, passenger) => {
                         @blur="handleAllergyBlur($event, p)"
                         placeholder="Ej. mariscos, cacahuate"
                       />
+
                       <div class="flex flex-wrap gap-2 mt-2">
                         <span
                           v-for="(tag, aidx) in p.allergies"
@@ -213,6 +274,7 @@ const handleAllergyBlur = (event, passenger) => {
                           class="bg-blue-100 text-experience-blue text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1"
                         >
                           {{ tag }}
+
                           <button
                             type="button"
                             class="text-red-500 hover:text-red-700 cursor-pointer"
@@ -224,29 +286,38 @@ const handleAllergyBlur = (event, passenger) => {
                       </div>
                     </div>
 
-                    <!-- <FormKit
-                      type="checkbox"
-                      name="is_visitor"
-                      label="¿Es cliente de Grupo RH?"
-                      v-model="p.is_client"
-                    />
+                    <div class="mb-2 md:col-span-2">
+                      <label class="block font-medium text-gray-700 mb-1">
+                        Problemas de salud separados por coma
+                      </label>
 
-                    <FormKit
-                      type="checkbox"
-                      name="is_first_visit"
-                      label="¿Es su primera visita?"
-                      v-model="p.is_first_visit"
-                    />
-
-                    <div class="md:col-span-2">
-                      <FormKit
+                      <input
                         type="text"
-                        name="advisor_name"
-                        label="Nombre del asesor"
-                        v-model="p.advisor_name"
-                        placeholder="Jhon Doe"
+                        class="w-full outline-none border-0 bg-white rounded-md p-2 text-sm"
+                        @input="handleHealthConditionInput($event, p)"
+                        @keydown.enter="handleHealthConditionEnter($event, p)"
+                        @blur="handleHealthConditionBlur($event, p)"
+                        placeholder="Ej. asma, diabetes, presión alta"
                       />
-                    </div> -->
+
+                      <div class="flex flex-wrap gap-2 mt-2">
+                        <span
+                          v-for="(tag, hidx) in p.health_conditions"
+                          :key="hidx"
+                          class="bg-blue-100 text-experience-blue text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1"
+                        >
+                          {{ tag }}
+
+                          <button
+                            type="button"
+                            class="text-red-500 hover:text-red-700 cursor-pointer"
+                            @click="p.health_conditions.splice(hidx, 1)"
+                          >
+                            ✕
+                          </button>
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

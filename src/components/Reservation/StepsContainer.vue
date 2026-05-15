@@ -62,7 +62,7 @@ const progressWidth = computed(() => {
         class="absolute top-4 sm:top-5 lg:top-6 left-[8.33%] right-[8.33%] h-1 bg-gray-200 rounded-full -z-10 transform -translate-y-1/2"
       >
         <div
-          class="h-full bg-experience-blue rounded-full transition-all duration-500 ease-in-out"
+          class="h-full bg-experience-pink rounded-full transition-all duration-500 ease-in-out"
           :style="{ width: progressWidth }"
         ></div>
       </div>
@@ -77,9 +77,9 @@ const progressWidth = computed(() => {
             class="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300"
             :class="[
               isCompleted(s)
-                ? 'bg-experience-blue border-experience-blue text-white scale-100'
+                ? 'bg-experience-pink border-experience-pink text-white scale-100'
                 : isCurrent(s)
-                  ? 'border-experience-blue text-experience-blue scale-105 shadow-md bg-gray-50'
+                  ? 'border-experience-pink text-experience-pink scale-105 shadow-md bg-gray-50'
                   : 'border-gray-300 text-gray-400 bg-gray-50',
             ]"
             :aria-current="isCurrent(s) ? 'step' : undefined"

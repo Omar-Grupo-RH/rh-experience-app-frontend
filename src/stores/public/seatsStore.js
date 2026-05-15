@@ -1,4 +1,3 @@
-// src/stores/public/seatsStore.js
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
@@ -23,6 +22,7 @@ export const useSeatsStore = defineStore("seats", () => {
           phone: "",
           born_date: "",
           allergies: [],
+          health_conditions: [],
           city: "",
         },
     );
@@ -42,6 +42,7 @@ export const useSeatsStore = defineStore("seats", () => {
 
   function resetSeats() {
     selectedSeats.value = [];
+    selectedTripId.value = null;
     date.value = null;
     passengers.value = [];
   }

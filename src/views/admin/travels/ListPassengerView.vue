@@ -30,7 +30,7 @@ const getRegistrationTypeLabel = (type) => {
   return registrationTypeLabels[type] || "Sin tipo";
 };
 
-const parseAllergies = (allergies) => {
+const parseJSON = (allergies) => {
   try {
     const parsed = JSON.parse(allergies || "[]");
     return Array.isArray(parsed) ? parsed : [];
@@ -76,7 +76,7 @@ const generatePDF = () => {
 
       ${passengers.value
         .map((p) => {
-          const allergies = parseAllergies(p.allergies);
+          const allergies = parseJSON(p.allergies);
           return `
             <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-bottom: 14px;">
               <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 8px 0;">
@@ -364,29 +364,67 @@ const generatePDF = () => {
                     {{ formatDateToSpanish(p.created_at) }}
                   </p>
                 </div>
+                <div
+                  v-if="p.registration_type === 'prospect'"
+                  class="rounded-lg bg-green-50 p-4 ring-1 ring-green-100"
+                >
+                  <p
+                    class="text-xs font-medium uppercase tracking-wide text-green-500"
+                  >
+                    Costo
+                  </p>
+                  <p class="mt-1 text-sm font-semibold text-green-700">
+                    +$800 MXN
+                  </p>
+                </div>
               </div>
 
-              <div class="mt-4 rounded-lg bg-blue-50 p-4 ring-1 ring-blue-100">
+              <div class="mt-4 rounded-lg bg-red-50 p-4 ring-1 ring-red-100">
                 <p
-                  class="text-xs font-medium uppercase tracking-wide text-blue-500"
+                  class="text-xs font-medium uppercase tracking-wide text-red-500"
                 >
                   Alergias
                 </p>
 
                 <div class="mt-2 flex flex-wrap gap-2">
                   <span
-                    v-for="(allergy, i) in parseAllergies(p.allergies)"
+                    v-for="(allergy, i) in parseJSON(p.allergies)"
                     :key="i"
-                    class="rounded-full bg-white px-3 py-1 text-xs font-medium text-blue-700 ring-1 ring-blue-100"
+                    class="rounded-full bg-white px-3 py-1 text-xs font-medium text-red-700 ring-1 ring-red-100"
                   >
                     {{ allergy }}
                   </span>
 
                   <span
-                    v-if="parseAllergies(p.allergies).length === 0"
-                    class="text-sm italic text-blue-500"
+                    v-if="parseJSON(p.allergies).length === 0"
+                    class="text-sm italic text-red-500"
                   >
                     Sin alergias
+                  </span>
+                </div>
+              </div>
+
+              <div class="mt-4 rounded-lg bg-red-50 p-4 ring-1 ring-red-100">
+                <p
+                  class="text-xs font-medium uppercase tracking-wide text-red-500"
+                >
+                  Condiciones de Salud
+                </p>
+
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <span
+                    v-for="(condition, i) in parseJSON(p.health_conditions)"
+                    :key="i"
+                    class="rounded-full bg-white px-3 py-1 text-xs font-medium text-red-700 ring-1 ring-red-100"
+                  >
+                    {{ condition }}
+                  </span>
+
+                  <span
+                    v-if="parseJSON(p.health_conditions).length === 0"
+                    class="text-sm italic text-red-500"
+                  >
+                    Sin condiciones de salud
                   </span>
                 </div>
               </div>
