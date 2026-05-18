@@ -12,7 +12,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto p-5 space-y-10">
+  <div class="mx-auto p-5 space-y-10">
     <div class="flex justify-between items-center">
       <div class="space-y-1">
         <h2 class="text-4xl font-semibold">Tus Comentarios</h2>
@@ -22,7 +22,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div class="rounded-lg  bg-white p-5">
+    <div class="rounded-lg bg-white p-5 shadow-sm">
       <div
         class="grid grid-cols-1 gap-5 lg:grid-cols-3 lg:mt-5"
         v-if="commentsStore.hasComments"
@@ -62,8 +62,17 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div v-else>
-        <h2 class="text-center text-gray-400">No hay comentarios aun.</h2>
+      <div
+        v-else
+        class="flex min-h-[260px] flex-col items-center justify-center border-slate-300 bg-slate-50 px-6 py-10 text-center"
+      >
+        <h3 class="text-lg font-bold text-slate-900">
+          No hay comentarios registrados.
+        </h3>
+        <p class="mt-1 text-sm text-slate-500">
+          Aquí aparecerán los comentarios de tus clientes una vez que hayan
+          participado en un RH EXPERIENCE.
+        </p>
       </div>
     </div>
   </div>

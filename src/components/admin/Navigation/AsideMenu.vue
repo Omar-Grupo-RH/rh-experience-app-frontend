@@ -196,7 +196,7 @@ const iconPaths = {
           :key="item.label"
           :to="item.to"
           @click="handleNavigate"
-          class="group flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold transition-all duration-200"
+          class="group flex items-center gap-3 rounded-lg p-1 text-sm font-semibold transition-all duration-200"
           :class="
             isActive(item)
               ? 'bg-white text-experience-blue shadow-sm'
@@ -237,7 +237,7 @@ const iconPaths = {
       <div class="space-y-2">
         <button
           @click="handleGoHome"
-          class="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-semibold text-white/80 transition-all duration-200 hover:bg-white/10 hover:text-white"
+          class="flex w-full cursor-pointer items-center gap-3 rounded-lg p-1 text-left text-sm font-semibold text-white/80 transition-all duration-200 hover:bg-white/10 hover:text-white"
           type="button"
         >
           <span
@@ -263,7 +263,7 @@ const iconPaths = {
 
         <button
           @click="handleLogout"
-          class="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-semibold text-red-300 transition-all duration-200 hover:bg-rose-500/10 hover:text-red-200"
+          class="flex w-full cursor-pointer items-center gap-3 rounded-lg p-1 text-left text-sm font-semibold text-red-300 transition-all duration-200 hover:bg-rose-500/10 hover:text-red-200"
           type="button"
         >
           <span

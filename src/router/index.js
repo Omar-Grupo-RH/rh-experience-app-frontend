@@ -17,7 +17,7 @@ const router = createRouter({
       path: "/encuesta",
       name: "survey",
       meta: { title: "Encuesta de Experiencia" },
-      component: import("@/views/SurveyView.vue"),
+      component: () => import("@/views/SurveyView.vue"),
     },
     {
       path: "/auth",

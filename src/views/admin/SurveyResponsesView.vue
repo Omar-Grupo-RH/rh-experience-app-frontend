@@ -122,7 +122,7 @@ const getAnswerLabel = (key) => {
       </div>
     </div>
 
-    <!-- Resumen -->
+   
     <div class="grid gap-4 lg:grid-cols-3">
       <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <p class="text-sm font-medium text-slate-500">Total respuestas</p>
@@ -140,7 +140,7 @@ const getAnswerLabel = (key) => {
         </p>
       </div>
 
-      <!-- Filtros -->
+      
       <div class="rounded-3xl border lg:col-span-2 border-slate-200 bg-white p-5 shadow-sm">
         <div
           class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
@@ -195,14 +195,14 @@ const getAnswerLabel = (key) => {
 
       <div
         v-else-if="!hasFilteredResponses"
-        class="flex min-h-[260px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 text-center"
+        class="flex min-h-[260px] items-center justify-center rounded-2xl  border-slate-300 bg-slate-50 text-center"
       >
         <div>
-          <p class="font-medium text-slate-600">
+          <p class="font-semibold text-slate-900">
             No hay respuestas registradas.
           </p>
 
-          <p class="mt-1 text-sm text-slate-400">
+          <p class="mt-1 text-sm text-slate-500">
             Prueba seleccionando otra fecha o limpiando el filtro.
           </p>
         </div>

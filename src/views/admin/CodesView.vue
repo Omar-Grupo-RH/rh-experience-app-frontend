@@ -75,11 +75,11 @@ const handleFilterChange = async (event) => {
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-1">
         
-        <h2 class="text-3xl font-black text-slate-900 sm:text-4xl">
+        <h2 class="text-4xl font-semibold">
           Gestión de códigos
         </h2>
 
-        <p class="text-sm text-slate-500 sm:text-base">
+        <p class="text-sm text-gray-400 sm:text-base">
           Administra códigos para departamentos, alianzas y descuentos.
         </p>
       </div>
