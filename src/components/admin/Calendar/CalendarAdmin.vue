@@ -9,63 +9,62 @@ import { useCalendarStore } from "@/stores/admin/calendarStore";
 const store = useCalendarStore();
 const calendarRef = ref(null);
 
-// Detectar el tamaño de pantalla
-const isMobile = ref(window.innerWidth < 768);
-const isTablet = ref(window.innerWidth >= 768 && window.innerWidth < 1024);
-
-// Actualizar en resize
-const handleResize = () => {
-  isMobile.value = window.innerWidth < 768;
-  isTablet.value = window.innerWidth >= 768 && window.innerWidth < 1024;
-};
+const isMobile = () => window.innerWidth < 768;
 
 const calendarOptions = ref({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   initialView: "dayGridMonth",
+  locale: "es",
+
   eventColor: "#d94a93",
   eventTextColor: "#fff",
+
   fixedWeekCount: false,
   showNonCurrentDates: false,
   selectable: true,
   editable: true,
+  expandRows: true,
+
+  height: "auto",
+  contentHeight: "auto",
+  aspectRatio: 1.15,
+
   headerToolbar: {
     left: "prev",
     center: "title",
     right: "next",
   },
-  locale: "es",
-  events: [],
-
-  // Configuraciones responsive
-  height: "100%",
-  contentHeight: "100%",
-  aspectRatio: isMobile.value ? 0.8 : 1,
 
   views: {
     dayGridMonth: {
-      titleFormat: isMobile.value
-        ? { year: "numeric", month: "short" }
-        : { year: "numeric", month: "long" },
-      dayHeaderFormat: isMobile.value
-        ? { weekday: "short" }
-        : { weekday: "long" },
-      dayMaxEvents: isMobile.value ? 1 : 2,
+      titleFormat: {
+        year: "numeric",
+        month: "long",
+      },
+      dayHeaderFormat: {
+        weekday: "short",
+      },
+      dayMaxEvents: 2,
     },
   },
 
   buttonText: {
-    today: isMobile.value ? "Hoy" : "Hoy",
-    month: isMobile.value ? "Mes" : "Mes",
-    week: isMobile.value ? "Sem." : "Semana",
-    day: isMobile.value ? "Día" : "Día",
-    list: isMobile.value ? "Lista" : "Lista",
+    today: "Hoy",
+    month: "Mes",
+    week: "Semana",
+    day: "Día",
+    list: "Lista",
   },
+
+  events: [],
 
   dateClick: store.addEvent,
   eventClick: store.handleEventClick,
   eventDrop: store.handleEventDrop,
+
   eventDidMount(info) {
     const today = new Date().toISOString().split("T")[0];
+
     if (info.event.startStr < today) {
       info.el.style.opacity = "0.4";
       info.el.style.pointerEvents = "none";
@@ -76,34 +75,49 @@ const calendarOptions = ref({
 function syncCalendar() {
   const api = calendarRef.value?.getApi?.();
   if (!api) return;
+
   api.removeAllEvents();
   store.events.forEach((ev) => api.addEvent(ev));
 }
 
-function updateCalendarView() {
+function updateResponsiveOptions() {
   const api = calendarRef.value?.getApi?.();
   if (!api) return;
 
-  // Forzar actualización de la vista
+  const mobile = isMobile();
+
+  api.setOption("aspectRatio", mobile ? 0.9 : 1.15);
+
+  api.setOption("views", {
+    dayGridMonth: {
+      titleFormat: mobile
+        ? { year: "numeric", month: "short" }
+        : { year: "numeric", month: "long" },
+
+      dayHeaderFormat: mobile
+        ? { weekday: "narrow" }
+        : { weekday: "short" },
+
+      dayMaxEvents: mobile ? 1 : 2,
+    },
+  });
+
   api.updateSize();
 }
 
 onMounted(async () => {
   await store.loadEvents();
-  window.addEventListener("resize", handleResize);
-
-  // Actualizar calendario cuando cambie el tamaño
-  window.addEventListener("resize", updateCalendarView);
 
   setTimeout(() => {
     syncCalendar();
+    updateResponsiveOptions();
   }, 100);
+
+  window.addEventListener("resize", updateResponsiveOptions);
 });
 
-// Limpiar event listeners
 onUnmounted(() => {
-  window.removeEventListener("resize", handleResize);
-  window.removeEventListener("resize", updateCalendarView);
+  window.removeEventListener("resize", updateResponsiveOptions);
 });
 
 watch(
@@ -120,140 +134,181 @@ watch(
 </template>
 
 <style>
+.calendar-container {
+  width: 100%;
+  max-width: 100%;
+  min-height: 520px;
+  overflow-x: hidden;
+}
+
+.fc {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
 .fc-button {
   background-color: #d94a93 !important;
   border: none !important;
+  box-shadow: none !important;
 }
+
 .fc-daygrid-day.fc-day-past {
   opacity: 0.4;
   pointer-events: none;
 }
-.calendar-container {
-  width: 100%;
-  height: 100%;
-}
 
-/* Estilos responsive para el calendario */
-:deep(.fc) {
-  font-size: clamp(0.75rem, 2vw, 1rem);
-}
-
-:deep(.fc .fc-toolbar) {
-  flex-direction: row;
-  gap: 0.5rem;
-  padding: 0.5rem;
-}
-
-:deep(.fc .fc-toolbar-title) {
-  font-size: clamp(1rem, 2vw, 2rem);
-  text-align: center;
-  text-transform: capitalize;
-}
-
-:deep(.fc .fc-toolbar-chunk) {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-:deep(.fc .fc-button) {
-  font-size: clamp(0.7rem, 1.5vw, 1rem);
-  padding: 0.4rem 0.8rem;
-  background-color: #d94a93 !important;
-  border: none !important;
-}
-
-:deep(.fc .fc-daygrid-day-frame) {
-  min-height: 60px;
-  padding: 2px;
-}
-
-:deep(.fc .fc-daygrid-day-number) {
-  font-size: clamp(0.7rem, 1.5vw, 1rem);
-  padding: 2px 4px;
-}
-
-:deep(.fc-day-has-event) {
+.fc-day-has-event {
   cursor: pointer !important;
 }
 
-:deep(.fc .fc-col-header-cell-cushion) {
-  font-size: clamp(0.5rem, 1vw, 1rem);
-  padding: 4px 2px;
-  font-weight: normal;
-  text-transform: uppercase;
+.fc .fc-toolbar {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 
-:deep(.fc-daygrid-day.fc-day-selected) {
+.fc .fc-toolbar-chunk {
+  width: auto !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fc .fc-toolbar-title {
+  font-size: clamp(1.35rem, 5vw, 2rem);
+  font-weight: 600;
+  line-height: 1.1;
+  text-align: center;
+  text-transform: capitalize;
+  white-space: normal;
+}
+
+.fc .fc-button {
+  width: 44px;
+  height: 44px;
+  padding: 0 !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.fc .fc-icon {
+  font-size: 1.3rem;
+}
+
+.fc .fc-scrollgrid,
+.fc .fc-scrollgrid table {
+  width: 100% !important;
+}
+
+.fc .fc-col-header-cell-cushion {
+  display: block;
+  width: 100%;
+  padding: 0.45rem 0.15rem;
+  font-size: clamp(0.65rem, 2.8vw, 0.9rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.fc .fc-daygrid-day-frame {
+  min-height: 72px;
+  padding: 2px;
+}
+
+.fc .fc-daygrid-day-number {
+  font-size: clamp(0.75rem, 2.8vw, 0.95rem);
+  padding: 4px;
+}
+
+.fc-event {
+  font-size: clamp(0.6rem, 2.4vw, 0.8rem);
+  line-height: 1.2;
+  padding: 1px 3px;
+  margin: 1px 0;
+  border-radius: 6px;
+}
+
+.fc-event-title {
+  padding: 0 2px;
+}
+
+.fc-daygrid-day.fc-day-selected {
   background-color: #fde2e2 !important;
   border-color: #f87171 !important;
 }
 
-:deep(.fc-dayGridMonth-view) {
-  width: 100% !important;
-}
-
-:deep(.fc-day-has-event) {
-  cursor: pointer !important;
-}
-
-:deep(.fc-event) {
-  font-size: clamp(0.6rem, 1vw, 0.8rem);
-  padding: 1px 3px;
-  margin: 1px 0;
-}
-
-:deep(.fc-event-title) {
-  padding: 0 2px;
-}
-
-
-/* Media queries específicas */
 @media (max-width: 768px) {
   .calendar-container {
-    padding: 0.25rem;
+    min-height: 480px;
   }
 
-  :deep(.fc .fc-toolbar) {
-    padding: 0.25rem;
+  .fc .fc-toolbar {
+    grid-template-columns: 40px 1fr 40px;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
   }
 
-  :deep(.fc .fc-daygrid-day-frame) {
-    min-height: 50px;
+  .fc .fc-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 9px !important;
   }
 
-  :deep(.fc-event) {
-    min-height: 16px;
+  .fc .fc-daygrid-day-frame {
+    min-height: 58px;
   }
-  
+
+  .fc .fc-toolbar-title {
+    font-size: 1.6rem;
+  }
 }
 
 @media (max-width: 480px) {
-  :deep(.fc .fc-daygrid-day-frame) {
-    min-height: 40px;
+  .calendar-container {
+    min-height: 430px;
   }
 
-  :deep(.fc .fc-button) {
-    padding: 0.3rem 0.6rem;
+  .fc .fc-toolbar {
+    grid-template-columns: 38px 1fr 38px;
   }
 
-  :deep(.fc-event) {
+  .fc .fc-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 1.35rem;
+  }
+
+  .fc .fc-daygrid-day-frame {
+    min-height: 48px;
+  }
+
+  .fc .fc-col-header-cell-cushion {
+    font-size: 0.65rem;
+  }
+
+  .fc-event {
     font-size: 0.6rem;
-    line-height: 1.2;
   }
 }
 
 @media (min-width: 1024px) {
-  :deep(.fc-event) {
-    font-size: 14px;
+  .calendar-container {
+    min-height: 720px;
   }
 
-  :deep(.fc .fc-toolbar) {
-    flex-direction: row;
-  }
-
-  :deep(.fc .fc-daygrid-day-frame) {
+  .fc .fc-daygrid-day-frame {
     min-height: 120px;
+  }
+
+  .fc-event {
+    font-size: 14px;
   }
 }
 </style>

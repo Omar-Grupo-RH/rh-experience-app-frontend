@@ -133,7 +133,7 @@ const handleFilterChange = async (event) => {
       </div>
     </div>
 
-    <div class="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-5">
+    <div >
       <div
         v-if="store.loading"
         class="flex min-h-[260px] items-center justify-center"

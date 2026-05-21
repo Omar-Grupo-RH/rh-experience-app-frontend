@@ -103,16 +103,27 @@ const getRegistrationLabel = (type) => {
 const baseChartOptions = {
   responsive: true,
   maintainAspectRatio: false,
+  resizeDelay: 200,
+  layout: {
+    padding: {
+      top: 4,
+      right: 4,
+      bottom: 4,
+      left: 0,
+    },
+  },
   plugins: {
     legend: {
       position: "bottom",
       labels: {
         usePointStyle: true,
         pointStyle: "circle",
-        padding: 18,
+        boxWidth: 8,
+        boxHeight: 8,
+        padding: 14,
         color: "#475569",
         font: {
-          size: 12,
+          size: 11,
           weight: "600",
         },
       },
@@ -137,6 +148,13 @@ const lineChartOptions = {
       },
       ticks: {
         color: "#64748b",
+        maxRotation: 0,
+        minRotation: 0,
+        autoSkip: true,
+        maxTicksLimit: 3,
+        font: {
+          size: 11,
+        },
       },
     },
     y: {
@@ -146,6 +164,10 @@ const lineChartOptions = {
       },
       ticks: {
         color: "#64748b",
+        maxTicksLimit: 5,
+        font: {
+          size: 11,
+        },
       },
     },
   },
@@ -172,6 +194,13 @@ const barChartOptions = {
       },
       ticks: {
         color: "#64748b",
+        maxRotation: 0,
+        minRotation: 0,
+        autoSkip: true,
+        maxTicksLimit: 3,
+        font: {
+          size: 11,
+        },
       },
     },
     y: {
@@ -181,6 +210,10 @@ const barChartOptions = {
       },
       ticks: {
         color: "#64748b",
+        maxTicksLimit: 5,
+        font: {
+          size: 11,
+        },
         callback: (value) => money(value),
       },
     },
@@ -293,9 +326,9 @@ const hasSatisfactionData = computed(
 </script>
 
 <template>
-  <div class="mx-auto space-y-8 p-5">
+  <div class="mx-auto w-full max-w-full space-y-6 overflow-x-hidden p-3 sm:space-y-8 sm:p-5">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-      <div>
+      <div class="min-w-0">
         <h1 class="text-3xl font-semibold text-slate-900 sm:text-4xl">
           Dashboard
         </h1>
@@ -332,23 +365,19 @@ const hasSatisfactionData = computed(
 
     <template v-else>
       <!-- KPIs -->
-      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div
-          class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
-        >
+      <div class="grid w-full min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
           <div class="flex items-center justify-between gap-3">
             <p class="text-sm font-medium text-slate-500">
               Ingresos estimados
             </p>
 
-            <span
-              class="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700 ring-1 ring-green-100"
-            >
+            <span class="shrink-0 rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700 ring-1 ring-green-100">
               Prospectos
             </span>
           </div>
 
-          <p class="mt-2 text-3xl font-semibold text-slate-900">
+          <p class="mt-2 truncate text-2xl font-semibold text-slate-900 sm:text-3xl">
             {{ money(store.summary.estimated_revenue) }}
           </p>
 
@@ -357,22 +386,18 @@ const hasSatisfactionData = computed(
           </p>
         </div>
 
-        <div
-          class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
-        >
+        <div class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
           <div class="flex items-center justify-between gap-3">
             <p class="text-sm font-medium text-slate-500">
               Pasajeros inscritos
             </p>
 
-            <span
-              class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-100"
-            >
+            <span class="shrink-0 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-100">
               Total
             </span>
           </div>
 
-          <p class="mt-2 text-3xl font-semibold text-slate-900">
+          <p class="mt-2 text-2xl font-semibold text-slate-900 sm:text-3xl">
             {{ store.summary.total_passengers || 0 }}
           </p>
 
@@ -381,22 +406,18 @@ const hasSatisfactionData = computed(
           </p>
         </div>
 
-        <div
-          class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
-        >
+        <div class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
           <div class="flex items-center justify-between gap-3">
             <p class="text-sm font-medium text-slate-500">
               Reservaciones
             </p>
 
-            <span
-              class="rounded-full bg-purple-50 px-3 py-1 text-xs font-bold text-purple-700 ring-1 ring-purple-100"
-            >
+            <span class="shrink-0 rounded-full bg-purple-50 px-3 py-1 text-xs font-bold text-purple-700 ring-1 ring-purple-100">
               Tickets
             </span>
           </div>
 
-          <p class="mt-2 text-3xl font-semibold text-slate-900">
+          <p class="mt-2 text-2xl font-semibold text-slate-900 sm:text-3xl">
             {{ store.summary.total_reservations || 0 }}
           </p>
 
@@ -405,22 +426,18 @@ const hasSatisfactionData = computed(
           </p>
         </div>
 
-        <div
-          class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
-        >
+        <div class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
           <div class="flex items-center justify-between gap-3">
             <p class="text-sm font-medium text-slate-500">
               Satisfacción
             </p>
 
-            <span
-              class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 ring-1 ring-amber-100"
-            >
+            <span class="shrink-0 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 ring-1 ring-amber-100">
               Encuestas
             </span>
           </div>
 
-          <p class="mt-2 text-3xl font-semibold text-slate-900">
+          <p class="mt-2 text-2xl font-semibold text-slate-900 sm:text-3xl">
             {{ store.satisfaction.satisfaction_percentage || 0 }}%
           </p>
 
@@ -431,21 +448,15 @@ const hasSatisfactionData = computed(
       </div>
 
       <!-- Próximo Experience -->
-      <section
-        class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
-      >
+      <section class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <div v-if="store.hasNextExperience">
-          <div
-            class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between"
-          >
-            <div>
-              <p
-                class="text-sm font-semibold uppercase tracking-wide text-experience-blue"
-              >
+          <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div class="min-w-0">
+              <p class="text-sm font-semibold uppercase tracking-wide text-experience-blue">
                 Próximo RH Experience
               </p>
 
-              <h2 class="mt-2 text-2xl font-semibold text-slate-900">
+              <h2 class="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
                 {{ store.nextExperience.title }}
               </h2>
 
@@ -454,8 +465,8 @@ const hasSatisfactionData = computed(
               </p>
             </div>
 
-            <div class="grid gap-3 sm:grid-cols-4">
-              <div class="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
+            <div class="grid w-full min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div class="min-w-0 rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
                 <p class="text-xs font-semibold uppercase text-blue-500">
                   Inscritos
                 </p>
@@ -465,7 +476,7 @@ const hasSatisfactionData = computed(
                 </p>
               </div>
 
-              <div class="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
+              <div class="min-w-0 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
                 <p class="text-xs font-semibold uppercase text-slate-400">
                   Disponibles
                 </p>
@@ -475,7 +486,7 @@ const hasSatisfactionData = computed(
                 </p>
               </div>
 
-              <div class="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-100">
+              <div class="min-w-0 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-100">
                 <p class="text-xs font-semibold uppercase text-amber-500">
                   Ocupación
                 </p>
@@ -485,12 +496,12 @@ const hasSatisfactionData = computed(
                 </p>
               </div>
 
-              <div class="rounded-2xl bg-green-50 p-4 ring-1 ring-green-100">
+              <div class="min-w-0 rounded-2xl bg-green-50 p-4 ring-1 ring-green-100">
                 <p class="text-xs font-semibold uppercase text-green-500">
                   Ingreso estimado
                 </p>
 
-                <p class="mt-1 text-xl font-semibold text-green-900">
+                <p class="mt-1 truncate text-xl font-semibold text-green-900">
                   {{ money(store.nextExperience.estimated_revenue) }}
                 </p>
               </div>
@@ -521,25 +532,21 @@ const hasSatisfactionData = computed(
       </section>
 
       <!-- Gráficas principales -->
-      <div class="grid gap-4 xl:grid-cols-2">
-        <section
-          class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
-        >
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-slate-900">
+      <div class="grid w-full min-w-0 gap-4 xl:grid-cols-2">
+        <section class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
               Inscripciones por día
             </h3>
 
-            <span
-              class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700"
-            >
+            <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
               Tendencia
             </span>
           </div>
 
           <div
             v-if="hasSignupsData"
-            class="mt-5 h-[320px]"
+            class="relative mt-5 h-[260px] w-full min-w-0 overflow-hidden sm:h-[320px]"
           >
             <Line
               :data="signupsChartData"
@@ -549,7 +556,7 @@ const hasSatisfactionData = computed(
 
           <div
             v-else
-            class="mt-5 flex h-[320px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50"
+            class="mt-5 flex h-[260px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 sm:h-[320px]"
           >
             <p class="text-sm text-slate-500">
               No hay datos para graficar.
@@ -557,24 +564,20 @@ const hasSatisfactionData = computed(
           </div>
         </section>
 
-        <section
-          class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
-        >
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-slate-900">
+        <section class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
               Ingresos estimados por día
             </h3>
 
-            <span
-              class="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700"
-            >
+            <span class="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">
               MXN
             </span>
           </div>
 
           <div
             v-if="hasRevenueData"
-            class="mt-5 h-[320px]"
+            class="relative mt-5 h-[260px] w-full min-w-0 overflow-hidden sm:h-[320px]"
           >
             <Bar
               :data="revenueChartData"
@@ -584,7 +587,7 @@ const hasSatisfactionData = computed(
 
           <div
             v-else
-            class="mt-5 flex h-[320px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50"
+            class="mt-5 flex h-[260px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 sm:h-[320px]"
           >
             <p class="text-sm text-slate-500">
               No hay ingresos estimados.
@@ -594,25 +597,21 @@ const hasSatisfactionData = computed(
       </div>
 
       <!-- Gráficas secundarias -->
-      <div class="grid gap-4 xl:grid-cols-2">
-        <section
-          class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
-        >
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-slate-900">
+      <div class="grid w-full min-w-0 gap-4 xl:grid-cols-2">
+        <section class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
               Tipos de inscripción
             </h3>
 
-            <span
-              class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-700"
-            >
+            <span class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-700">
               Segmentación
             </span>
           </div>
 
           <div
             v-if="hasDistributionData"
-            class="mt-5 h-[320px]"
+            class="relative mt-5 h-[260px] w-full min-w-0 overflow-hidden sm:h-[320px]"
           >
             <Doughnut
               :data="distributionChartData"
@@ -622,7 +621,7 @@ const hasSatisfactionData = computed(
 
           <div
             v-else
-            class="mt-5 flex h-[320px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50"
+            class="mt-5 flex h-[260px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 sm:h-[320px]"
           >
             <p class="text-sm text-slate-500">
               No hay tipos de inscripción.
@@ -630,24 +629,20 @@ const hasSatisfactionData = computed(
           </div>
         </section>
 
-        <section
-          class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
-        >
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-slate-900">
+        <section class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
               Satisfacción general
             </h3>
 
-            <span
-              class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700"
-            >
+            <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
               Encuestas
             </span>
           </div>
 
           <div
             v-if="hasSatisfactionData"
-            class="mt-5 h-[320px]"
+            class="relative mt-5 h-[260px] w-full min-w-0 overflow-hidden sm:h-[320px]"
           >
             <Doughnut
               :data="satisfactionChartData"
@@ -657,7 +652,7 @@ const hasSatisfactionData = computed(
 
           <div
             v-else
-            class="mt-5 flex h-[320px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50"
+            class="mt-5 flex h-[260px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 sm:h-[320px]"
           >
             <p class="text-sm text-slate-500">
               Todavía no hay encuestas.
@@ -667,11 +662,9 @@ const hasSatisfactionData = computed(
       </div>
 
       <!-- Listas rápidas -->
-      <div class="grid gap-4 xl:grid-cols-2">
-        <section
-          class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
-        >
-          <h3 class="text-lg font-semibold text-slate-900">
+      <div class="grid w-full min-w-0 gap-4 xl:grid-cols-2">
+        <section class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+          <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
             Reservaciones recientes
           </h3>
 
@@ -679,17 +672,15 @@ const hasSatisfactionData = computed(
             <div
               v-for="item in store.recentReservations"
               :key="item.id"
-              class="rounded-2xl bg-slate-50 p-4"
+              class="min-w-0 rounded-2xl bg-slate-50 p-4"
             >
-              <div
-                class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
-              >
-                <div>
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div class="min-w-0">
                   <p class="font-semibold text-slate-900">
                     {{ item.first_name }} {{ item.last_name }}
                   </p>
 
-                  <p class="text-sm text-slate-500">
+                  <p class="break-words text-sm text-slate-500">
                     {{ item.email }}
                   </p>
 
@@ -699,9 +690,7 @@ const hasSatisfactionData = computed(
                   </p>
                 </div>
 
-                <span
-                  class="w-fit rounded-full bg-experience-blue/10 px-3 py-1 text-xs font-semibold text-experience-blue"
-                >
+                <span class="w-fit shrink-0 rounded-full bg-experience-blue/10 px-3 py-1 text-xs font-semibold text-experience-blue">
                   {{ getRegistrationLabel(item.registration_type) }}
                 </span>
               </div>
@@ -716,10 +705,8 @@ const hasSatisfactionData = computed(
           </div>
         </section>
 
-        <section
-          class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
-        >
-          <h3 class="text-lg font-semibold text-slate-900">
+        <section class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+          <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
             Encuestas recientes
           </h3>
 
@@ -727,13 +714,13 @@ const hasSatisfactionData = computed(
             <div
               v-for="item in store.recentSurveyResponses"
               :key="item.id"
-              class="rounded-2xl bg-slate-50 p-4"
+              class="min-w-0 rounded-2xl bg-slate-50 p-4"
             >
               <p class="font-semibold text-slate-900">
                 {{ item.passenger_name }}
               </p>
 
-              <p class="text-sm text-slate-500">
+              <p class="break-words text-sm text-slate-500">
                 {{ item.email }}
               </p>
 

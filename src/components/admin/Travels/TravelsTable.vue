@@ -1,17 +1,128 @@
 <script setup>
+import { computed, ref, watch } from "vue";
 import { formatDateToSpanish } from "@/utils/formatDate";
 
-defineProps({
+const props = defineProps({
   travels: {
     type: Array,
     required: true,
   },
 });
+
+const search = ref("");
+const currentPage = ref(1);
+const perPage = ref(6);
+
+const perPageOptions = [6, 9, 12, 18];
+
+const sortedTravels = computed(() => {
+  return [...props.travels].sort((a, b) => {
+    return new Date(a.trip_date) - new Date(b.trip_date);
+  });
+});
+
+const filteredTravels = computed(() => {
+  const term = search.value.trim().toLowerCase();
+
+  if (!term) return sortedTravels.value;
+
+  return sortedTravels.value.filter((travel) => {
+    const title = travel.title?.toLowerCase() || "";
+    const date = travel.trip_date?.toLowerCase() || "";
+    const formattedDate = formatDateToSpanish(travel.trip_date).toLowerCase();
+
+    return (
+      title.includes(term) ||
+      date.includes(term) ||
+      formattedDate.includes(term)
+    );
+  });
+});
+
+const totalPages = computed(() => {
+  return Math.max(1, Math.ceil(filteredTravels.value.length / perPage.value));
+});
+
+const paginatedTravels = computed(() => {
+  const start = (currentPage.value - 1) * perPage.value;
+  const end = start + perPage.value;
+
+  return filteredTravels.value.slice(start, end);
+});
+
+const visiblePages = computed(() => {
+  const pages = [];
+  const maxVisible = 5;
+
+  let start = Math.max(1, currentPage.value - 2);
+  let end = Math.min(totalPages.value, start + maxVisible - 1);
+
+  if (end - start < maxVisible - 1) {
+    start = Math.max(1, end - maxVisible + 1);
+  }
+
+  for (let page = start; page <= end; page++) {
+    pages.push(page);
+  }
+
+  return pages;
+});
+
+const showingFrom = computed(() => {
+  if (!filteredTravels.value.length) return 0;
+  return (currentPage.value - 1) * perPage.value + 1;
+});
+
+const showingTo = computed(() => {
+  return Math.min(currentPage.value * perPage.value, filteredTravels.value.length);
+});
+
+const getReservedSeats = (travel) => {
+  return Number.parseInt(travel.unavaible_seats || 0, 10);
+};
+
+const getAvailableSeats = (travel) => {
+  const totalSeats = Number.parseInt(travel.total_seats || 15, 10);
+  const reservedSeats = getReservedSeats(travel);
+
+  return Math.max(0, totalSeats - reservedSeats);
+};
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return;
+  currentPage.value = page;
+};
+
+const nextPage = () => {
+  goToPage(currentPage.value + 1);
+};
+
+const prevPage = () => {
+  goToPage(currentPage.value - 1);
+};
+
+const clearSearch = () => {
+  search.value = "";
+};
+
+watch([search, perPage], () => {
+  currentPage.value = 1;
+});
+
+watch(
+  () => props.travels,
+  () => {
+    if (currentPage.value > totalPages.value) {
+      currentPage.value = totalPages.value;
+    }
+  },
+  { deep: true },
+);
 </script>
 
 <template>
-  <div class="w-full">
-    <!-- Empty state -->
+  <div class="w-full space-y-6">
+    <!-- Empty state principal -->
     <div
       v-if="!travels.length"
       class="flex min-h-[260px] flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center"
@@ -44,86 +155,245 @@ defineProps({
       </p>
     </div>
 
-    <!-- Cards -->
-    <div
-      v-else
-      class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3"
-    >
-      <article
-        v-for="travel in travels"
-        :key="travel.id"
-        class="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300  hover:border-experience-blue/20 hover:shadow-lg"
+    <template v-else>
+      <!-- Toolbar -->
+      <div
+        class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
       >
-        <!-- Header -->
-        <div class="border-b border-slate-100 bg-slate-50/70 p-5">
-          <div class="flex items-start gap-4">
-            <div
-              class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-experience-blue/10 text-experience-blue ring-1 ring-experience-blue/10"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="1.8"
+        <div
+          class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
+        >
+          <div class="w-full lg:max-w-md">
+            <label class="text-sm font-bold text-slate-700">
+              Buscar RH Experience
+            </label>
+
+            <div class="relative mt-2">
+              <input
+                v-model="search"
+                type="text"
+                placeholder="Buscar por nombre o fecha..."
+                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-11 text-sm font-medium text-slate-700 outline-none transition focus:border-experience-blue focus:bg-white focus:ring-2 focus:ring-experience-blue/20"
+              />
+
+              <button
+                v-if="search"
+                type="button"
+                class="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-slate-200 text-xs font-bold text-slate-600 transition hover:bg-slate-300"
+                @click="clearSearch"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M8 2v3M16 2v3M3.5 9.5h17M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"
-                />
-              </svg>
-            </div>
-
-            <div class="min-w-0 flex-1">
-              <h3 class="line-clamp-2 text-base font-black text-slate-900">
-                {{ travel.title }}
-              </h3>
-
-              <p class="mt-1 text-sm font-medium text-slate-500">
-                {{ formatDateToSpanish(travel.trip_date) }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Body -->
-        <div class="space-y-4 p-5">
-          <div class="grid grid-cols-2 gap-3">
-            <div class="rounded-2xl bg-rose-50 p-4 ring-1 ring-rose-100">
-              <p
-                class="text-[11px] font-bold uppercase tracking-wide text-rose-500"
-              >
-                Reservados
-              </p>
-
-              <p class="mt-2 text-2xl font-black text-rose-700">
-                {{ travel.unavaible_seats }}
-              </p>
-            </div>
-
-            <div class="rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-100">
-              <p
-                class="text-[11px] font-bold uppercase tracking-wide text-emerald-500"
-              >
-                Disponibles
-              </p>
-
-              <p class="mt-2 text-2xl font-black text-emerald-700">
-                {{ 15 - parseInt(travel.unavaible_seats) }}
-              </p>
+                ✕
+              </button>
             </div>
           </div>
 
-          <RouterLink
-            class="inline-flex w-full items-center justify-center rounded-lg bg-experience-blue px-4 py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:bg-experience-blue/90 hover:shadow-md "
-            :to="{ name: 'list-passenger', params: { id: travel.id } }"
+          <div
+            class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between lg:justify-end"
           >
-            Ver pasajeros
-          </RouterLink>
+            <div>
+              <label class="text-sm font-bold text-slate-700">
+                Mostrar
+              </label>
+
+              <select
+                v-model.number="perPage"
+                class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20 sm:w-36"
+              >
+                <option
+                  v-for="option in perPageOptions"
+                  :key="option"
+                  :value="option"
+                >
+                  {{ option }} viajes
+                </option>
+              </select>
+            </div>
+
+            <div
+              class="rounded-2xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500 ring-1 ring-slate-200"
+            >
+              {{ filteredTravels.length }}
+              {{ filteredTravels.length === 1 ? "viaje" : "viajes" }}
+            </div>
+          </div>
         </div>
-      </article>
-    </div>
+      </div>
+
+      <!-- Empty state por búsqueda -->
+      <div
+        v-if="!filteredTravels.length"
+        class="flex min-h-[260px] flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center"
+      >
+        <div
+          class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-200 text-slate-500"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-7 w-7"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m21 21-5.197-5.197M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
+            />
+          </svg>
+        </div>
+
+        <h3 class="text-lg font-bold text-slate-900">
+          No se encontraron viajes
+        </h3>
+
+        <p class="mt-1 max-w-sm text-sm text-slate-500">
+          Intenta buscar con otra fecha o limpia el filtro actual.
+        </p>
+
+        <button
+          type="button"
+          class="mt-4 rounded-xl bg-experience-blue px-4 py-2 text-sm font-bold text-white transition hover:bg-experience-blue/90"
+          @click="clearSearch"
+        >
+          Limpiar búsqueda
+        </button>
+      </div>
+
+      <template v-else>
+        <!-- Cards -->
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          <article
+            v-for="travel in paginatedTravels"
+            :key="travel.id"
+            class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-experience-blue/20 hover:shadow-xl"
+          >
+            <!-- Header -->
+            <div class="border-b border-slate-100 bg-slate-50/70 p-5">
+              <div class="flex items-start gap-4">
+                <div
+                  class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-experience-blue/10 text-experience-blue ring-1 ring-experience-blue/10"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M8 2v3M16 2v3M3.5 9.5h17M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"
+                    />
+                  </svg>
+                </div>
+
+                <div class="min-w-0 flex-1">
+                  <h3 class="line-clamp-2 text-base font-black text-slate-900">
+                    {{ travel.title }}
+                  </h3>
+
+                  <p class="mt-1 text-sm font-medium text-slate-500">
+                    {{ formatDateToSpanish(travel.trip_date) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Body -->
+            <div class="space-y-4 p-5">
+              <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-2xl bg-rose-50 p-4 ring-1 ring-rose-100">
+                  <p
+                    class="text-[11px] font-bold uppercase tracking-wide text-rose-500"
+                  >
+                    Reservados
+                  </p>
+
+                  <p class="mt-2 text-2xl font-black text-rose-700">
+                    {{ getReservedSeats(travel) }}
+                  </p>
+                </div>
+
+                <div
+                  class="rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-100"
+                >
+                  <p
+                    class="text-[11px] font-bold uppercase tracking-wide text-emerald-500"
+                  >
+                    Disponibles
+                  </p>
+
+                  <p class="mt-2 text-2xl font-black text-emerald-700">
+                    {{ getAvailableSeats(travel) }}
+                  </p>
+                </div>
+              </div>
+
+              <RouterLink
+                class="inline-flex w-full items-center justify-center rounded-xl bg-experience-blue px-4 py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:bg-experience-blue/90 hover:shadow-md"
+                :to="{ name: 'list-passenger', params: { id: travel.id } }"
+              >
+                Ver pasajeros
+              </RouterLink>
+            </div>
+          </article>
+        </div>
+
+        <!-- Pagination -->
+        <div
+          class="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+        >
+          <p class="text-sm font-medium text-slate-500">
+            Mostrando
+            <span class="font-bold text-slate-900">{{ showingFrom }}</span>
+            -
+            <span class="font-bold text-slate-900">{{ showingTo }}</span>
+            de
+            <span class="font-bold text-slate-900">
+              {{ filteredTravels.length }}
+            </span>
+            viajes
+          </p>
+
+          <div class="flex items-center justify-center gap-2">
+            <button
+              type="button"
+              class="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              :disabled="currentPage === 1"
+              @click="prevPage"
+            >
+              Anterior
+            </button>
+
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              type="button"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-black transition"
+              :class="
+                page === currentPage
+                  ? 'bg-experience-blue text-white shadow-sm'
+                  : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+              "
+              @click="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+
+            <button
+              type="button"
+              class="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              :disabled="currentPage === totalPages"
+              @click="nextPage"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      </template>
+    </template>
   </div>
 </template>

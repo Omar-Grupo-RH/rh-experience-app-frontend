@@ -99,10 +99,10 @@ const closeSidebar = () => {
       </Transition>
 
       <!-- Content -->
-      <main class="min-w-0 flex-1">
+      <main class="min-w-0 flex-1 bg-white">
         <div class="p-4 sm:p-6 ">
           <div
-            class="min-h-[calc(100dvh-2rem)] rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-6 lg:min-h-[calc(100dvh-4rem)] lg:p-0"
+            class="min-h-[calc(100dvh-2rem)] p-4 sm:p-6 lg:min-h-[calc(100dvh-4rem)] lg:p-0"
           >
             <RouterView />
           </div>

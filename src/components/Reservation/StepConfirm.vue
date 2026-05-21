@@ -250,6 +250,59 @@ async function startCheckout() {
               <p class="text-base text-gray-800">Oficinas de Grupo RH</p>
             </div>
           </div>
+          <div class="flex items-start gap-3 p-4 rounded-xl">
+            <div class="bg-experience-blue/20 p-2 rounded-lg shadow-sm">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-5 text-experience-blue"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p
+                class="text-[11px] text-gray-500 font-light uppercase tracking-wider"
+              >
+                Hora de salida
+              </p>
+              <p class="text-base text-gray-800">9:00 AM</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 rounded-xl">
+            <div class="bg-experience-blue/20 p-2 rounded-lg shadow-sm">
+              <svg
+                class="w-4 h-4 text-experience-blue"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                ></path>
+              </svg>
+            </div>
+            <div>
+              <p
+                class="text-[11px] text-gray-500 font-light uppercase tracking-wider"
+              >
+                Los boletos serán enviados a
+              </p>
+              <p class="text-base text-gray-800">
+                {{ store.passengers[0]?.email }}
+              </p>
+            </div>
+          </div>
         </div>
 
         <div class="mb-8">

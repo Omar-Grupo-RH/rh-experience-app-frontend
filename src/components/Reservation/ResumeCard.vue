@@ -26,7 +26,7 @@ const isNextDisabled = computed(() => {
 </script>
 
 <template>
-  <div class="rounded-lg border p-5 border-gray-200 space-y-5">
+  <div class="rounded-lg border p-5 border-gray-200 space-y-5 w-full lg:w-auto">
     <div class="flex items-center justify-between mt-3 w-full">
       <div class="flex flex-col gap-1.5 w-full">
         <h3 class="font-bold uppercase mb-3 lg:text-xl">

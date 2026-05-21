@@ -67,7 +67,7 @@ const { isAuthenticated, user, adminLevel, hydrateFromToken } = useAuth();
             <!-- Paso 6 -->
             <div
               v-else-if="store.step === 6"
-              class="bg-white p-3 lg:p-10 rounded-lg w-full"
+              class="bg-white lg:p-10 rounded-lg w-full"
             >
               <StepConfirm />
             </div>

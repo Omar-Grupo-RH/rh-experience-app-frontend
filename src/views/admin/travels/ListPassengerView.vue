@@ -179,7 +179,7 @@ const generatePDF = () => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl space-y-8 p-5">
+  <div class="mx-auto max-w-7xl space-y-8 lg:p-5">
     <div
       class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
     >
@@ -217,7 +217,7 @@ const generatePDF = () => {
 
     <div
       v-if="store.hasPassengersByTravel"
-      class="space-y-6 rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-6"
+      class="space-y-6 rounded-xl bg-white p-4  sm:p-6"
     >
       <div class="rounded-xl bg-slate-50 p-5 ring-1 ring-slate-100">
         <div
