@@ -50,7 +50,7 @@ function hydrateFromToken(logoutFn) {
   user.value = {
     id: payload.sub || payload.id || base.id || null,
     username: payload.username || base.username,
-    admin: adminLevel, // 0,1,2,...
+    admin: adminLevel,
     raw: payload,
   };
 
@@ -62,8 +62,8 @@ export function useAuth() {
   const isAuthenticated = computed(() => !!token.value && !!user.value);
 
   const adminLevel = computed(() => user.value?.admin ?? 0);
-  const isAdmin = computed(() => adminLevel.value > 0); 
-  const isFullAdmin = computed(() => adminLevel.value === 1); 
+  const isAdmin = computed(() => adminLevel.value > 0);
+  const isFullAdmin = computed(() => adminLevel.value === 1);
 
   function logout() {
     token.value = null;
@@ -73,46 +73,38 @@ export function useAuth() {
     router.push({ name: "home" });
   }
 
-  async function login(jwt, profile) {
-    token.value = jwt;
-    localStorage.setItem(STORAGE_KEY, jwt);
+ async function login(jwt, profile) {
+   token.value = jwt;
+   localStorage.setItem(STORAGE_KEY, jwt);
 
-    // primero hidratar desde el token
-    hydrateFromToken(logout);
+   hydrateFromToken(logout);
 
-    // si viene perfil extra desde el backend, lo fusionamos
-    if (profile) {
-      const level = toAdminLevel(profile.admin ?? user.value?.admin ?? 0);
+   if (profile) {
+     const level = toAdminLevel(profile.admin ?? user.value?.admin ?? 0);
 
-      user.value = {
-        ...user.value,
-        ...profile,
-        id: profile.id ?? user.value?.id ?? null,
-        admin: level,
-      };
-      localStorage.setItem(STORAGE_USER, JSON.stringify(user.value));
-    }
+     user.value = {
+       ...user.value,
+       ...profile,
+       id: profile.id ?? user.value?.id ?? null,
+       admin: level,
+     };
 
-    const level = user.value?.admin ?? 0;
+     localStorage.setItem(STORAGE_USER, JSON.stringify(user.value));
+   }
 
-    if (level === 1) {
-      // Admin principal → panel clásico
-      router.push({ name: "dashboard" }); 
-      return;
-    }
-     if (level === 2) {
-       // Admin principal → panel clásico
-       router.push({ name: "calendar" }); 
-       return;
-     }
+   const level = Number(user.value?.admin ?? 0);
 
-    
-    const url = new URL(window.location.href);
-    const next = url.searchParams.get("next");
-    router.push(next || { name: "home" });
-  }
+   if (level === 1) {
+     return await router.replace({ name: "dashboard" });
+   }
 
-  // inicializamos al cargar el composable
+   if (level === 2) {
+     return await router.replace({ name: "calendar" });
+   }
+
+   return await router.replace({ name: "home" });
+ }
+
   hydrateFromToken(logout);
 
   return {

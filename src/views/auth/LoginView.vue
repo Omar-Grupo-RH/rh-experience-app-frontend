@@ -27,11 +27,6 @@ const handleSubmit = async (formData) => {
       data: { token, username, admin },
     } = await AuthAPI.login(formData);
 
-    await login(token, {
-      username,
-      admin,
-    });
-
     reset("loginForm");
 
     toast?.open?.({
@@ -39,7 +34,10 @@ const handleSubmit = async (formData) => {
       type: "success",
     });
 
-    router.replace(getSafeNextRoute());
+    await login(token, {
+      username,
+      admin,
+    });
   } catch (error) {
     toast?.open?.({
       message: error?.response?.data?.message || "Error al iniciar sesión",

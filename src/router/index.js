@@ -180,22 +180,28 @@ router.beforeEach((to) => {
     return lvl;
   }, null);
 
-  // Si ya está autenticado y quiere entrar al login,
-  // lo mandamos al next o al home.
-  if (guestOnly && isAuthenticated.value) {
-    const next =
-      typeof to.query.next === "string" && to.query.next.startsWith("/")
-        ? to.query.next
-        : "/";
-
+  
+if (guestOnly && isAuthenticated.value) {
+  if (Number(adminLevel.value) === 1) {
     return {
-      path: next,
+      name: "dashboard",
       replace: true,
     };
   }
 
-  // Si la ruta requiere sesión o es de admin y NO está autenticado,
-  // lo mandamos al login guardando a dónde quería entrar.
+  if (Number(adminLevel.value) === 2) {
+    return {
+      name: "calendar",
+      replace: true,
+    };
+  }
+
+  return {
+    name: "home",
+    replace: true,
+  };
+}
+
   if ((requiresAuth || adminOnly) && !isAuthenticated.value) {
     return {
       name: "login",
