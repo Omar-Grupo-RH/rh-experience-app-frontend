@@ -15,9 +15,39 @@ const perPage = ref(6);
 
 const perPageOptions = [6, 9, 12, 18];
 
+const getTodayDate = () => {
+  const today = new Date();
+
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+const isPastTravel = (travel) => {
+  const today = getTodayDate();
+  return String(travel.trip_date || "") < today;
+};
+
 const sortedTravels = computed(() => {
+  const today = getTodayDate();
+
   return [...props.travels].sort((a, b) => {
-    return new Date(a.trip_date) - new Date(b.trip_date);
+    const dateA = String(a.trip_date || "");
+    const dateB = String(b.trip_date || "");
+
+    const aIsPast = dateA < today;
+    const bIsPast = dateB < today;
+
+    if (!aIsPast && bIsPast) return -1;
+    if (aIsPast && !bIsPast) return 1;
+
+    if (!aIsPast && !bIsPast) {
+      return dateA.localeCompare(dateB);
+    }
+
+    return dateB.localeCompare(dateA);
   });
 });
 
@@ -74,7 +104,10 @@ const showingFrom = computed(() => {
 });
 
 const showingTo = computed(() => {
-  return Math.min(currentPage.value * perPage.value, filteredTravels.value.length);
+  return Math.min(
+    currentPage.value * perPage.value,
+    filteredTravels.value.length,
+  );
 });
 
 const getReservedSeats = (travel) => {
@@ -266,13 +299,26 @@ watch(
           <article
             v-for="travel in paginatedTravels"
             :key="travel.id"
-            class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-experience-blue/20 hover:shadow-xl"
+            class="group overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-experience-blue/20 hover:shadow-xl"
+            :class="
+              isPastTravel(travel)
+                ? 'border-slate-200 opacity-70 grayscale-[0.15]'
+                : 'border-slate-200'
+            "
           >
             <!-- Header -->
-            <div class="border-b border-slate-100 bg-slate-50/70 p-5">
+            <div
+              class="border-b border-slate-100 p-5"
+              :class="isPastTravel(travel) ? 'bg-slate-100' : 'bg-slate-50/70'"
+            >
               <div class="flex items-start gap-4">
                 <div
-                  class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-experience-blue/10 text-experience-blue ring-1 ring-experience-blue/10"
+                  class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ring-1"
+                  :class="
+                    isPastTravel(travel)
+                      ? 'bg-slate-200 text-slate-500 ring-slate-200'
+                      : 'bg-experience-blue/10 text-experience-blue ring-experience-blue/10'
+                  "
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -291,9 +337,25 @@ watch(
                 </div>
 
                 <div class="min-w-0 flex-1">
-                  <h3 class="line-clamp-2 text-base font-black text-slate-900">
-                    {{ travel.title }}
-                  </h3>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="line-clamp-2 text-base font-black text-slate-900">
+                      {{ travel.title }}
+                    </h3>
+
+                    <span
+                      v-if="isPastTravel(travel)"
+                      class="rounded-full bg-slate-200 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-600"
+                    >
+                      Finalizado
+                    </span>
+
+                    <span
+                      v-else
+                      class="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-100"
+                    >
+                      Próximo
+                    </span>
+                  </div>
 
                   <p class="mt-1 text-sm font-medium text-slate-500">
                     {{ formatDateToSpanish(travel.trip_date) }}

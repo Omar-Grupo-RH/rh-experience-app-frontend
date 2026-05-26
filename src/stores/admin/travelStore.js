@@ -20,10 +20,50 @@ export const useTravelStore = defineStore(
     const quantityPassengers = computed(
       () => passengersByTravelArray.value.length,
     );
+
+    function getTodayDate() {
+      const today = new Date();
+
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+
+      return `${year}-${month}-${day}`;
+    }
+
+    function sortTravelsByUpcomingFirst(list = []) {
+      const today = getTodayDate();
+
+      return [...list].sort((a, b) => {
+        const dateA = a.trip_date;
+        const dateB = b.trip_date;
+
+        const aIsPast = dateA < today;
+        const bIsPast = dateB < today;
+
+        // Si A es futuro y B pasado, A va primero
+        if (!aIsPast && bIsPast) return -1;
+
+        // Si A es pasado y B futuro, B va primero
+        if (aIsPast && !bIsPast) return 1;
+
+        // Si ambos son próximos/futuros, ordenar ascendente
+        // Ej: 2026-05-20, 2026-05-21, 2026-05-22
+        if (!aIsPast && !bIsPast) {
+          return dateA.localeCompare(dateB);
+        }
+
+        // Si ambos son pasados, ordenar descendente
+        // Ej: ayer, antier, fechas más viejas al final
+        return dateB.localeCompare(dateA);
+      });
+    }
+
     async function getTravels() {
       try {
         const data = await listTravels();
-        travels.value = data;
+
+        travels.value = sortTravelsByUpcomingFirst(data);
       } catch (error) {
         console.log(error);
       }
@@ -33,10 +73,13 @@ export const useTravelStore = defineStore(
       if (!id) {
         return;
       }
+
       passengersByTravelArray.value = [];
       travelSelected.value = {};
+
       try {
         const data = await passengersByTravel(id);
+
         passengersByTravelArray.value = data;
         travelSelected.value = travels.value.filter((t) => t.id == id);
       } catch (error) {
@@ -53,6 +96,7 @@ export const useTravelStore = defineStore(
       hasPassengersByTravel,
       quantityPassengers,
       travelSelected,
+      sortTravelsByUpcomingFirst,
     };
   },
   {
