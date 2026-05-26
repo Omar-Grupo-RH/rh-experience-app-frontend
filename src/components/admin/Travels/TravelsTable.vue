@@ -114,12 +114,6 @@ const getReservedSeats = (travel) => {
   return Number.parseInt(travel.unavaible_seats || 0, 10);
 };
 
-const getAvailableSeats = (travel) => {
-  const totalSeats = Number.parseInt(travel.total_seats || 15, 10);
-  const reservedSeats = getReservedSeats(travel);
-
-  return Math.max(0, totalSeats - reservedSeats);
-};
 
 const goToPage = (page) => {
   if (page < 1 || page > totalPages.value) return;
@@ -205,7 +199,7 @@ watch(
               <input
                 v-model="search"
                 type="text"
-                placeholder="Buscar por nombre o fecha..."
+                placeholder="Buscar fecha"
                 class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-11 text-sm font-medium text-slate-700 outline-none transition focus:border-experience-blue focus:bg-white focus:ring-2 focus:ring-experience-blue/20"
               />
 
@@ -224,9 +218,7 @@ watch(
             class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between lg:justify-end"
           >
             <div>
-              <label class="text-sm font-bold text-slate-700">
-                Mostrar
-              </label>
+              <label class="text-sm font-bold text-slate-700"> Mostrar </label>
 
               <select
                 v-model.number="perPage"
@@ -338,7 +330,9 @@ watch(
 
                 <div class="min-w-0 flex-1">
                   <div class="flex flex-wrap items-center gap-2">
-                    <h3 class="line-clamp-2 text-base font-black text-slate-900">
+                    <h3
+                      class="line-clamp-2 text-base font-black text-slate-900"
+                    >
                       {{ travel.title }}
                     </h3>
 
@@ -375,7 +369,7 @@ watch(
                   </p>
 
                   <p class="mt-2 text-2xl font-black text-rose-700">
-                    {{ getReservedSeats(travel) }}
+                    {{ travel.unavaible_seats }}
                   </p>
                 </div>
 
@@ -389,7 +383,7 @@ watch(
                   </p>
 
                   <p class="mt-2 text-2xl font-black text-emerald-700">
-                    {{ getAvailableSeats(travel) }}
+                    {{ travel.total_seats }}
                   </p>
                 </div>
               </div>

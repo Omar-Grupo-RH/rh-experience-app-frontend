@@ -7,6 +7,8 @@ const store = useTravelStore();
 
 onMounted(async () => {
   await store.getTravels();
+
+  console.log(store.travels);
 });
 </script>
 
@@ -19,11 +21,11 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div class=" lg:p-5">
+    <div class="lg:p-5">
       <TravelsTable v-if="store.hasTravels" :travels="store.travels" />
       <div
         v-else
-        class="flex min-h-[260px] flex-col items-center justify-center border-slate-300 bg-slate-50 px-6 py-10 text-center "
+        class="flex min-h-[260px] flex-col items-center justify-center border-slate-300 bg-slate-50 px-6 py-10 text-center"
       >
         <h3 class="text-lg font-bold text-slate-900">
           No hay viajes registrados
