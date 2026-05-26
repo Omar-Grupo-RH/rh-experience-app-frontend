@@ -62,8 +62,8 @@ export function useAuth() {
   const isAuthenticated = computed(() => !!token.value && !!user.value);
 
   const adminLevel = computed(() => user.value?.admin ?? 0);
-  const isAdmin = computed(() => adminLevel.value > 0); // cualquier admin (1,2,3...)
-  const isFullAdmin = computed(() => adminLevel.value === 1); // admin nivel 1
+  const isAdmin = computed(() => adminLevel.value > 0); 
+  const isFullAdmin = computed(() => adminLevel.value === 1); 
 
   function logout() {
     token.value = null;
@@ -95,20 +95,18 @@ export function useAuth() {
 
     const level = user.value?.admin ?? 0;
 
-    // 🔹 RUTAS POR NIVEL DE ADMIN
-    if (level === 1 || level === 2) {
+    if (level === 1) {
       // Admin principal → panel clásico
-      router.push({ name: "dashboard" }); // /admin/ingresos
+      router.push({ name: "dashboard" }); 
       return;
     }
+     if (level === 2) {
+       // Admin principal → panel clásico
+       router.push({ name: "calendar" }); 
+       return;
+     }
 
-    // if (level >= 3) {
-    //   // futuros niveles → elige un default por ahora
-    //   router.push({ name: "cobranza" });
-    //   return;
-    // }
-
-    // Usuario normal (no admin): respetar "next" o ir a home
+    
     const url = new URL(window.location.href);
     const next = url.searchParams.get("next");
     router.push(next || { name: "home" });

@@ -58,34 +58,15 @@ const menuItems = computed(() => {
 
   if (level === 2) {
     return [
-      {
-        label: "Dashboard",
-        to: { name: "dashboard" },
-        icon: "grid",
-      },
+     
       { to: { name: "calendar" }, label: "Agenda de viajes", icon: "calendar" },
       { to: { name: "travels" }, label: "Mis pasajeros", icon: "users" },
-      { to: { name: "codes" }, label: "Códigos", icon: "codes" },
-      {
-        label: "Encuestas",
-        to: { name: "survey-responses" },
-        icon: "survey",
-      },
-      { to: { name: "comments" }, label: "Comentarios", icon: "comments" },
+      
     ];
   }
 
-  if (level === 3) {
-    return [
-      { to: { name: "cobranza" }, label: "Panel de cobranza", icon: "wallet" },
-    ];
-  }
 
-  if (level >= 4) {
-    return [
-      { to: { name: "travels" }, label: "Panel de control", icon: "grid" },
-    ];
-  }
+  
 
   return [];
 });
