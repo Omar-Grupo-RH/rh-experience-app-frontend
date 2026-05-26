@@ -3,13 +3,39 @@ import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { ref, onMounted, watch, onUnmounted } from "vue";
+import { ref, onMounted, watch, onUnmounted, computed } from "vue";
 import { useCalendarStore } from "@/stores/admin/calendarStore";
+import { useAuth } from "@/composables/useAuth";
 
 const store = useCalendarStore();
+const { adminLevel } = useAuth();
+
 const calendarRef = ref(null);
 
+const canManageEvents = computed(() => Number(adminLevel.value) === 1);
+
 const isMobile = () => window.innerWidth < 768;
+
+const handleDateClick = (info) => {
+  if (!canManageEvents.value) return;
+
+  store.addEvent(info);
+};
+
+const handleEventDrop = (info) => {
+  if (!canManageEvents.value) {
+    info.revert();
+    return;
+  }
+
+  store.handleEventDrop(info);
+};
+
+const handleEventClick = (info) => {
+  store.handleEventClick(info, {
+    canManage: canManageEvents.value,
+  });
+};
 
 const calendarOptions = ref({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
@@ -21,8 +47,12 @@ const calendarOptions = ref({
 
   fixedWeekCount: false,
   showNonCurrentDates: false,
-  selectable: true,
-  editable: true,
+
+  selectable: canManageEvents.value,
+  editable: canManageEvents.value,
+  eventStartEditable: canManageEvents.value,
+  eventDurationEditable: false,
+
   expandRows: true,
 
   height: "auto",
@@ -58,9 +88,9 @@ const calendarOptions = ref({
 
   events: [],
 
-  dateClick: store.addEvent,
-  eventClick: store.handleEventClick,
-  eventDrop: store.handleEventDrop,
+  dateClick: handleDateClick,
+  eventClick: handleEventClick,
+  eventDrop: handleEventDrop,
 
   eventDidMount(info) {
     const today = new Date().toISOString().split("T")[0];
@@ -68,6 +98,10 @@ const calendarOptions = ref({
     if (info.event.startStr < today) {
       info.el.style.opacity = "0.4";
       info.el.style.pointerEvents = "none";
+    }
+
+    if (!canManageEvents.value) {
+      info.el.style.cursor = "pointer";
     }
   },
 });
@@ -78,6 +112,16 @@ function syncCalendar() {
 
   api.removeAllEvents();
   store.events.forEach((ev) => api.addEvent(ev));
+}
+
+function updatePermissions() {
+  const api = calendarRef.value?.getApi?.();
+  if (!api) return;
+
+  api.setOption("selectable", canManageEvents.value);
+  api.setOption("editable", canManageEvents.value);
+  api.setOption("eventStartEditable", canManageEvents.value);
+  api.setOption("eventDurationEditable", false);
 }
 
 function updateResponsiveOptions() {
@@ -102,6 +146,7 @@ function updateResponsiveOptions() {
     },
   });
 
+  updatePermissions();
   api.updateSize();
 }
 
@@ -111,6 +156,7 @@ onMounted(async () => {
   setTimeout(() => {
     syncCalendar();
     updateResponsiveOptions();
+    updatePermissions();
   }, 100);
 
   window.addEventListener("resize", updateResponsiveOptions);
@@ -125,11 +171,19 @@ watch(
   () => syncCalendar(),
   { deep: true }
 );
+
+watch(
+  () => canManageEvents.value,
+  () => updatePermissions()
+);
 </script>
 
 <template>
-  <div class="calendar-container">
-    <FullCalendar ref="calendarRef" :options="calendarOptions" />
+  <div class="space-y-4">
+  
+    <div class="calendar-container">
+      <FullCalendar ref="calendarRef" :options="calendarOptions" />
+    </div>
   </div>
 </template>
 
@@ -304,7 +358,7 @@ watch(
   }
 
   .fc .fc-daygrid-day-frame {
-    min-height: 120px;
+    min-height: 110px;
   }
 
   .fc-event {

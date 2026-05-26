@@ -1,4 +1,5 @@
 import { useCalendarAPI } from "@/composables/useCalendar";
+import { useAuth } from "@/composables/useAuth";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import Swal from "sweetalert2";
@@ -8,9 +9,24 @@ export const useCalendarStore = defineStore("calendar", () => {
   const { createEvent, listEvents, destroyEvent, getTrip, updateEvent } =
     useCalendarAPI();
 
+  const { adminLevel } = useAuth();
+
   const events = ref([]);
   const selectedDate = ref(null);
   const isLoading = ref(false);
+
+  function canManageEvents() {
+    return Number(adminLevel.value) === 1;
+  }
+
+  function showReadOnlyAlert(action = "realizar esta acción") {
+    Swal.fire({
+      title: "Modo lectura",
+      text: `No tienes permisos para ${action}.`,
+      icon: "info",
+      confirmButtonColor: "#315fa8",
+    });
+  }
 
   function isPast(isoDate) {
     const today = new Date().toISOString().split("T")[0];
@@ -56,6 +72,11 @@ export const useCalendarStore = defineStore("calendar", () => {
   }
 
   async function addEvent(evt) {
+    if (!canManageEvents()) {
+      showReadOnlyAlert("crear RH Experience");
+      return;
+    }
+
     const { dateStr } = evt;
     const today = new Date().toISOString().split("T")[0];
 
@@ -122,6 +143,11 @@ export const useCalendarStore = defineStore("calendar", () => {
   }
 
   async function removeEvent(id) {
+    if (!canManageEvents()) {
+      showReadOnlyAlert("eliminar RH Experience");
+      return;
+    }
+
     const prev = [...events.value];
     const target = events.value.find((trip) => trip.id === String(id));
 
@@ -156,6 +182,12 @@ export const useCalendarStore = defineStore("calendar", () => {
   }
 
   async function handleEventDrop(info) {
+    if (!canManageEvents()) {
+      info.revert();
+      showReadOnlyAlert("reagendar RH Experience");
+      return;
+    }
+
     const today = new Date().toISOString().split("T")[0];
     const newDate = info.event.startStr;
     const id = String(info.event.id);
@@ -183,10 +215,6 @@ export const useCalendarStore = defineStore("calendar", () => {
       const resp = await updateEvent(payload);
       const updated = normalizeTripResponse(resp);
 
-      /**
-       * Si por alguna razón producción responde distinto,
-       * no truena la UI. Recargamos calendario y usamos newDate.
-       */
       const finalDate = updated?.trip_date ?? newDate;
 
       const eventIndex = events.value.findIndex((event) => event.id === id);
@@ -245,7 +273,8 @@ export const useCalendarStore = defineStore("calendar", () => {
     }
   }
 
-  async function handleEventClick(info) {
+  async function handleEventClick(info, options = {}) {
+    const { canManage = canManageEvents() } = options;
     const { id } = info.event;
 
     try {
@@ -269,18 +298,20 @@ export const useCalendarStore = defineStore("calendar", () => {
         html: `
           <div style="text-align:center">
             <p><strong>Fecha:</strong> ${formatDateToSpanish(trip_date)}</p>
-            <p><strong>Lugares disponibles:</strong> ${total_seats ?? "No registrado"}</p>
+            <p><strong>Lugares disponibles:</strong> ${
+              total_seats ?? "No registrado"
+            }</p>
           </div>
         `,
         icon: "info",
-        showCancelButton: true,
+        showCancelButton: canManage && !soloCerrar,
         cancelButtonText: "Cerrar",
-        confirmButtonText: soloCerrar ? "OK" : "Eliminar",
-        confirmButtonColor: soloCerrar ? "#3085d6" : "#d94a93",
+        confirmButtonText: canManage && !soloCerrar ? "Eliminar" : "OK",
+        confirmButtonColor: canManage && !soloCerrar ? "#d94a93" : "#3085d6",
         focusCancel: true,
       });
 
-      if (!res.isConfirmed || soloCerrar) return;
+      if (!canManage || !res.isConfirmed || soloCerrar) return;
 
       await removeEvent(id);
     } catch (error) {
@@ -296,6 +327,8 @@ export const useCalendarStore = defineStore("calendar", () => {
     events,
     selectedDate,
     isLoading,
+
+    canManageEvents,
     addEvent,
     removeEvent,
     loadEvents,

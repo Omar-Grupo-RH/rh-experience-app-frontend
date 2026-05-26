@@ -11,7 +11,7 @@ import CalendarAdmin from "@/components/admin/Calendar/CalendarAdmin.vue";
       </div>
     </div>
 
-    <div class="w-full h-[600px] lg:h-[750px]">
+    <div class="w-full h-[600px] lg:h-[750px] ">
       <CalendarAdmin />
     </div>
   </div>
