@@ -100,9 +100,7 @@ const calendarOptions = ref({
       info.el.style.pointerEvents = "none";
     }
 
-    if (!canManageEvents.value) {
-      info.el.style.cursor = "pointer";
-    }
+    info.el.style.cursor = "pointer";
   },
 });
 
@@ -111,7 +109,23 @@ function syncCalendar() {
   if (!api) return;
 
   api.removeAllEvents();
-  store.events.forEach((ev) => api.addEvent(ev));
+
+  store.events.forEach((ev) => {
+    api.addEvent({
+      id: ev.id,
+      title: ev.title,
+      start: ev.start,
+      allDay: ev.allDay,
+
+      extendedProps: {
+        total_seats: ev.total_seats,
+        total_seat: ev.total_seat,
+        unavaible_seats: ev.unavaible_seats,
+        passengers_count: ev.passengers_count,
+        avaible_seats: ev.avaible_seats,
+      },
+    });
+  });
 }
 
 function updatePermissions() {
@@ -138,9 +152,7 @@ function updateResponsiveOptions() {
         ? { year: "numeric", month: "short" }
         : { year: "numeric", month: "long" },
 
-      dayHeaderFormat: mobile
-        ? { weekday: "narrow" }
-        : { weekday: "short" },
+      dayHeaderFormat: mobile ? { weekday: "narrow" } : { weekday: "short" },
 
       dayMaxEvents: mobile ? 1 : 2,
     },
@@ -169,18 +181,32 @@ onUnmounted(() => {
 watch(
   () => store.events,
   () => syncCalendar(),
-  { deep: true }
+  { deep: true },
 );
 
 watch(
   () => canManageEvents.value,
-  () => updatePermissions()
+  () => updatePermissions(),
 );
 </script>
 
 <template>
   <div class="space-y-4">
-  
+    <div
+      v-if="!canManageEvents"
+      class="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-800"
+    >
+      Estás en modo lectura. Puedes consultar los RH Experience agendados, pero
+      no puedes crear, editar, mover o eliminar eventos.
+    </div>
+
+    <div
+      v-if="store.isLoading"
+      class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 shadow-sm"
+    >
+      Cargando calendario...
+    </div>
+
     <div class="calendar-container">
       <FullCalendar ref="calendarRef" :options="calendarOptions" />
     </div>

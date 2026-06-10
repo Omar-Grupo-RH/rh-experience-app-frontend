@@ -19,6 +19,7 @@ const title = computed(() => {
     investor: "Datos de inversionista",
     prospect: "Datos de cliente prospecto",
     prize: "Validación de premio",
+    family_friend: "Validación de datos",
   };
 
   return titles[store.registrationType] || "Validación";
@@ -35,6 +36,7 @@ const description = computed(() => {
       "Completa los datos del desarrollo de interés y del asesor que te atiende.",
     prize:
       "Ingresa el código otorgado por RH Experience para validar tu premio.",
+    family_friend: "Ingresa el código de área de tu familiar o amigo.",
   };
 
   return descriptions[store.registrationType] || "";
@@ -79,8 +81,9 @@ onMounted(async () => {
           />
         </label>
 
-        <div class="rounded-xl bg-green-50 p-4 text-sm text-green-700">
-          Esta inscripción no tiene costo.
+        <div class="rounded-xl bg-yellow-50 p-4 text-sm text-yellow-700">
+          La primera visita es gratis, a partir de la segunda tendrá un costo de
+          $500 MXN.
         </div>
       </div>
 
@@ -267,8 +270,8 @@ onMounted(async () => {
         </label>
 
         <div class="rounded-xl bg-yellow-50 p-4 text-sm text-yellow-700">
-          Esta inscripción tiene un costo de $800 MXN por persona. Al finalizar
-          se generará una ficha de pago.
+          Esta inscripción tiene un costo de $1,500 MXN por persona. Al
+          finalizar se generará una ficha de pago.
         </div>
       </div>
 
@@ -287,6 +290,24 @@ onMounted(async () => {
 
         <div class="rounded-xl bg-green-50 p-4 text-sm text-green-700">
           Esta inscripción no tiene costo e incluye hasta 2 personas.
+        </div>
+      </div>
+
+      <!--Familiares o amigos-->
+      <div v-if="store.registrationType === 'family_friend'" class="space-y-5">
+        <label class="block">
+          <span class="font-semibold text-gray-800"> Código de área </span>
+
+          <input
+            v-model="store.registrationData.area_code"
+            type="text"
+            class="mt-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20 uppercase"
+            placeholder="Ej. RH-MKT-2026"
+          />
+        </label>
+
+        <div class="rounded-xl bg-yellow-50 p-4 text-sm text-yellow-700">
+          Esta inscripción tiene un costo de $500 MXN por persona. Al finalizar se generará una ficha de pago.
         </div>
       </div>
     </div>

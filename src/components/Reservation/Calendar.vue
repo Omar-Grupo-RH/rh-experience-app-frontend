@@ -11,21 +11,73 @@ import { formatDateToSpanish } from "@/utils/formatDate";
 import SkeletonCalendar from "@/components/ui/SkeletonCalendar.vue";
 
 const store = useReservaStore();
+
 const selectedDate = ref(store.date);
 const calendarRef = ref(null);
-const events = computed(() => store.events);
-
 const loading = ref(true);
 
-// Detectar el tamaño de pantalla
+const events = computed(() => store.events);
+
 const isMobile = ref(window.innerWidth < 768);
 const isTablet = ref(window.innerWidth >= 768 && window.innerWidth < 1024);
 
-// Actualizar en resize
 const handleResize = () => {
   isMobile.value = window.innerWidth < 768;
   isTablet.value = window.innerWidth >= 768 && window.innerWidth < 1024;
 };
+
+function getReservedSeats(eventInfo) {
+  return Number(
+    eventInfo?.unavaible_seats ??
+      eventInfo?.passengers_count ??
+      eventInfo?.extendedProps?.unavaible_seats ??
+      eventInfo?.extendedProps?.passengers_count ??
+      0,
+  );
+}
+
+function getAvailableSeats(eventInfo) {
+  const totalSeats = Number(
+    eventInfo?.total_seats ??
+      eventInfo?.total_seat ??
+      eventInfo?.extendedProps?.total_seats ??
+      eventInfo?.extendedProps?.total_seat ??
+      15,
+  );
+
+  const reservedSeats = getReservedSeats(eventInfo);
+
+  const availableFromBackend =
+    eventInfo?.avaible_seats ?? eventInfo?.extendedProps?.avaible_seats;
+
+  if (
+    availableFromBackend !== null &&
+    availableFromBackend !== undefined &&
+    availableFromBackend !== ""
+  ) {
+    return Number(availableFromBackend);
+  }
+
+  return Math.max(0, totalSeats - reservedSeats);
+}
+
+function getEventByDate(dateStr) {
+  return store.events.find((ev) => ev.start === dateStr);
+}
+
+function getEventByFullCalendarInfo(info) {
+  const clickedDate = info.event.startStr;
+
+  return (
+    store.events.find((ev) => String(ev.id) === String(info.event.id)) ||
+    store.events.find((ev) => ev.start === clickedDate) || {
+      id: info.event.id,
+      start: info.event.startStr,
+      title: info.event.title,
+      ...info.event.extendedProps,
+    }
+  );
+}
 
 const calendarOptions = ref({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
@@ -34,17 +86,19 @@ const calendarOptions = ref({
   editable: false,
   fixedWeekCount: false,
   showNonCurrentDates: false,
+
   headerToolbar: {
     left: "prev",
     center: "title",
     right: "next",
   },
+
   locale: esLocale,
   events: events.value,
 
   height: "auto",
   contentHeight: "auto",
-  aspectRatio:  1.45,
+  aspectRatio: 1.45,
 
   views: {
     dayGridMonth: {
@@ -58,7 +112,6 @@ const calendarOptions = ref({
     },
   },
 
-  // Botones responsive
   buttonText: {
     today: isMobile.value ? "Hoy" : "Hoy",
     month: isMobile.value ? "Mes" : "Mes",
@@ -69,12 +122,12 @@ const calendarOptions = ref({
 
   eventDidMount(info) {
     const today = new Date().toISOString().split("T")[0];
+
     if (info.event.startStr < today) {
       info.el.style.opacity = "0.4";
       info.el.style.pointerEvents = "none";
     }
 
-    // Ajustar contenido de eventos para móvil
     if (isMobile.value) {
       info.el.style.fontSize = "0.7rem";
       info.el.style.padding = "1px 2px";
@@ -83,25 +136,29 @@ const calendarOptions = ref({
 
   dateClick(info) {
     const clickedDate = info.dateStr;
-    const event = store.events.find((ev) => ev.start === clickedDate);
+    const event = getEventByDate(clickedDate);
 
     if (!event) {
       Swal.fire({
-        title: `Opps!`,
+        title: "Opps!",
         text: "Solamente puedes seleccionar los días donde hay RH EXPERIENCE",
         icon: "warning",
         timer: 3000,
       });
+
       return;
     }
 
-    if (event.start < new Date().toISOString().split("T")[0]) {
+    const today = new Date().toISOString().split("T")[0];
+
+    if (event.start < today) {
       Swal.fire({
-        title: `Opps!`,
+        title: "Opps!",
         text: "No puedes seleccionar una fecha pasada.",
         icon: "warning",
         timer: 3000,
       });
+
       return;
     }
 
@@ -110,57 +167,79 @@ const calendarOptions = ref({
 
     const dayEl =
       info.dayEl || info.jsEvent?.target?.closest?.(".fc-daygrid-day");
-    if (dayEl) selectDay(dayEl, clickedDate, event);
+
+    if (dayEl) {
+      selectDay(dayEl, clickedDate, event);
+    }
   },
 
   eventClick(info) {
     store.selectedTripId = info.event.id;
     store.selectedSeats = [];
+
     const clickedDate = info.event.startStr;
-    const event = store.events.find((ev) => ev.start === clickedDate);
+    const event = getEventByFullCalendarInfo(info);
 
     const clickTarget = info.jsEvent?.target || info.el || null;
     const dayEl = clickTarget ? clickTarget.closest(".fc-daygrid-day") : null;
+
     const usedDayEl =
       dayEl ||
-      (info.el && info.el.closest ? info.el.closest(".fc-daygrid-day") : null);
+      (info.el && info.el.closest
+        ? info.el.closest(".fc-daygrid-day")
+        : null);
 
     if (usedDayEl) {
-      selectDay(usedDayEl, info.event.startStr, event);
-    } else {
-      selectedDate.value = info.event.startStr;
-      Swal.fire({
-        title: `¿Reservar para el ${formatDateToSpanish(info.event.startStr)}?`,
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonColor: "#d94a93",
-        cancelButtonColor: "#adadad",
-        confirmButtonText: "Confirmar",
-        cancelButtonText: "Cancelar",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          store.setDate(info.event.startStr);
-          store.step++;
-        }
-      });
+      selectDay(usedDayEl, clickedDate, event);
+      return;
     }
+
+    selectedDate.value = clickedDate;
+
+    const availableSeats = getAvailableSeats(event);
+    const hasSeats = availableSeats >= 1;
+
+    if (!hasSeats) {
+      Swal.fire({
+        title: "Sin lugares disponibles",
+        text: "Ya no hay asientos disponibles para esta fecha.",
+        icon: "warning",
+        confirmButtonText: "Entendido",
+        confirmButtonColor: "#d94a93",
+      });
+
+      return;
+    }
+
+    Swal.fire({
+      title: `¿Reservar para el ${formatDateToSpanish(clickedDate)}?`,
+      text: `Lugares disponibles: ${availableSeats}`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#d94a93",
+      cancelButtonColor: "#adadad",
+      confirmButtonText: "Confirmar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        store.setDate(clickedDate);
+        store.step++;
+      }
+    });
   },
 });
 
 function selectDay(dayEl, dateStr, eventInfo) {
-  const { total_seats } = eventInfo;
-  const hasSeats = total_seats >= 1; // validación directa
+  const availableSeats = getAvailableSeats(eventInfo);
+  const hasSeats = availableSeats >= 1;
 
-  // Quitar selección previa
   document.querySelectorAll(".fc-daygrid-day").forEach((day) => {
     day.classList.remove("fc-day-selected");
   });
 
-  // Seleccionar el día actual
   dayEl.classList.add("fc-day-selected");
   selectedDate.value = dateStr;
 
-  // Si NO hay lugares disponibles → mostrar Swal de alerta y salir
   if (!hasSeats) {
     Swal.fire({
       title: "Sin lugares disponibles",
@@ -169,13 +248,13 @@ function selectDay(dayEl, dateStr, eventInfo) {
       confirmButtonText: "Entendido",
       confirmButtonColor: "#d94a93",
     });
-    return; // detener el flujo
+
+    return;
   }
 
-  // Si SÍ hay lugares → mostrar Swal normal de confirmación
   Swal.fire({
     title: `¿Reservar para el ${formatDateToSpanish(dateStr)}?`,
-    text: `Lugares disponibles: ${total_seats}`,
+    text: `Lugares disponibles: ${availableSeats}`,
     icon: "question",
     confirmButtonText: "Confirmar",
     showCancelButton: true,
@@ -192,29 +271,45 @@ function selectDay(dayEl, dateStr, eventInfo) {
 
 function syncCalendar() {
   const api = calendarRef.value?.getApi?.();
+
   if (!api) return;
 
   api.removeAllEvents();
+
   if (events.value.length > 0) {
-    events.value.forEach((ev) => api.addEvent(ev));
+    events.value.forEach((ev) => {
+      api.addEvent({
+        id: String(ev.id),
+        title: ev.title,
+        start: ev.start,
+        allDay: ev.allDay ?? true,
+
+        extendedProps: {
+          total_seats: ev.total_seats,
+          total_seat: ev.total_seat,
+          unavaible_seats: ev.unavaible_seats,
+          passengers_count: ev.passengers_count,
+          avaible_seats: ev.avaible_seats,
+        },
+      });
+    });
   }
 }
 
 function updateCalendarView() {
   const api = calendarRef.value?.getApi?.();
+
   if (!api) return;
 
-  // Forzar actualización de la vista
   api.updateSize();
 }
 
 onMounted(async () => {
   await store.loadEvents();
+
   loading.value = false;
 
   window.addEventListener("resize", handleResize);
-
-  // Actualizar calendario cuando cambie el tamaño
   window.addEventListener("resize", updateCalendarView);
 
   setTimeout(() => {
@@ -222,7 +317,6 @@ onMounted(async () => {
   }, 100);
 });
 
-// Limpiar event listeners
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
   window.removeEventListener("resize", updateCalendarView);
@@ -237,7 +331,7 @@ watch(
       }, 100);
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 watch(
@@ -246,10 +340,9 @@ watch(
     if (newDate !== selectedDate.value) {
       selectedDate.value = newDate;
     }
-  }
+  },
 );
 
-// Watch para cambios en responsive
 watch([isMobile, isTablet], () => {
   setTimeout(updateCalendarView, 100);
 });
@@ -259,16 +352,18 @@ watch([isMobile, isTablet], () => {
   <div class="calendar-wrapper">
     <div class="calendar-container">
       <SkeletonCalendar v-if="loading" />
+
       <FullCalendar v-else ref="calendarRef" :options="calendarOptions" />
+
       <div class="mt-8 flex flex-col md:flex-row gap-3 justify-between">
-      <button
-        type="button"
-        class="px-6 py-3 rounded-md cursor-pointer bg-gray-200 text-gray-800 font-medium w-full md:w-auto"
-        @click="store.prev"
-      >
-        Regresar
-      </button>
-    </div>
+        <button
+          type="button"
+          class="px-6 py-3 rounded-md cursor-pointer bg-gray-200 text-gray-800 font-medium w-full md:w-auto"
+          @click="store.prev"
+        >
+          Regresar
+        </button>
+      </div>
     </div>
   </div>
 </template>

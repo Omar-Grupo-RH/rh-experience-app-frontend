@@ -21,6 +21,10 @@ export default {
     return api.get("/trips");
   },
 
+  passengerByEmail(email) {
+    return api.get("/passengerVerifyEmail", { params: { email } });
+  },
+
   getTripById(id) {
     return api.get("/trip", { params: { id } });
   },

@@ -15,6 +15,8 @@ export const useCalendarStore = defineStore("calendar", () => {
   const selectedDate = ref(null);
   const isLoading = ref(false);
 
+  const MAX_SEATS_PER_TRIP = 15;
+
   function canManageEvents() {
     return Number(adminLevel.value) === 1;
   }
@@ -37,15 +39,41 @@ export const useCalendarStore = defineStore("calendar", () => {
     return response?.data?.data ?? response?.data ?? response ?? null;
   }
 
+  function normalizeSeatsInfo(trip) {
+    const totalSeats = Number(
+      trip?.total_seats ?? trip?.total_seat ?? MAX_SEATS_PER_TRIP,
+    );
+
+    const reservedSeats = Number(
+      trip?.unavaible_seats ?? trip?.passengers_count ?? 0,
+    );
+
+    const availableSeats = Number(
+      trip?.avaible_seats ?? Math.max(0, totalSeats - reservedSeats),
+    );
+
+    return {
+      totalSeats,
+      reservedSeats,
+      availableSeats,
+    };
+  }
+
   function buildCalendarEvent(trip) {
+    const { totalSeats, reservedSeats, availableSeats } =
+      normalizeSeatsInfo(trip);
+
     return {
       id: String(trip.id),
-      title: trip.title,
+      title: trip.title || "RH EXPERIENCE",
       start: trip.trip_date,
       allDay: true,
-      total_seats: trip.total_seats,
-      total_seat: trip.total_seat,
-      avaible_seats: trip.avaible_seats,
+
+      total_seats: totalSeats,
+      total_seat: totalSeats,
+      unavaible_seats: reservedSeats,
+      passengers_count: reservedSeats,
+      avaible_seats: availableSeats,
     };
   }
 
@@ -55,16 +83,9 @@ export const useCalendarStore = defineStore("calendar", () => {
     try {
       const list = await listEvents();
 
-      events.value = list.map((t) => ({
-        id: String(t.id),
-        title: t.title,
-        start: t.trip_date,
-        allDay: true,
-        total_seats: t.total_seats,
-        total_seat: t.total_seat,
-        avaible_seats: t.avaible_seats,
-      }));
+      events.value = list.map((trip) => buildCalendarEvent(trip));
     } catch (e) {
+      console.error(e);
       Swal.fire("Error", "No se pudieron cargar los eventos", "error");
     } finally {
       isLoading.value = false;
@@ -87,7 +108,7 @@ export const useCalendarStore = defineStore("calendar", () => {
 
     const formData = {
       trip_date: dateStr,
-      total_seat: 15,
+      total_seats: MAX_SEATS_PER_TRIP,
       title: "RH EXPERIENCE",
     };
 
@@ -220,17 +241,16 @@ export const useCalendarStore = defineStore("calendar", () => {
       const eventIndex = events.value.findIndex((event) => event.id === id);
 
       if (eventIndex !== -1) {
-        events.value[eventIndex] = {
-          ...events.value[eventIndex],
-          start: finalDate,
-          title: updated?.title ?? events.value[eventIndex].title,
-          total_seats:
-            updated?.total_seats ?? events.value[eventIndex].total_seats,
-          total_seat:
-            updated?.total_seat ?? events.value[eventIndex].total_seat,
-          avaible_seats:
-            updated?.avaible_seats ?? events.value[eventIndex].avaible_seats,
+        const currentEvent = events.value[eventIndex];
+        const mergedTrip = {
+          ...currentEvent,
+          ...updated,
+          id,
+          trip_date: finalDate,
+          title: updated?.title ?? currentEvent.title,
         };
+
+        events.value[eventIndex] = buildCalendarEvent(mergedTrip);
       }
 
       await loadEvents();
@@ -290,7 +310,10 @@ export const useCalendarStore = defineStore("calendar", () => {
         return;
       }
 
-      const { title, total_seats, trip_date } = trip;
+      const { title, trip_date } = trip;
+      const { totalSeats, reservedSeats, availableSeats } =
+        normalizeSeatsInfo(trip);
+
       const soloCerrar = isPast(trip_date);
 
       const res = await Swal.fire({
@@ -298,9 +321,8 @@ export const useCalendarStore = defineStore("calendar", () => {
         html: `
           <div style="text-align:center">
             <p><strong>Fecha:</strong> ${formatDateToSpanish(trip_date)}</p>
-            <p><strong>Lugares disponibles:</strong> ${
-              total_seats ?? "No registrado"
-            }</p>
+            <p><strong>Lugares disponibles:</strong> ${availableSeats}</p>
+            <p><strong>Lugares reservados:</strong> ${reservedSeats}</p>
           </div>
         `,
         icon: "info",

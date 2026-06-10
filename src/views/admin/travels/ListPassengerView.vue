@@ -24,6 +24,7 @@ const registrationTypeLabels = {
   prize: "Premio",
   investor: "Inversionista",
   prospect: "Cliente prospecto",
+  family_friend: "Familiares y Amigos"
 };
 
 const getRegistrationTypeLabel = (type) => {

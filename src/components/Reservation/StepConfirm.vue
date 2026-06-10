@@ -1,5 +1,5 @@
 <script setup>
-import { ref, inject } from "vue";
+import { ref, inject, onMounted, watch } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 import { formatDateToSpanish } from "@/utils/formatDate";
 import PassengersItem from "@/components/Reservation/PassengersItem.vue";
@@ -66,6 +66,12 @@ function buildRegistrationPayload(store) {
     return payload;
   }
 
+  if (store.registrationType === "family_friend") {
+    return {
+      ...base,
+    };
+  }
+
   return base;
 }
 
@@ -81,6 +87,14 @@ function buildPayload() {
 
     RegistrationType: buildRegistrationPayload(store),
 
+    payment_summary: {
+      requires_payment: store.requiresPayment,
+      paid_tickets_count: store.paidTicketsCount,
+      free_tickets_count: store.freeTicketsCount,
+      price_per_ticket: store.registrationPricePerPerson,
+      total_amount: store.registrationTotal,
+    },
+
     passengers: store.passengers.map((p) => ({
       seat_id: p.seat,
       first_name: p.first_name,
@@ -94,6 +108,16 @@ function buildPayload() {
   };
 }
 
+async function verifyInternalPassengerEmail() {
+  if (store.registrationType !== "internal") return;
+
+  const email = store.passengers[0]?.email;
+
+  if (!email) return;
+
+  await store.verifyEmailRegister(email);
+}
+
 async function startCheckout() {
   if (!store.canPay) {
     toast?.open?.({
@@ -102,6 +126,7 @@ async function startCheckout() {
     });
     return;
   }
+
   if (!store.canContinuePassengers) {
     toast?.open?.({
       message: "Revisa los datos de pasajeros.",
@@ -134,6 +159,7 @@ async function startCheckout() {
       message: data.message || "Reservación completada exitosamente.",
       type: "success",
     });
+
     store.reset();
   } catch (error) {
     const status = error.response?.status;
@@ -153,6 +179,17 @@ async function startCheckout() {
     loading.value = false;
   }
 }
+
+onMounted(async () => {
+  await verifyInternalPassengerEmail();
+});
+
+watch(
+  () => store.passengers[0]?.email,
+  async () => {
+    await verifyInternalPassengerEmail();
+  },
+);
 </script>
 
 <template>
@@ -178,8 +215,10 @@ async function startCheckout() {
               d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
             ></path>
           </svg>
+
           Confirmar Reservación
         </h3>
+
         <p class="text-sm text-gray-500 font-light mt-1 ml-9">
           Revisa los detalles antes de finalizar tu reserva.
         </p>
@@ -206,12 +245,14 @@ async function startCheckout() {
                 ></path>
               </svg>
             </div>
+
             <div>
               <p
                 class="text-[11px] text-gray-500 font-light uppercase tracking-wider"
               >
                 Fecha Seleccionada
               </p>
+
               <p class="text-base text-gray-800">
                 {{ formatDateToSpanish(store.date) }}
               </p>
@@ -241,15 +282,18 @@ async function startCheckout() {
                 ></path>
               </svg>
             </div>
+
             <div>
               <p
                 class="text-[11px] text-gray-500 font-light uppercase tracking-wider"
               >
                 Punto de Encuentro
               </p>
+
               <p class="text-base text-gray-800">Oficinas de Grupo RH</p>
             </div>
           </div>
+
           <div class="flex items-start gap-3 p-4 rounded-xl">
             <div class="bg-experience-blue/20 p-2 rounded-lg shadow-sm">
               <svg
@@ -267,15 +311,18 @@ async function startCheckout() {
                 />
               </svg>
             </div>
+
             <div>
               <p
                 class="text-[11px] text-gray-500 font-light uppercase tracking-wider"
               >
                 Hora de salida
               </p>
+
               <p class="text-base text-gray-800">9:00 AM</p>
             </div>
           </div>
+
           <div class="flex items-start gap-3 p-4 rounded-xl">
             <div class="bg-experience-blue/20 p-2 rounded-lg shadow-sm">
               <svg
@@ -292,12 +339,14 @@ async function startCheckout() {
                 ></path>
               </svg>
             </div>
+
             <div>
               <p
                 class="text-[11px] text-gray-500 font-light uppercase tracking-wider"
               >
                 Los boletos serán enviados a
               </p>
+
               <p class="text-base text-gray-800">
                 {{ store.passengers[0]?.email }}
               </p>
@@ -316,6 +365,122 @@ async function startCheckout() {
           </div>
         </div>
 
+        <div
+          v-if="
+            store.registrationType === 'internal' &&
+            store.emailVerificationLoading
+          "
+          class="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-4"
+        >
+          <p class="text-sm font-semibold text-slate-700">
+            Verificando si ya has tomado un RH Experience previamente...
+          </p>
+        </div>
+
+        <div
+          v-if="
+            store.registrationType === 'internal' &&
+            store.emailVerification?.exists
+          "
+          class="mb-5 rounded-xl border border-blue-100 bg-blue-50 p-4"
+        >
+          <p class="text-sm font-semibold text-blue-800">
+            ¡Hola! Nos da mucho gusto que quieras vivir nuevamente la
+            experiencia. Hemos verificado que ya participaste anteriormente en
+            un RH Experience, por lo que para este segundo viaje se aplicará una
+            cuota de recuperación de $500 MXN.
+          </p>
+        </div>
+
+        <div
+          v-if="store.registrationType === 'investor' && store.registrationTotal > 0"
+          class="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4"
+        >
+          <p class="text-sm font-semibold text-amber-900">
+            Tu registro como inversionista incluye 1 boleto sin costo. El
+            acompañante extra tiene una cuota de recuperación de $500 MXN.
+          </p>
+        </div>
+
+        <div
+          v-if="store.registrationType === 'prospect'"
+          class="mb-5 rounded-xl border border-purple-200 bg-purple-50 p-4"
+        >
+          <p class="text-sm font-semibold text-purple-900">
+            Para clientes prospectos se aplicará una cuota de recuperación de
+            $1,500 MXN por boleto.
+          </p>
+        </div>
+
+        <div
+          v-if="store.registrationType === 'family_friend'"
+          class="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4"
+        >
+          <p class="text-sm font-semibold text-amber-900">
+            Para familiares y amigos se aplicará una cuota de recuperación de
+            $500 MXN por boleto.
+          </p>
+        </div>
+
+        <div
+          v-if="store.registrationTotal > 0"
+          class="mb-5 rounded-2xl border border-slate-200 bg-slate-50 p-5"
+        >
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-500">
+                Resumen de pago
+              </p>
+
+              <p class="mt-1 text-sm font-semibold text-slate-700">
+                Se generará una ficha de pago junto con tu reservación.
+              </p>
+            </div>
+
+            <div class="rounded-xl bg-white px-4 py-3 text-right ring-1 ring-slate-200">
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-500">
+                Total a pagar
+              </p>
+
+              <p class="text-2xl font-black text-slate-900">
+                ${{ store.registrationTotal.toLocaleString("es-MX") }} MXN
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div class="rounded-xl bg-white p-3 ring-1 ring-slate-200">
+              <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                Boletos gratis
+              </p>
+
+              <p class="mt-1 text-lg font-black text-emerald-700">
+                {{ store.freeTicketsCount }}
+              </p>
+            </div>
+
+            <div class="rounded-xl bg-white p-3 ring-1 ring-slate-200">
+              <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                Boletos con costo
+              </p>
+
+              <p class="mt-1 text-lg font-black text-amber-700">
+                {{ store.paidTicketsCount }}
+              </p>
+            </div>
+
+            <div class="rounded-xl bg-white p-3 ring-1 ring-slate-200">
+              <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                Costo unitario
+              </p>
+
+              <p class="mt-1 text-lg font-black text-slate-900">
+                ${{ store.registrationPricePerPerson.toLocaleString("es-MX") }}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div class="bg-gray-50 p-4 rounded-xl mb-6 border border-gray-200">
           <div class="flex items-start gap-3">
             <div class="flex items-center h-5">
@@ -326,6 +491,7 @@ async function startCheckout() {
                 class="w-5 h-5 border-gray-300 rounded focus:ring-experience-blue focus:ring-2 cursor-pointer transition-all"
               />
             </div>
+
             <div class="text-sm">
               <label
                 for="terminos"
@@ -340,6 +506,7 @@ async function startCheckout() {
                   términos y condiciones
                 </button>
               </label>
+
               <p class="text-gray-500 text-xs mt-1">
                 Al continuar, confirmas que los datos ingresados son correctos.
               </p>
@@ -355,6 +522,7 @@ async function startCheckout() {
           >
             <template v-if="!loading">
               Reservar Ahora
+
               <svg
                 class="w-5 h-5"
                 fill="none"
@@ -369,6 +537,7 @@ async function startCheckout() {
                 ></path>
               </svg>
             </template>
+
             <template v-else>
               <svg
                 class="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
@@ -384,12 +553,14 @@ async function startCheckout() {
                   stroke="currentColor"
                   stroke-width="4"
                 ></circle>
+
                 <path
                   class="opacity-75"
                   fill="currentColor"
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
+
               Procesando...
             </template>
           </button>
@@ -424,9 +595,11 @@ async function startCheckout() {
             <div
               class="absolute inset-0 border-4 border-gray-100 rounded-full"
             ></div>
+
             <div
               class="absolute inset-0 border-4 border-experience-blue border-t-transparent rounded-full animate-spin"
             ></div>
+
             <div
               class="absolute inset-0 flex items-center justify-center text-experience-blue"
             >
@@ -445,9 +618,11 @@ async function startCheckout() {
               </svg>
             </div>
           </div>
+
           <h4 class="font-bold text-xl text-gray-900 mb-2">
             Procesando Reservación
           </h4>
+
           <p class="text-sm text-gray-500">
             Estamos asegurando tus lugares. Por favor no cierres esta ventana ni
             recargues la página.

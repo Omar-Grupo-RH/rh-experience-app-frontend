@@ -7,8 +7,6 @@ const store = useTravelStore();
 
 onMounted(async () => {
   await store.getTravels();
-
-  console.log(store.travels);
 });
 </script>
 

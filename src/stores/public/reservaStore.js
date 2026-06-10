@@ -1,4 +1,3 @@
-// src/stores/public/reservaStore.js
 import { defineStore, storeToRefs } from "pinia";
 import { ref, computed, watch, inject } from "vue";
 
@@ -7,6 +6,7 @@ import { useEventsStore } from "./eventsStore";
 
 import { validatePassengers } from "@/composables/usePassengerValidation";
 import CodesAPI from "@/api/CodesAPI";
+import ReservationAPI from "@/api/ReservationAPI";
 
 export const useReservaStore = defineStore("reserva", () => {
   const seats = useSeatsStore();
@@ -29,9 +29,14 @@ export const useReservaStore = defineStore("reserva", () => {
   const registrationCodeValid = ref(null);
   const registrationCodeMessage = ref("");
   const registrationCodeData = ref(null);
+
   const allianceCodes = ref([]);
   const loadingAllianceCodes = ref(false);
+
   const registrationType = ref("");
+
+  const emailVerification = ref(null);
+  const emailVerificationLoading = ref(false);
 
   const registrationData = ref({
     area_code: "",
@@ -51,7 +56,7 @@ export const useReservaStore = defineStore("reserva", () => {
     {
       value: "internal",
       title: "Personal interno",
-      description: "Para Comunidad RH con código de área.",
+      description: "Primera visita gratis. Segunda visita en adelante $500.",
       free: true,
       allowsExtra: false,
     },
@@ -65,7 +70,7 @@ export const useReservaStore = defineStore("reserva", () => {
     {
       value: "investor",
       title: "Inversionistas",
-      description: "Para inversionistas o propietarios de desarrollos RH.",
+      description: "Incluye 1 boleto gratis. Invitado extra con cuota de $500.",
       free: true,
       allowsExtra: true,
     },
@@ -83,22 +88,19 @@ export const useReservaStore = defineStore("reserva", () => {
       free: true,
       allowsExtra: true,
     },
+    {
+      value: "family_friend",
+      title: "Familiares y amigos",
+      description: "Para familiares o amigos.",
+      free: false,
+      allowsExtra: false,
+    },
   ];
 
   const currentRegistrationType = computed(() => {
     return registrationTypes.find(
       (type) => type.value === registrationType.value,
     );
-  });
-
-  const isFreeRegistration = computed(() => {
-    return ["internal", "alliance", "investor", "prize"].includes(
-      registrationType.value,
-    );
-  });
-
-  const requiresPayment = computed(() => {
-    return registrationType.value === "prospect";
   });
 
   const requiresExtraPassenger = computed(() => {
@@ -111,16 +113,56 @@ export const useReservaStore = defineStore("reserva", () => {
     return 1;
   });
 
+  const paidTicketsCount = computed(() => {
+    const seatsCount = selectedSeats.value.length;
+
+    if (registrationType.value === "prospect") {
+      return seatsCount;
+    }
+
+    if (registrationType.value === "family_friend") {
+      return seatsCount;
+    }
+
+    if (registrationType.value === "internal") {
+      return emailVerification.value?.exists ? seatsCount : 0;
+    }
+
+    if (registrationType.value === "investor") {
+      return Math.max(0, seatsCount - 1);
+    }
+
+    return 0;
+  });
+
+  const freeTicketsCount = computed(() => {
+    return Math.max(0, selectedSeats.value.length - paidTicketsCount.value);
+  });
+
   const registrationPricePerPerson = computed(() => {
-    if (registrationType.value === "prospect") return 800;
+    if (registrationType.value === "prospect") return 1500;
+
+    if (registrationType.value === "family_friend") return 500;
+
+    if (registrationType.value === "internal") {
+      return emailVerification.value?.exists ? 500 : 0;
+    }
+
+    if (registrationType.value === "investor") return 500;
 
     return 0;
   });
 
   const registrationTotal = computed(() => {
-    if (!requiresPayment.value) return 0;
+    return paidTicketsCount.value * registrationPricePerPerson.value;
+  });
 
-    return selectedSeats.value.length * registrationPricePerPerson.value;
+  const requiresPayment = computed(() => {
+    return registrationTotal.value > 0;
+  });
+
+  const isFreeRegistration = computed(() => {
+    return !requiresPayment.value;
   });
 
   const canContinueRegistrationType = computed(() => {
@@ -131,6 +173,10 @@ export const useReservaStore = defineStore("reserva", () => {
     const data = registrationData.value;
 
     if (registrationType.value === "internal") {
+      return Boolean(data.area_code.trim());
+    }
+
+    if (registrationType.value === "family_friend") {
       return Boolean(data.area_code.trim());
     }
 
@@ -167,13 +213,22 @@ export const useReservaStore = defineStore("reserva", () => {
   });
 
   const requiresBackendCodeValidation = computed(() => {
-    return ["internal", "alliance", "prize", "prospect"].includes(registrationType.value);
+    return [
+      "internal",
+      "alliance",
+      "prize",
+      "prospect",
+      "family_friend",
+    ].includes(registrationType.value);
   });
 
   const registrationCodeToValidate = computed(() => {
     const data = registrationData.value;
 
-    if (registrationType.value === "internal") {
+    if (
+      registrationType.value === "internal" ||
+      registrationType.value === "family_friend"
+    ) {
       return {
         type: "department",
         code: data.area_code,
@@ -193,6 +248,7 @@ export const useReservaStore = defineStore("reserva", () => {
         code: data.prize_code,
       };
     }
+
     if (registrationType.value === "prospect") {
       return {
         type: "internal",
@@ -243,6 +299,11 @@ export const useReservaStore = defineStore("reserva", () => {
     registrationCodeData.value = null;
   }
 
+  function resetEmailVerification() {
+    emailVerification.value = null;
+    emailVerificationLoading.value = false;
+  }
+
   async function validateRegistrationCode() {
     resetRegistrationCodeValidation();
 
@@ -250,12 +311,14 @@ export const useReservaStore = defineStore("reserva", () => {
       registrationCodeValid.value = false;
       registrationCodeMessage.value =
         "Completa los campos requeridos antes de continuar.";
+
       return false;
     }
 
     if (!requiresBackendCodeValidation.value) {
       registrationCodeValid.value = true;
       registrationCodeMessage.value = "";
+
       return true;
     }
 
@@ -264,6 +327,7 @@ export const useReservaStore = defineStore("reserva", () => {
     if (!params?.type || !params?.code?.trim()) {
       registrationCodeValid.value = false;
       registrationCodeMessage.value = "Ingresa un código válido.";
+
       return false;
     }
 
@@ -334,6 +398,7 @@ export const useReservaStore = defineStore("reserva", () => {
     };
 
     resetRegistrationCodeValidation();
+    resetEmailVerification();
 
     seats.resetSeats();
   }
@@ -356,6 +421,7 @@ export const useReservaStore = defineStore("reserva", () => {
     };
 
     resetRegistrationCodeValidation();
+    resetEmailVerification();
   }
 
   function toggleReservationSeat(id) {
@@ -370,9 +436,12 @@ export const useReservaStore = defineStore("reserva", () => {
     if (selectedSeats.value.length >= maxPassengers.value) {
       const max = maxPassengers.value;
 
-      toast?.error?.(
-        `Solo puedes seleccionar ${max} asiento${max > 1 ? "s" : ""} para este tipo de registro.`,
-      );
+      toast?.open?.({
+        message: `Solo puedes seleccionar ${max} asiento${
+          max > 1 ? "s" : ""
+        } para este tipo de registro.`,
+        type: "error",
+      });
 
       return;
     }
@@ -387,27 +456,6 @@ export const useReservaStore = defineStore("reserva", () => {
   const requiredFieldsFilled = computed(() => {
     return _passengersValidation.value.requiredFilled;
   });
-
-  watch(
-    _passengersValidation,
-    (v) => {
-      validationErrors.value = v.errors.slice();
-    },
-    { immediate: true },
-  );
-
-  watch(
-    () => [
-      registrationType.value,
-      registrationData.value.area_code,
-      registrationData.value.alliance_code,
-      registrationData.value.prize_code,
-      registrationData.value.advisor_code,
-    ],
-    () => {
-      resetRegistrationCodeValidation();
-    },
-  );
 
   const validationState = computed(() => ({
     allAdults: allAdults.value,
@@ -440,6 +488,35 @@ export const useReservaStore = defineStore("reserva", () => {
     return await evts.seatsSold(id);
   }
 
+  async function verifyEmailRegister(email) {
+    if (!email) {
+      resetEmailVerification();
+      return null;
+    }
+
+    try {
+      emailVerificationLoading.value = true;
+
+      const { data } = await ReservationAPI.passengerByEmail(email);
+
+      emailVerification.value = data;
+
+      return data;
+    } catch (error) {
+      const fallback = error?.response?.data || {
+        success: false,
+        exists: false,
+        message: "No se pudo verificar el email del pasajero.",
+      };
+
+      emailVerification.value = fallback;
+
+      return fallback;
+    } finally {
+      emailVerificationLoading.value = false;
+    }
+  }
+
   const next = () => {
     if (step.value < maxStep.value) {
       step.value++;
@@ -463,6 +540,36 @@ export const useReservaStore = defineStore("reserva", () => {
 
     seats.resetSeats();
   }
+
+  watch(
+    _passengersValidation,
+    (v) => {
+      validationErrors.value = v.errors.slice();
+    },
+    { immediate: true },
+  );
+
+  watch(
+    () => [
+      registrationType.value,
+      registrationData.value.area_code,
+      registrationData.value.alliance_code,
+      registrationData.value.prize_code,
+      registrationData.value.advisor_code,
+    ],
+    () => {
+      resetRegistrationCodeValidation();
+    },
+  );
+
+  watch(
+    () => passengers.value?.[0]?.email,
+    () => {
+      if (registrationType.value === "internal") {
+        resetEmailVerification();
+      }
+    },
+  );
 
   return {
     step,
@@ -495,18 +602,28 @@ export const useReservaStore = defineStore("reserva", () => {
     maxPassengers,
     registrationPricePerPerson,
     registrationTotal,
+    paidTicketsCount,
+    freeTicketsCount,
+
     canContinueRegistrationType,
     canContinueRegistrationValidation,
     requiresBackendCodeValidation,
     registrationCodeToValidate,
     maxStep,
+
     allianceCodes,
     allianceOptions,
     loadingAllianceCodes,
+
+    emailVerification,
+    emailVerificationLoading,
+    verifyEmailRegister,
+
     loadAllianceCodes,
     next,
     prev,
     reset,
+
     setDate: seats.setDate,
     loadEvents,
     toggleSeat: toggleReservationSeat,
@@ -517,5 +634,6 @@ export const useReservaStore = defineStore("reserva", () => {
     validateRegistrationCode,
     validateRegistrationAndNext,
     resetRegistrationCodeValidation,
+    resetEmailVerification,
   };
 });

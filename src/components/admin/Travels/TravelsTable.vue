@@ -9,6 +9,8 @@ const props = defineProps({
   },
 });
 
+const MAX_SEATS_PER_TRIP = 15;
+
 const search = ref("");
 const currentPage = ref(1);
 const perPage = ref(6);
@@ -114,6 +116,11 @@ const getReservedSeats = (travel) => {
   return Number.parseInt(travel.unavaible_seats || 0, 10);
 };
 
+const getAvailableSeats = (travel) => {
+  const reservedSeats = getReservedSeats(travel);
+
+  return Math.max(0, MAX_SEATS_PER_TRIP - reservedSeats);
+};
 
 const goToPage = (page) => {
   if (page < 1 || page > totalPages.value) return;
@@ -369,7 +376,7 @@ watch(
                   </p>
 
                   <p class="mt-2 text-2xl font-black text-rose-700">
-                    {{ travel.unavaible_seats }}
+                    {{ getReservedSeats(travel) }}
                   </p>
                 </div>
 
@@ -383,7 +390,7 @@ watch(
                   </p>
 
                   <p class="mt-2 text-2xl font-black text-emerald-700">
-                    {{ travel.total_seats }}
+                    {{ getAvailableSeats(travel) }}
                   </p>
                 </div>
               </div>

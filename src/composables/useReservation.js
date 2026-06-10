@@ -21,10 +21,16 @@ export function useReservation() {
     return data.data ?? [];
   };
 
+  const getPassengerEmail = async (email) => {
+    const { data } = await ReservationAPI.passengerByEmail(email);
+    return data.data ?? "";
+  };
+
   return {
     listEvents,
     getSeatsByTrip,
     getCouponDiscount,
     setReverse,
+    getPassengerEmail,
   };
 }
