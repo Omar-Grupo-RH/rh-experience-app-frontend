@@ -19,7 +19,8 @@ const answerLabels = {
   participant_type: "Soy parte de",
   trip_participation_date: "Fecha en la que participé en el recorrido",
 
-  church_experience_rating: "Califica del 1 al 10 la experiencia por la Iglesia",
+  church_experience_rating:
+    "Califica del 1 al 10 la experiencia por la Iglesia",
   church_favorite_part: "¿Cuál fue tu parte favorita de este tour?",
   church_guided_tour_rating: "¿Cómo calificas el tour guiado por la iglesia?",
   church_suggestion: "¿Tienes alguna sugerencia? Opcional",
@@ -69,6 +70,8 @@ const chartColors = [
   "#ec4899",
   "#64748b",
 ];
+
+const starQuestionKeys = ["staff_andrea_rating", "staff_jaqueline_rating"];
 
 const surveySections = [
   {
@@ -213,12 +216,14 @@ const surveySections = [
       {
         key: "staff_andrea_rating",
         label: "Andrea",
-        type: "pie",
+        type: "stars",
+        max: 5,
       },
       {
         key: "staff_jaqueline_rating",
         label: "Jaqueline",
-        type: "pie",
+        type: "stars",
+        max: 5,
       },
       {
         key: "staff_during_info_rating",
@@ -412,9 +417,58 @@ function normalizeAnswerValue(value) {
   return String(value).trim();
 }
 
+function isStarQuestion(key) {
+  return starQuestionKeys.includes(key);
+}
+
+function getStarScore(value) {
+  const normalized = normalizeAnswerValue(value).toLowerCase();
+
+  if (!normalized) return 0;
+
+  const numeric = Number(normalized);
+
+  if (!Number.isNaN(numeric)) {
+    if (numeric > 5) {
+      return Math.min(5, numeric / 2);
+    }
+
+    return Math.min(5, numeric);
+  }
+
+  const map = {
+    "muy bueno": 5,
+    excelente: 5,
+    bueno: 4,
+    regular: 3,
+    malo: 2,
+    "muy malo": 1,
+  };
+
+  return map[normalized] ?? 0;
+}
+
+function getStarsArray(score) {
+  const roundedScore = Math.round(Number(score || 0));
+
+  return Array.from({ length: 5 }, (_, index) => {
+    return index < roundedScore;
+  });
+}
+
+function formatStarScore(score) {
+  const number = Number(score || 0);
+
+  if (!number) return "Sin calificación";
+
+  return `${number.toFixed(1)} de 5`;
+}
+
 function getQuestionAnswers(questionKey) {
   return responsesWithAnswers.value
-    .map((response) => normalizeAnswerValue(response.normalizedAnswers[questionKey]))
+    .map((response) =>
+      normalizeAnswerValue(response.normalizedAnswers[questionKey]),
+    )
     .filter(Boolean);
 }
 
@@ -427,6 +481,37 @@ function countValues(values) {
 
 function buildQuestionData(question) {
   const values = getQuestionAnswers(question.key);
+
+  if (question.type === "stars") {
+    const scores = values
+      .map((value) => getStarScore(value))
+      .filter((value) => value > 0);
+
+    const average = scores.length
+      ? Number(
+          (
+            scores.reduce((sum, value) => sum + value, 0) / scores.length
+          ).toFixed(1),
+        )
+      : null;
+
+    const distribution = [5, 4, 3, 2, 1].map((star) => {
+      return {
+        stars: star,
+        total: scores.filter((score) => Math.round(score) === star).length,
+      };
+    });
+
+    return {
+      ...question,
+      totalResponses: scores.length,
+      average,
+      distribution,
+      textAnswers: values,
+      chartLabels: [],
+      chartValues: [],
+    };
+  }
 
   if (question.type === "text") {
     return {
@@ -514,9 +599,12 @@ function getChartOptions(question) {
               0,
             );
 
-            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+            const percentage =
+              total > 0 ? ((value / total) * 100).toFixed(1) : 0;
 
-            return `${label}: ${value} respuesta${value === 1 ? "" : "s"} (${percentage}%)`;
+            return `${label}: ${value} respuesta${
+              value === 1 ? "" : "s"
+            } (${percentage}%)`;
           },
         },
       },
@@ -554,7 +642,7 @@ async function renderCharts() {
 
   chartsData.value.forEach((section) => {
     section.questions.forEach((question) => {
-      if (question.type === "text") return;
+      if (question.type === "text" || question.type === "stars") return;
       if (!question.totalResponses) return;
 
       const canvas = chartRefs.value[question.key];
@@ -614,12 +702,10 @@ watch(
       </div>
     </div>
 
-    <div
-      class="flex w-fit rounded-2xl bg-slate-100 p-1 ring-1 ring-slate-200"
-    >
+    <div class="flex w-fit rounded-2xl bg-slate-100 p-1 ring-1 ring-slate-200">
       <button
         type="button"
-        class="rounded-xl px-4 py-2 text-sm font-semibold transition cursor-pointer"
+        class="cursor-pointer rounded-xl px-4 py-2 text-sm font-semibold transition"
         :class="
           activeTab === 'responses'
             ? 'bg-white text-slate-900 shadow-sm'
@@ -632,7 +718,7 @@ watch(
 
       <button
         type="button"
-        class="rounded-xl px-4 py-2 text-sm font-semibold transition cursor-pointer"
+        class="cursor-pointer rounded-xl px-4 py-2 text-sm font-semibold transition"
         :class="
           activeTab === 'charts'
             ? 'bg-white text-slate-900 shadow-sm'
@@ -792,10 +878,6 @@ watch(
           <p class="font-semibold text-slate-900">
             No hay datos suficientes para graficar.
           </p>
-
-          <p class="mt-1 text-sm text-slate-500">
-            Verifica que las respuestas incluyan el campo answers o answers_json.
-          </p>
         </div>
       </div>
 
@@ -844,6 +926,69 @@ watch(
                 class="rounded-2xl bg-slate-50 p-6 text-center text-sm font-medium text-slate-500"
               >
                 Sin respuestas para esta pregunta.
+              </div>
+
+              <div v-else-if="question.type === 'stars'" class="space-y-5">
+                <div class="rounded-2xl bg-slate-50 p-5 text-center">
+                  <p class="text-sm font-semibold text-slate-500">
+                    Promedio general
+                  </p>
+
+                  <div class="mt-3 flex items-center justify-center gap-1">
+                    <span
+                      v-for="(filled, index) in getStarsArray(
+                        question.average,
+                      )"
+                      :key="`${question.key}-avg-${index}`"
+                      class="text-4xl"
+                      :class="filled ? 'text-yellow-400' : 'text-slate-300'"
+                    >
+                      ★
+                    </span>
+                  </div>
+
+                  <p class="mt-2 text-lg font-black text-slate-900">
+                    {{ formatStarScore(question.average) }}
+                  </p>
+                </div>
+
+                <div class="space-y-3">
+                  <div
+                    v-for="item in question.distribution"
+                    :key="`${question.key}-${item.stars}`"
+                    class="flex items-center gap-3"
+                  >
+                    <div class="flex w-32 items-center gap-0.5">
+                      <span
+                        v-for="(filled, index) in getStarsArray(item.stars)"
+                        :key="`${question.key}-${item.stars}-${index}`"
+                        class="text-base"
+                        :class="filled ? 'text-yellow-400' : 'text-slate-300'"
+                      >
+                        ★
+                      </span>
+                    </div>
+
+                    <div
+                      class="h-3 flex-1 overflow-hidden rounded-full bg-slate-100"
+                    >
+                      <div
+                        class="h-full rounded-full bg-yellow-400"
+                        :style="{
+                          width:
+                            question.totalResponses > 0
+                              ? `${(item.total / question.totalResponses) * 100}%`
+                              : '0%',
+                        }"
+                      ></div>
+                    </div>
+
+                    <p class="w-20 text-right text-sm font-semibold text-slate-600">
+                      {{ item.total }}
+                      {{ item.total === 1 ? "resp." : "resps." }}
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <div v-else-if="question.type === 'text'" class="space-y-3">
@@ -925,7 +1070,30 @@ watch(
                   {{ getAnswerLabel(key) }}
                 </p>
 
+                <div
+                  v-if="isStarQuestion(key)"
+                  class="mt-2 flex items-center gap-2"
+                >
+                  <div class="flex items-center gap-0.5">
+                    <span
+                      v-for="(filled, index) in getStarsArray(
+                        getStarScore(value),
+                      )"
+                      :key="`${key}-${index}`"
+                      class="text-2xl"
+                      :class="filled ? 'text-yellow-400' : 'text-slate-300'"
+                    >
+                      ★
+                    </span>
+                  </div>
+
+                  <span class="text-sm font-semibold text-slate-700">
+                    {{ value || "Sin respuesta" }}
+                  </span>  
+                </div>
+
                 <p
+                  v-else
                   class="mt-2 whitespace-pre-line text-sm font-medium text-slate-800"
                 >
                   {{ value || "Sin respuesta" }}
