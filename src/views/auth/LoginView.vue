@@ -11,16 +11,6 @@ const { login } = useAuth();
 const route = useRoute();
 const router = useRouter();
 
-const getSafeNextRoute = () => {
-  const next = route.query.next;
-
-  if (typeof next === "string" && next.startsWith("/")) {
-    return next;
-  }
-
-  return { name: "dashboard" };
-};
-
 const handleSubmit = async (formData) => {
   try {
     const {

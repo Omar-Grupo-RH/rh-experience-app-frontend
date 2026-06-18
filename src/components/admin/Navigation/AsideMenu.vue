@@ -23,13 +23,49 @@ const roleLabel = computed(() => {
     case 2:
       return "Administrador";
     case 3:
-      return "Cobranza";
-    case 4:
-      return "Usuario";
+      return "Front Desk";
     default:
       return "Sin acceso";
   }
 });
+
+const allMenuItems = [
+  {
+    label: "Dashboard",
+    to: { name: "dashboard" },
+    icon: "grid",
+  },
+  {
+    to: { name: "calendar" },
+    label: "Agenda de viajes",
+    icon: "calendar",
+  },
+  {
+    to: { name: "travels" },
+    label: "Mis pasajeros",
+    icon: "users",
+  },
+  {
+    to: { name: "codes" },
+    label: "Códigos",
+    icon: "codes",
+  },
+  {
+    label: "Encuestas",
+    to: { name: "survey-responses" },
+    icon: "survey",
+  },
+  {
+    to: { name: "comments" },
+    label: "Comentarios",
+    icon: "comments",
+  },
+  {
+    to: { name: "users" },
+    label: "Usuarios",
+    icon: "users",
+  },
+];
 
 const menuItems = computed(() => {
   const level = Number(adminLevel.value);
@@ -37,36 +73,14 @@ const menuItems = computed(() => {
   if (!user.value || level <= 0) return [];
 
   if (level === 1) {
-    return [
-      {
-        label: "Dashboard",
-        to: { name: "dashboard" },
-        icon: "grid",
-      },
-      { to: { name: "calendar" }, label: "Agenda de viajes", icon: "calendar" },
-      { to: { name: "travels" }, label: "Mis pasajeros", icon: "users" },
-      { to: { name: "codes" }, label: "Códigos", icon: "codes" },
-      {
-        label: "Encuestas",
-        to: { name: "survey-responses" },
-        icon: "survey",
-      },
-      { to: { name: "comments" }, label: "Comentarios", icon: "comments" },
-      { to: { name: "users" }, label: "Usuarios", icon: "users" },
-    ];
+    return allMenuItems;
   }
 
-  if (level === 2) {
-    return [
-     
-      { to: { name: "calendar" }, label: "Agenda de viajes", icon: "calendar" },
-      { to: { name: "travels" }, label: "Mis pasajeros", icon: "users" },
-      
-    ];
+  if (level === 2 || level === 3) {
+    return allMenuItems.filter((item) =>
+      ["calendar", "travels"].includes(item.to.name),
+    );
   }
-
-
-  
 
   return [];
 });
@@ -121,6 +135,7 @@ const iconPaths = {
           <p class="text-[11px] uppercase tracking-[0.28em] text-white/50">
             Panel de control
           </p>
+
           <h2 class="mt-1 truncate text-lg font-semibold text-white">
             RH Experience App
           </h2>
@@ -161,6 +176,7 @@ const iconPaths = {
             <p class="truncate font-semibold text-white">
               {{ user?.username || "Usuario" }}
             </p>
+
             <p class="mt-0.5 truncate text-xs text-white/55">
               {{ roleLabel }}
             </p>
@@ -239,6 +255,7 @@ const iconPaths = {
               />
             </svg>
           </span>
+
           <span>Salir del panel</span>
         </button>
 
@@ -265,6 +282,7 @@ const iconPaths = {
               />
             </svg>
           </span>
+
           <span>Cerrar sesión</span>
         </button>
       </div>

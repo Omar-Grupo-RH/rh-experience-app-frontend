@@ -1,4 +1,3 @@
-// useAuth.js
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 
@@ -10,13 +9,16 @@ const user = ref(JSON.parse(localStorage.getItem(STORAGE_USER) || "null"));
 
 function toAdminLevel(val) {
   if (val === null || val === undefined) return 0;
+
   const n = Number(val);
-  return Number.isNaN(n) ? 0 : n; // 0,1,2,3...
+
+  return Number.isNaN(n) ? 0 : n;
 }
 
 function decodeJwtPayload(jwt) {
   try {
     const [, payload] = jwt.split(".");
+
     return JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
   } catch {
     return null;
@@ -31,6 +33,7 @@ function hydrateFromToken(logoutFn) {
   }
 
   const payload = decodeJwtPayload(token.value);
+
   if (
     !payload ||
     (payload.exp && payload.exp < Math.floor(Date.now() / 1000))
@@ -40,6 +43,7 @@ function hydrateFromToken(logoutFn) {
   }
 
   const base = user.value || {};
+
   const adminLevel =
     payload.admin !== undefined
       ? toAdminLevel(payload.admin)
@@ -57,65 +61,86 @@ function hydrateFromToken(logoutFn) {
   localStorage.setItem(STORAGE_USER, JSON.stringify(user.value));
 }
 
+function getDefaultRouteByAdminLevel(level) {
+  const admin = Number(level || 0);
+
+  if (admin === 1) {
+    return { name: "dashboard" };
+  }
+
+  if (admin === 2) {
+    return { name: "calendar" };
+  }
+
+  if (admin === 3) {
+    return { name: "calendar" };
+  }
+
+  return { name: "home" };
+}
+
 export function useAuth() {
   const router = useRouter();
+
   const isAuthenticated = computed(() => !!token.value && !!user.value);
 
   const adminLevel = computed(() => user.value?.admin ?? 0);
+
   const isAdmin = computed(() => adminLevel.value > 0);
   const isFullAdmin = computed(() => adminLevel.value === 1);
+  const isCalendarAdmin = computed(() => adminLevel.value === 2);
+  const isFrontDesk = computed(() => adminLevel.value === 3);
 
   function logout() {
     token.value = null;
     user.value = null;
+
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(STORAGE_USER);
+
     router.push({ name: "home" });
   }
 
- async function login(jwt, profile) {
-   token.value = jwt;
-   localStorage.setItem(STORAGE_KEY, jwt);
+  async function login(jwt, profile) {
+    token.value = jwt;
+    localStorage.setItem(STORAGE_KEY, jwt);
 
-   hydrateFromToken(logout);
+    hydrateFromToken(logout);
 
-   if (profile) {
-     const level = toAdminLevel(profile.admin ?? user.value?.admin ?? 0);
+    if (profile) {
+      const level = toAdminLevel(profile.admin ?? user.value?.admin ?? 0);
 
-     user.value = {
-       ...user.value,
-       ...profile,
-       id: profile.id ?? user.value?.id ?? null,
-       admin: level,
-     };
+      user.value = {
+        ...user.value,
+        ...profile,
+        id: profile.id ?? user.value?.id ?? null,
+        admin: level,
+      };
 
-     localStorage.setItem(STORAGE_USER, JSON.stringify(user.value));
-   }
+      localStorage.setItem(STORAGE_USER, JSON.stringify(user.value));
+    }
 
-   const level = Number(user.value?.admin ?? 0);
+    const level = Number(user.value?.admin ?? 0);
 
-   if (level === 1) {
-     return await router.replace({ name: "dashboard" });
-   }
-
-   if (level === 2) {
-     return await router.replace({ name: "calendar" });
-   }
-
-   return await router.replace({ name: "home" });
- }
+    return await router.replace(getDefaultRouteByAdminLevel(level));
+  }
 
   hydrateFromToken(logout);
 
   return {
     token,
     user,
+
     isAuthenticated,
     adminLevel,
     isAdmin,
     isFullAdmin,
+    isCalendarAdmin,
+    isFrontDesk,
+
     login,
     logout,
     hydrateFromToken,
+    getDefaultRouteByAdminLevel,
   };
 }

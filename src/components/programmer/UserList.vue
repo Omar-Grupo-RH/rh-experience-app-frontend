@@ -1,4 +1,5 @@
 <script setup>
+
 defineProps({
   usersList: {
     type: Array,
@@ -19,6 +20,7 @@ const handleDelete = (user) => {
 const roles = {
   1: "Super administrador",
   2: "Administrador",
+  3: "Front Desk",
 };
 
 const userRol = (rol) => roles[rol] || "Sin rol";
@@ -63,19 +65,18 @@ const userRol = (rol) => roles[rol] || "Sin rol";
       <li
         v-for="user in usersList"
         :key="user.id"
-        class="group rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300  hover:border-experience-blue/20 hover:shadow-md sm:p-5"
+        class="group rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:border-experience-blue/20 hover:shadow-md sm:p-5"
       >
         <div
           class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
         >
           <!-- User info -->
           <div class="flex min-w-0 items-center gap-4">
-           
-
             <div class="min-w-0">
               <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <p class="truncate text-base font-bold text-slate-900">
                   {{ user.full_name }}
+              
                 </p>
 
                 <span

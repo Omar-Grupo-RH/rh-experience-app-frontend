@@ -1,11 +1,13 @@
 import { useTravel } from "@/composables/useTravel";
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
+import Swal from "sweetalert2";
 
 export const useTravelStore = defineStore(
   "travels",
   () => {
-    const { listTravels, passengersByTravel } = useTravel();
+    const { listTravels, passengersByTravel, confirmPassengerPayment } =
+      useTravel();
 
     const travels = ref([]);
     const passengersByTravelArray = ref([]);
@@ -41,20 +43,14 @@ export const useTravelStore = defineStore(
         const aIsPast = dateA < today;
         const bIsPast = dateB < today;
 
-        // Si A es futuro y B pasado, A va primero
         if (!aIsPast && bIsPast) return -1;
 
-        // Si A es pasado y B futuro, B va primero
         if (aIsPast && !bIsPast) return 1;
 
-        // Si ambos son próximos/futuros, ordenar ascendente
-        // Ej: 2026-05-20, 2026-05-21, 2026-05-22
         if (!aIsPast && !bIsPast) {
           return dateA.localeCompare(dateB);
         }
 
-        // Si ambos son pasados, ordenar descendente
-        // Ej: ayer, antier, fechas más viejas al final
         return dateB.localeCompare(dateA);
       });
     }
@@ -87,6 +83,122 @@ export const useTravelStore = defineStore(
       }
     }
 
+    function getPassengerPaymentStatus(id) {
+      const passenger = passengersByTravelArray.value.find((p) => p.id == id);
+
+      return passenger?.payment_status || "free";
+    }
+
+    function isPassengerFree(id) {
+      return getPassengerPaymentStatus(id) === "free";
+    }
+
+    function isPassengerPending(id) {
+      return getPassengerPaymentStatus(id) === "pending";
+    }
+
+    function isPassengerPaid(id) {
+      return getPassengerPaymentStatus(id) === "paid";
+    }
+
+    function getPassengerPaymentLabel(passenger) {
+      const status = passenger?.payment_status || "free";
+
+      if (status === "paid") return "Pagado";
+      if (status === "pending") return "Confirmar pago";
+
+      return "Gratis";
+    }
+
+    async function tooglePayment(id) {
+      if (!id) return;
+
+      const passenger = passengersByTravelArray.value.find((p) => p.id == id);
+
+      if (!passenger) {
+        Swal.fire({
+          title: "Pasajero no encontrado",
+          text: "No se encontró la información del pasajero.",
+          icon: "error",
+        });
+
+        return;
+      }
+
+      if (passenger.payment_status === "free") {
+        Swal.fire({
+          title: "Boleto gratuito",
+          text: "Este pasajero no requiere pago.",
+          icon: "info",
+          timer: 1800,
+          showConfirmButton: false,
+        });
+
+        return;
+      }
+
+      if (passenger.payment_status === "paid") {
+        Swal.fire({
+          title: "Pago ya registrado",
+          text: "Este pasajero ya fue marcado como pagado.",
+          icon: "info",
+          timer: 1800,
+          showConfirmButton: false,
+        });
+
+        return;
+      }
+
+      const result = await Swal.fire({
+        title: "¿Ya se realizó el pago en efectivo?",
+        text: `Verifica correctamente el código del boleto: ${
+          passenger.ticket_code || "Sin código"
+        }`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, confirmar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#88bf73",
+        cancelButtonColor: "#d94a93",
+      });
+
+      if (!result.isConfirmed) return;
+
+      try {
+        const updatedPayment = await confirmPassengerPayment(id);
+
+        passengersByTravelArray.value = passengersByTravelArray.value.map(
+          (p) => {
+            if (p.id != id) return p;
+
+            return {
+              ...p,
+              payment_status: updatedPayment?.payment_status || "paid",
+              paid_at: updatedPayment?.paid_at || new Date().toISOString(),
+              ticket_code: updatedPayment?.ticket_code || p.ticket_code,
+            };
+          },
+        );
+
+        Swal.fire({
+          title: "Pago reflejado",
+          text: "El pago se ha reflejado correctamente.",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      } catch (error) {
+        console.error(error);
+
+        Swal.fire(
+          "Error",
+          error?.response?.data?.message ||
+            "No se pudo registrar el pago, recarga la página.",
+          "error",
+        );
+      }
+    }
+
     return {
       travels,
       hasTravels,
@@ -97,6 +209,13 @@ export const useTravelStore = defineStore(
       quantityPassengers,
       travelSelected,
       sortTravelsByUpcomingFirst,
+
+      getPassengerPaymentStatus,
+      getPassengerPaymentLabel,
+      isPassengerFree,
+      isPassengerPending,
+      isPassengerPaid,
+      tooglePayment,
     };
   },
   {

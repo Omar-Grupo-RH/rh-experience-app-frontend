@@ -14,5 +14,11 @@ export function useTravel() {
     return data.data ?? [];
   };
 
-  return { listTravels, passengersByTravel };
+   const confirmPassengerPayment = async (passengerId) => {
+     const { data } = await TravelsAPI.confirmPassengerPayment(passengerId);
+     return data.data ?? null;
+   };
+
+
+  return { listTravels, passengersByTravel, confirmPassengerPayment };
 }

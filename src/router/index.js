@@ -64,9 +64,11 @@ const router = createRouter({
             title: "Agenda de viajes",
             requiresAuth: true,
             adminOnly: true,
+            allowedAdminLevels: [1, 2, 3],
           },
           component: () => import("@/views/admin/ToursView.vue"),
         },
+
         {
           path: "pasajeros",
           name: "travels",
@@ -74,9 +76,11 @@ const router = createRouter({
             title: "Mis Pasajeros",
             requiresAuth: true,
             adminOnly: true,
+            allowedAdminLevels: [1, 3],
           },
           component: () => import("@/views/admin/TravelsView.vue"),
         },
+
         {
           path: "lista-pasajeros/:id",
           name: "list-passenger",
@@ -85,10 +89,12 @@ const router = createRouter({
             requiresAuth: true,
             activeMenu: "travels",
             adminOnly: true,
+            allowedAdminLevels: [1, 3],
           },
           component: () =>
             import("@/views/admin/travels/ListPassengerView.vue"),
         },
+
         {
           path: "encuestas",
           name: "survey-responses",
@@ -100,6 +106,7 @@ const router = createRouter({
           },
           component: () => import("@/views/admin/SurveyResponsesView.vue"),
         },
+
         {
           path: "codes",
           name: "codes",
@@ -111,6 +118,7 @@ const router = createRouter({
           },
           component: () => import("@/views/admin/CodesView.vue"),
         },
+
         {
           path: "comentarios",
           name: "comments",
@@ -122,6 +130,7 @@ const router = createRouter({
           },
           component: () => import("@/views/admin/CommentsView.vue"),
         },
+
         {
           path: "usuarios",
           name: "users",
@@ -131,36 +140,30 @@ const router = createRouter({
             adminOnly: true,
             fullAdminOnly: true,
           },
-          component: () => import("@/views/admin/programmer/UsersView.vue"),
+          component: () => import("@/views/admin/users/UsersView.vue"),
         },
       ],
     },
-
-    // {
-    //   path: "/cobranza",
-    //   name: "cobranza-root",
-    //   meta: {
-    //     requiresAuth: true,
-    //     adminOnly: true,
-    //     requiredAdminLevel: 3,
-    //   },
-    //   component: () => import("@/views/cobranza/CobranzaLayout.vue"),
-    //   children: [
-    //     {
-    //       path: "listado",
-    //       name: "cobranza",
-    //       meta: {
-    //         title: "Cobranza",
-    //         requiresAuth: true,
-    //         adminOnly: true,
-    //         requiredAdminLevel: 3,
-    //       },
-    //       component: () => import("@/views/cobranza/CobranzaView.vue"),
-    //     },
-    //   ],
-    // },
   ],
 });
+
+function getDefaultRouteByLevel(level) {
+  const admin = Number(level || 0);
+
+  if (admin === 1) {
+    return { name: "dashboard" };
+  }
+
+  if (admin === 2) {
+    return { name: "calendar" };
+  }
+
+  if (admin === 3) {
+    return { name: "calendar" };
+  }
+
+  return { name: "home" };
+}
 
 router.beforeEach((to) => {
   const { isAuthenticated, user, adminLevel, hydrateFromToken } = useAuth();
@@ -180,27 +183,22 @@ router.beforeEach((to) => {
     return lvl;
   }, null);
 
-  
-if (guestOnly && isAuthenticated.value) {
-  if (Number(adminLevel.value) === 1) {
+  const allowedAdminLevels = to.matched.reduce((levels, r) => {
+    if (Array.isArray(r.meta?.allowedAdminLevels)) {
+      return r.meta.allowedAdminLevels;
+    }
+
+    return levels;
+  }, null);
+
+  const currentAdminLevel = Number(adminLevel.value || 0);
+
+  if (guestOnly && isAuthenticated.value) {
     return {
-      name: "dashboard",
+      ...getDefaultRouteByLevel(currentAdminLevel),
       replace: true,
     };
   }
-
-  if (Number(adminLevel.value) === 2) {
-    return {
-      name: "calendar",
-      replace: true,
-    };
-  }
-
-  return {
-    name: "home",
-    replace: true,
-  };
-}
 
   if ((requiresAuth || adminOnly) && !isAuthenticated.value) {
     return {
@@ -212,29 +210,36 @@ if (guestOnly && isAuthenticated.value) {
     };
   }
 
-  // Si es ruta admin pero el usuario no tiene nivel admin.
-  if (adminOnly && (!user.value || adminLevel.value <= 0)) {
+  if (adminOnly && (!user.value || currentAdminLevel <= 0)) {
     return {
       name: "home",
       replace: true,
     };
   }
 
-  // Solo super administrador.
-  if (fullAdminOnly && Number(adminLevel.value) !== 1) {
+  if (fullAdminOnly && currentAdminLevel !== 1) {
     return {
-      name: "home",
+      ...getDefaultRouteByLevel(currentAdminLevel),
       replace: true,
     };
   }
 
-  // Ruta con nivel exacto.
   if (
     requiredAdminLevel !== null &&
-    Number(adminLevel.value) !== Number(requiredAdminLevel)
+    currentAdminLevel !== Number(requiredAdminLevel)
   ) {
     return {
-      name: "home",
+      ...getDefaultRouteByLevel(currentAdminLevel),
+      replace: true,
+    };
+  }
+
+  if (
+    allowedAdminLevels &&
+    !allowedAdminLevels.map(Number).includes(currentAdminLevel)
+  ) {
+    return {
+      ...getDefaultRouteByLevel(currentAdminLevel),
       replace: true,
     };
   }

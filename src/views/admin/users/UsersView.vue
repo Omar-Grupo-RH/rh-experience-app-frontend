@@ -1,7 +1,7 @@
 <script setup>
 import UserList from "@/components/programmer/UserList.vue";
 import { useUserStore } from "@/stores/programmer/userStore";
-import { onMounted, watch } from "vue";
+import { onMounted } from "vue";
 
 const userStore = useUserStore();
 
@@ -217,6 +217,7 @@ onMounted(async () => {
                         },
                         { label: 'Super administrador', value: '1' },
                         { label: 'Administrador', value: '2' },
+                        { label: 'Front Desk', value: '3' },
                       ]"
                       validation="required"
                       validation-visibility="dirty"
