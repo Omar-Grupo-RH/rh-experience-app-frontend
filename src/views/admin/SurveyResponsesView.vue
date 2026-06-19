@@ -59,17 +59,19 @@ const answerLabels = {
 };
 
 const chartColors = [
-  "#315fa8",
-  "#ef4444",
-  "#f59e0b",
-  "#16a34a",
-  "#a855f7",
-  "#06b6d4",
-  "#f97316",
-  "#84cc16",
-  "#ec4899",
-  "#64748b",
+  "#2c5da7", // experience blue
+  "#d94a93", // experience pink
+  "#feec82", // experience yellow
+  "#69c2be", // experience aqua
+  "#88bf73", // experience green
+  "#ece7e3", // experience white/beige
 ];
+
+function getChartColors(length) {
+  return Array.from({ length }, (_, index) => {
+    return chartColors[index % chartColors.length];
+  });
+}
 
 const starQuestionKeys = ["staff_andrea_rating", "staff_jaqueline_rating"];
 
@@ -659,10 +661,7 @@ async function renderCharts() {
             {
               label: "Respuestas",
               data: question.chartValues,
-              backgroundColor:
-                question.type === "scale"
-                  ? "#f59e0b"
-                  : chartColors.slice(0, question.chartLabels.length),
+              backgroundColor: getChartColors(question.chartLabels.length),
               borderColor: "#ffffff",
               borderWidth: question.type === "scale" ? 0 : 2,
               borderRadius: question.type === "scale" ? 8 : 0,
@@ -1089,7 +1088,7 @@ watch(
 
                   <span class="text-sm font-semibold text-slate-700">
                     {{ value || "Sin respuesta" }}
-                  </span>  
+                  </span>
                 </div>
 
                 <p

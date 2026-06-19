@@ -12,6 +12,7 @@ const route = useRoute();
 const store = useTravelStore();
 
 const expandedPassengerIds = ref([]);
+const ticketSearch = ref("");
 
 onMounted(async () => {
   try {
@@ -45,6 +46,36 @@ const parseJSON = (allergies) => {
 
 const passengers = computed(() => store.passengersByTravelArray || []);
 
+const normalizeTicketCode = (value = "") => {
+  return String(value)
+    .replace(/^RH-/i, "")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toUpperCase()
+    .trim();
+};
+
+const handleTicketSearchInput = (event) => {
+  ticketSearch.value = normalizeTicketCode(event.target.value);
+};
+
+const clearTicketSearch = () => {
+  ticketSearch.value = "";
+};
+
+const filteredPassengers = computed(() => {
+  const search = normalizeTicketCode(ticketSearch.value);
+
+  if (!search) return passengers.value;
+
+  return passengers.value.filter((passenger) => {
+    const ticketCode = normalizeTicketCode(passenger.ticket_code || "");
+
+    return ticketCode.includes(search);
+  });
+});
+
+const displayedPassengersCount = computed(() => filteredPassengers.value.length);
+
 const isPassengerExpanded = (id) => {
   return expandedPassengerIds.value.includes(id);
 };
@@ -68,6 +99,7 @@ const getOriginLabel = (origin) => {
 
   return origins[origin] || "No registrado";
 };
+
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
@@ -187,8 +219,10 @@ const getCostLabelClasses = (passenger) => {
 
   return classes[tone] || classes.slate;
 };
+
 const generatePDF = () => {
   const element = document.createElement("div");
+  const passengersToExport = filteredPassengers.value;
 
   element.innerHTML = `
     <div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -202,26 +236,34 @@ const generatePDF = () => {
       </p>
 
       <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 15px;">
-        Pasajeros (${store.quantityPassengers})
+        Pasajeros (${passengersToExport.length})
       </h2>
 
-      ${passengers.value
+      ${
+        ticketSearch.value
+          ? `<p style="color: #d94a93; font-size: 12px; margin-bottom: 15px;"><strong>Filtro:</strong> RH-${ticketSearch.value}</p>`
+          : ""
+      }
+
+      ${passengersToExport
         .map((p) => {
           const allergies = parseJSON(p.allergies);
           const healthConditions = parseJSON(p.health_conditions);
+
           return `
             <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-bottom: 14px;">
               <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 8px 0;">
                 ${p.first_name || ""} ${p.last_name || ""}
               </h3>
 
-              <p style="margin: 4px 0; font-size: 12px;"><strong>Asiento:</strong> ${p.payment_status || ""}</p>
+              <p style="margin: 4px 0; font-size: 12px;"><strong>Código boleto:</strong> ${p.ticket_code || "Sin código"}</p>
+              <p style="margin: 4px 0; font-size: 12px;"><strong>Estado de pago:</strong> ${p.payment_status || ""}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Asiento:</strong> ${p.seat_id || ""}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Email:</strong> ${p.email || ""}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Celular:</strong> ${p.phone || ""}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Fecha nacimiento:</strong> ${formatDateToSpanish(p.born_date)}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Alergias:</strong> ${allergies.length ? allergies.join(", ") : "Sin alergias"}</p>
-              <p style="margin: 4px 0; font-size: 12px;"><strong>Alergias:</strong> ${healthConditions.length ? healthConditions.join(", ") : "Sin problemas de salud"}</p>
+              <p style="margin: 4px 0; font-size: 12px;"><strong>Condiciones de salud:</strong> ${healthConditions.length ? healthConditions.join(", ") : "Sin problemas de salud"}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Fecha compra:</strong> ${formatDateToSpanish(p.created_at)}</p>
 
               <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 12px 0;" />
@@ -265,7 +307,7 @@ const generatePDF = () => {
                     <p style="margin: 4px 0; font-size: 12px;"><strong>Desarrollo:</strong> ${p.development || "No registrado"}</p>
                     <p style="margin: 4px 0; font-size: 12px;"><strong>Asesor:</strong> ${p.advisor_name || "No registrado"}</p>
                     <p style="margin: 4px 0; font-size: 12px;"><strong>Código asesor:</strong> ${p.advisor_code || "No registrado"}</p>
-                    <p style="margin: 4px 0; font-size: 12px;"><strong>Origen:</strong> ${p.origin || "No registrado"}</p>
+                    <p style="margin: 4px 0; font-size: 12px;"><strong>Origen:</strong> ${getOriginLabel(p.origin)}</p>
                     ${
                       p.origin === "alianza"
                         ? `<p style="margin: 4px 0; font-size: 12px;"><strong>Alianza origen:</strong> ${p.origin_alliance_name || "No registrada"}</p>`
@@ -366,6 +408,7 @@ const generatePDF = () => {
                 )
               }}
             </p>
+
             <button
               class="inline-flex mt-3 cursor-pointer items-center justify-center rounded-lg bg-experience-pink px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:shadow-md"
               type="button"
@@ -377,18 +420,93 @@ const generatePDF = () => {
         </div>
       </div>
 
-      <div class="flex items-center justify-between">
-        <h3 class="text-2xl font-semibold text-slate-900">
-          Pasajeros
-          <span class="font-medium text-experience-blue">
-            ({{ store.quantityPassengers }})
-          </span>
-        </h3>
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 class="text-2xl font-semibold text-slate-900">
+            Pasajeros
+            <span class="font-medium text-experience-blue">
+              ({{ displayedPassengersCount }})
+            </span>
+          </h3>
+
+          <p
+            v-if="ticketSearch"
+            class="mt-1 text-sm font-medium text-slate-400"
+          >
+            Filtrando por código:
+            <span class="text-experience-pink">RH-{{ ticketSearch }}</span>
+          </p>
+        </div>
+
+        <div class="flex w-full items-center gap-2 sm:w-auto">
+          <label
+            class="relative block w-full sm:w-80"
+            aria-label="Buscar por código de boleto"
+          >
+            <span
+              class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
+                />
+              </svg>
+            </span>
+
+            <span
+              class="pointer-events-none absolute left-11 top-1/2 -translate-y-1/2 text-sm font-black text-experience-blue"
+            >
+              RH-
+            </span>
+
+            <input
+              :value="ticketSearch"
+              type="search"
+              inputmode="text"
+              autocomplete="off"
+              placeholder="B95FFAE8"
+              class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-20 pr-4 text-sm font-bold uppercase text-slate-700 outline-none transition placeholder:font-medium placeholder:text-slate-300 focus:border-experience-pink focus:bg-white focus:ring-2 focus:ring-experience-pink/10"
+              @input="handleTicketSearchInput"
+            />
+          </label>
+
+          <button
+            v-if="ticketSearch"
+            type="button"
+            class="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
+            @click="clearTicketSearch"
+          >
+            Limpiar
+          </button>
+        </div>
       </div>
 
       <div class="grid gap-4">
+        <div
+          v-if="!filteredPassengers.length"
+          class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center"
+        >
+          <p class="font-semibold text-slate-900">
+            No se encontró ningún pasajero con ese código.
+          </p>
+
+          <p class="mt-1 text-sm text-slate-500">
+            Revisa que el código sea correcto. Ejemplo:
+            <span class="font-bold text-experience-pink">RH-B95FFAE8</span>
+          </p>
+        </div>
+
         <article
-          v-for="p in passengers"
+          v-for="p in filteredPassengers"
           :key="p.id"
           class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:border-experience-blue/20 hover:shadow-md"
         >
@@ -439,6 +557,7 @@ const generatePDF = () => {
               >
                 {{ p.payment_status === "paid" ? "Pagado" : "Confirmar pago" }}
               </button>
+
               <span
                 v-if="p.payment_status === 'free'"
                 class="w-fit rounded-full bg-green-50 px-4 py-2 text-sm font-medium text-green-700 ring-1 ring-green-100"
@@ -526,6 +645,7 @@ const generatePDF = () => {
                     {{ formatDateToSpanish(p.created_at) }}
                   </p>
                 </div>
+
                 <div
                   class="rounded-lg p-4 ring-1"
                   :class="getCostCardClasses(p)"

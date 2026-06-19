@@ -352,7 +352,7 @@ watch(
 
                     <span
                       v-else
-                      class="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-100"
+                      class="rounded-full bg-experience-green/5 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-experience-green ring-1 ring-experience-green"
                     >
                       Próximo
                     </span>
@@ -381,7 +381,7 @@ watch(
                 </div>
 
                 <div
-                  class="rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-100"
+                  class="rounded-2xl bg-experience-aqua/20 p-4 ring-1 ring-experience-aqua"
                 >
                   <p
                     class="text-[11px] font-bold uppercase tracking-wide text-emerald-500"

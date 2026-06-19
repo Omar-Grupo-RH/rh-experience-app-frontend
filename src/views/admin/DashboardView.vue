@@ -326,8 +326,12 @@ const hasSatisfactionData = computed(
 </script>
 
 <template>
-  <div class="mx-auto w-full max-w-full space-y-6 overflow-x-hidden p-3 sm:space-y-8 sm:p-5">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+  <div
+    class="mx-auto w-full max-w-full space-y-6 overflow-x-hidden p-3 sm:space-y-8 sm:p-5"
+  >
+    <div
+      class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
+    >
       <div class="min-w-0">
         <h1 class="text-3xl font-semibold text-slate-900 sm:text-4xl">
           Dashboard
@@ -339,9 +343,7 @@ const hasSatisfactionData = computed(
       </div>
 
       <div class="w-full sm:w-56">
-        <label class="text-sm font-semibold text-slate-600">
-          Periodo
-        </label>
+        <label class="text-sm font-semibold text-slate-600"> Periodo </label>
 
         <select
           :value="store.days"
@@ -366,75 +368,71 @@ const hasSatisfactionData = computed(
     <template v-else>
       <!-- KPIs -->
       <div class="grid w-full min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <div
+          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+        >
           <div class="flex items-center justify-between gap-3">
-            <p class="text-sm font-medium text-slate-500">
+            <p
+              class="shrink-0 rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700 ring-1 ring-green-100"
+            >
               Ingresos estimados
             </p>
-
-            <span class="shrink-0 rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700 ring-1 ring-green-100">
-              Prospectos
-            </span>
           </div>
 
-          <p class="mt-2 truncate text-2xl font-semibold text-slate-900 sm:text-3xl">
+          <p
+            class="mt-2 truncate text-2xl font-semibold text-slate-900 sm:text-3xl"
+          >
             {{ money(store.summary.estimated_revenue) }}
           </p>
 
-          <p class="mt-1 text-xs text-slate-400">
-            Prospectos x {{ money(store.summary.prospect_price || 800) }}
-          </p>
+          <p class="mt-1 text-xs text-slate-400">En el periodo seleccionado</p>
         </div>
 
-        <div class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <div
+          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+        >
           <div class="flex items-center justify-between gap-3">
-            <p class="text-sm font-medium text-slate-500">
+            <p
+              class="shrink-0 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-100"
+            >
               Pasajeros inscritos
             </p>
-
-            <span class="shrink-0 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-100">
-              Total
-            </span>
           </div>
 
           <p class="mt-2 text-2xl font-semibold text-slate-900 sm:text-3xl">
             {{ store.summary.total_passengers || 0 }}
           </p>
 
-          <p class="mt-1 text-xs text-slate-400">
-            En el periodo seleccionado
-          </p>
+          <p class="mt-1 text-xs text-slate-400">En el periodo seleccionado</p>
         </div>
 
-        <div class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <div
+          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+        >
           <div class="flex items-center justify-between gap-3">
-            <p class="text-sm font-medium text-slate-500">
+            <p
+              class="shrink-0 rounded-full bg-purple-50 px-3 py-1 text-xs font-bold text-purple-700 ring-1 ring-purple-100"
+            >
               Reservaciones
             </p>
-
-            <span class="shrink-0 rounded-full bg-purple-50 px-3 py-1 text-xs font-bold text-purple-700 ring-1 ring-purple-100">
-              Tickets
-            </span>
           </div>
 
           <p class="mt-2 text-2xl font-semibold text-slate-900 sm:text-3xl">
             {{ store.summary.total_reservations || 0 }}
           </p>
 
-          <p class="mt-1 text-xs text-slate-400">
-            Tickets generados
-          </p>
+          <p class="mt-1 text-xs text-slate-400">Tickets generados</p>
         </div>
 
-        <div class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <div
+          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+        >
           <div class="flex items-center justify-between gap-3">
-            <p class="text-sm font-medium text-slate-500">
+            <p
+              class="shrink-0 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 ring-1 ring-amber-100"
+            >
               Satisfacción
             </p>
-
-            <span class="shrink-0 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 ring-1 ring-amber-100">
-              Encuestas
-            </span>
           </div>
 
           <p class="mt-2 text-2xl font-semibold text-slate-900 sm:text-3xl">
@@ -448,11 +446,17 @@ const hasSatisfactionData = computed(
       </div>
 
       <!-- Próximo Experience -->
-      <section class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <section
+        class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+      >
         <div v-if="store.hasNextExperience">
-          <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div
+            class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between"
+          >
             <div class="min-w-0">
-              <p class="text-sm font-semibold uppercase tracking-wide text-experience-blue">
+              <p
+                class="text-sm font-semibold uppercase tracking-wide text-experience-blue"
+              >
                 Próximo RH Experience
               </p>
 
@@ -465,8 +469,12 @@ const hasSatisfactionData = computed(
               </p>
             </div>
 
-            <div class="grid w-full min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <div class="min-w-0 rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
+            <div
+              class="grid w-full min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4"
+            >
+              <div
+                class="min-w-0 rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100"
+              >
                 <p class="text-xs font-semibold uppercase text-blue-500">
                   Inscritos
                 </p>
@@ -476,7 +484,9 @@ const hasSatisfactionData = computed(
                 </p>
               </div>
 
-              <div class="min-w-0 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
+              <div
+                class="min-w-0 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100"
+              >
                 <p class="text-xs font-semibold uppercase text-slate-400">
                   Disponibles
                 </p>
@@ -486,7 +496,9 @@ const hasSatisfactionData = computed(
                 </p>
               </div>
 
-              <div class="min-w-0 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-100">
+              <div
+                class="min-w-0 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-100"
+              >
                 <p class="text-xs font-semibold uppercase text-amber-500">
                   Ocupación
                 </p>
@@ -496,7 +508,9 @@ const hasSatisfactionData = computed(
                 </p>
               </div>
 
-              <div class="min-w-0 rounded-2xl bg-green-50 p-4 ring-1 ring-green-100">
+              <div
+                class="min-w-0 rounded-2xl bg-green-50 p-4 ring-1 ring-green-100"
+              >
                 <p class="text-xs font-semibold uppercase text-green-500">
                   Ingreso estimado
                 </p>
@@ -533,13 +547,17 @@ const hasSatisfactionData = computed(
 
       <!-- Gráficas principales -->
       <div class="grid w-full min-w-0 gap-4 xl:grid-cols-2">
-        <section class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <section
+          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+        >
           <div class="flex flex-wrap items-center justify-between gap-3">
             <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
               Inscripciones por día
             </h3>
 
-            <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+            <span
+              class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700"
+            >
               Tendencia
             </span>
           </div>
@@ -548,29 +566,28 @@ const hasSatisfactionData = computed(
             v-if="hasSignupsData"
             class="relative mt-5 h-[260px] w-full min-w-0 overflow-hidden sm:h-[320px]"
           >
-            <Line
-              :data="signupsChartData"
-              :options="lineChartOptions"
-            />
+            <Line :data="signupsChartData" :options="lineChartOptions" />
           </div>
 
           <div
             v-else
             class="mt-5 flex h-[260px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 sm:h-[320px]"
           >
-            <p class="text-sm text-slate-500">
-              No hay datos para graficar.
-            </p>
+            <p class="text-sm text-slate-500">No hay datos para graficar.</p>
           </div>
         </section>
 
-        <section class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <section
+          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+        >
           <div class="flex flex-wrap items-center justify-between gap-3">
             <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
               Ingresos estimados por día
             </h3>
 
-            <span class="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">
+            <span
+              class="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700"
+            >
               MXN
             </span>
           </div>
@@ -579,32 +596,31 @@ const hasSatisfactionData = computed(
             v-if="hasRevenueData"
             class="relative mt-5 h-[260px] w-full min-w-0 overflow-hidden sm:h-[320px]"
           >
-            <Bar
-              :data="revenueChartData"
-              :options="barChartOptions"
-            />
+            <Bar :data="revenueChartData" :options="barChartOptions" />
           </div>
 
           <div
             v-else
             class="mt-5 flex h-[260px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 sm:h-[320px]"
           >
-            <p class="text-sm text-slate-500">
-              No hay ingresos estimados.
-            </p>
+            <p class="text-sm text-slate-500">No hay ingresos estimados.</p>
           </div>
         </section>
       </div>
 
       <!-- Gráficas secundarias -->
       <div class="grid w-full min-w-0 gap-4 xl:grid-cols-2">
-        <section class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <section
+          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+        >
           <div class="flex flex-wrap items-center justify-between gap-3">
             <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
               Tipos de inscripción
             </h3>
 
-            <span class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-700">
+            <span
+              class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-700"
+            >
               Segmentación
             </span>
           </div>
@@ -623,19 +639,21 @@ const hasSatisfactionData = computed(
             v-else
             class="mt-5 flex h-[260px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 sm:h-[320px]"
           >
-            <p class="text-sm text-slate-500">
-              No hay tipos de inscripción.
-            </p>
+            <p class="text-sm text-slate-500">No hay tipos de inscripción.</p>
           </div>
         </section>
 
-        <section class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <section
+          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+        >
           <div class="flex flex-wrap items-center justify-between gap-3">
             <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
               Satisfacción general
             </h3>
 
-            <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
+            <span
+              class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700"
+            >
               Encuestas
             </span>
           </div>
@@ -654,16 +672,16 @@ const hasSatisfactionData = computed(
             v-else
             class="mt-5 flex h-[260px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 sm:h-[320px]"
           >
-            <p class="text-sm text-slate-500">
-              Todavía no hay encuestas.
-            </p>
+            <p class="text-sm text-slate-500">Todavía no hay encuestas.</p>
           </div>
         </section>
       </div>
 
       <!-- Listas rápidas -->
       <div class="grid w-full min-w-0 gap-4 xl:grid-cols-2">
-        <section class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <section
+          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+        >
           <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
             Reservaciones recientes
           </h3>
@@ -674,7 +692,9 @@ const hasSatisfactionData = computed(
               :key="item.id"
               class="min-w-0 rounded-2xl bg-slate-50 p-4"
             >
-              <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div
+                class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
+              >
                 <div class="min-w-0">
                   <p class="font-semibold text-slate-900">
                     {{ item.first_name }} {{ item.last_name }}
@@ -690,7 +710,9 @@ const hasSatisfactionData = computed(
                   </p>
                 </div>
 
-                <span class="w-fit shrink-0 rounded-full bg-experience-blue/10 px-3 py-1 text-xs font-semibold text-experience-blue">
+                <span
+                  class="w-fit shrink-0 rounded-full bg-experience-blue/10 px-3 py-1 text-xs font-semibold text-experience-blue"
+                >
                   {{ getRegistrationLabel(item.registration_type) }}
                 </span>
               </div>
@@ -705,7 +727,9 @@ const hasSatisfactionData = computed(
           </div>
         </section>
 
-        <section class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <section
+          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+        >
           <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
             Encuestas recientes
           </h3>
