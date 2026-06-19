@@ -25,13 +25,57 @@ const answers = reactive({});
 const rating10 = Array.from({ length: 10 }, (_, i) => String(i + 1));
 const rating5 = Array.from({ length: 5 }, (_, i) => String(i + 1));
 
+const sectionThemes = [
+  {
+    header: "bg-experience-blue text-white hover:bg-experience-blue/95",
+    title: "text-white",
+    description: "text-white/80",
+    note: "bg-white/15 text-white ring-white/20",
+    icon: "bg-white/15 text-white",
+  },
+  {
+    header: "bg-experience-pink text-white hover:bg-experience-pink/95",
+    title: "text-white",
+    description: "text-white/80",
+    note: "bg-white/15 text-white ring-white/20",
+    icon: "bg-white/15 text-white",
+  },
+  {
+    header: "bg-experience-yellow text-slate-950 hover:bg-experience-yellow/90",
+    title: "text-slate-950",
+    description: "text-slate-700",
+    note: "bg-white/40 text-slate-800 ring-white/40",
+    icon: "bg-white/40 text-slate-800",
+  },
+  {
+    header: "bg-experience-aqua text-slate-950 hover:bg-experience-aqua/90",
+    title: "text-slate-950",
+    description: "text-slate-700",
+    note: "bg-white/40 text-slate-800 ring-white/40",
+    icon: "bg-white/40 text-slate-800",
+  },
+  {
+    header: "bg-experience-green text-slate-950 hover:bg-experience-green/90",
+    title: "text-slate-950",
+    description: "text-slate-700",
+    note: "bg-white/40 text-slate-800 ring-white/40",
+    icon: "bg-white/40 text-slate-800",
+  },
+  {
+    header: "bg-experience-white text-slate-950 hover:bg-experience-white/90",
+    title: "text-slate-950",
+    description: "text-slate-600",
+    note: "bg-white/70 text-slate-700 ring-slate-200",
+    icon: "bg-white/70 text-slate-700",
+  },
+];
+
 const sections = [
   {
     id: "church",
     title: "Parte 1: Iglesia de Dzindzantún",
     description: "En este apartado se califica el tour por la iglesia.",
-    note:
-      "Si eres de alianza y fue un tour personalizado, esta sección contiene contenido que no se incluyó en el recorrido original.",
+    note: "Si eres de alianza y fue un tour personalizado, esta sección contiene contenido que no se incluyó en el recorrido original.",
     questions: [
       {
         id: "church_experience_rating",
@@ -199,7 +243,13 @@ const sections = [
         type: "radio",
         required: true,
         question: "En temas de seguridad, ¿cómo lo calificarías?",
-        options: ["Muy seguro", "Seguro", "Regular", "Inseguro", "Muy inseguro"],
+        options: [
+          "Muy seguro",
+          "Seguro",
+          "Regular",
+          "Inseguro",
+          "Muy inseguro",
+        ],
       },
       {
         id: "boat_recommendation",
@@ -226,7 +276,7 @@ const sections = [
       },
       {
         id: "staff_andrea_rating",
-        type: "scale",
+        type: "stars",
         required: false,
         question:
           "¿Cómo calificas la explicación y acompañamiento de Andrea (Guía RH EXPERIENCE)?",
@@ -236,7 +286,7 @@ const sections = [
       },
       {
         id: "staff_jaqueline_rating",
-        type: "scale",
+        type: "stars",
         required: false,
         question:
           "¿Cómo calificas la explicación y acompañamiento de Jaqueline (Guía RH EXPERIENCE)?",
@@ -341,6 +391,10 @@ const sections = [
 
 const expandedSections = ref(["church"]);
 
+const getSectionTheme = (index) => {
+  return sectionThemes[index % sectionThemes.length];
+};
+
 const isSectionExpanded = (sectionId) => {
   return expandedSections.value.includes(sectionId);
 };
@@ -354,6 +408,53 @@ const toggleSection = (sectionId) => {
   }
 
   expandedSections.value.push(sectionId);
+};
+
+const setStarRating = (questionId, value) => {
+  answers[questionId] = value;
+};
+
+const getStarValue = (questionId) => {
+  return Number(answers[questionId] || 0);
+};
+
+const getStarClasses = (questionId, option) => {
+  const selectedValue = getStarValue(questionId);
+  const currentValue = Number(option);
+
+  if (currentValue <= selectedValue) {
+    return "text-experience-pink scale-110";
+  }
+
+  return "text-slate-300 hover:text-experience-pink";
+};
+
+const getScaleOptionsWrapperClasses = (question) => {
+  const totalOptions = question.options?.length || 0;
+
+  if (totalOptions <= 5) {
+    return "flex flex-wrap justify-center gap-3 sm:gap-4";
+  }
+
+  return "grid grid-cols-5 gap-3 sm:grid-cols-10";
+};
+
+const getScaleOptionSizeClasses = (question) => {
+  const totalOptions = question.options?.length || 0;
+
+  if (totalOptions <= 5) {
+    return "w-20 sm:w-24";
+  }
+
+  return "w-full";
+};
+
+const getScaleOptionStateClasses = (questionId, option) => {
+  if (answers[questionId] === option) {
+    return "border-experience-pink bg-experience-pink text-white shadow-[0_0_0_4px_rgba(217,74,147,0.25)]";
+  }
+
+  return "border-slate-200 bg-white text-slate-700 hover:border-experience-pink hover:bg-experience-pink/5 hover:text-experience-pink";
 };
 
 const requiredQuestions = computed(() => {
@@ -486,24 +587,38 @@ onMounted(() => {
       <div
         class="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200"
       >
-        <div class="bg-experience-blue px-6 py-8 text-white sm:px-8">
-          <p
-            class="text-sm font-semibold uppercase tracking-[0.22em] text-white/70"
-          >
-            RH Experience
-          </p>
+        <div class="px-6 py-8 text-experience-blue sm:px-8">
+          <div class="flex justify-center">
+            <img
+              src="/logos/letrero.png"
+              alt="Icono de experience"
+              width="500"
+              height="500"
+            />
+          </div>
 
-          <h1 class="mt-2 text-3xl font-black sm:text-4xl">
+          <h1 class="mt-2 text-center text-3xl font-black sm:text-4xl">
             Cuestionario de retroalimentación
           </h1>
 
-          <p
-            class="mt-4 max-w-3xl text-sm leading-relaxed text-white/80 sm:text-base"
-          >
-            ¡Hola exploradores! Gracias por ser parte de esta aventura. Sus
-            opiniones son fundamentales para seguir mejorando y creando
-            experiencias inolvidables.
-          </p>
+          <div class="mt-5 space-y-3 text-black">
+            <p
+              class="max-w-3xl text-sm leading-relaxed font-semibold sm:text-base"
+            >
+              ¡Hola exploradores!
+            </p>
+
+            <p class="max-w-3xl text-sm leading-relaxed sm:text-base">
+              Queremos agradecerles nuevamente por ser parte de esta aventura.
+              Su participación y opiniones son fundamentales para seguir
+              mejorando y creando experiencias inolvidables.
+            </p>
+
+            <p class="max-w-3xl text-sm leading-relaxed sm:text-base">
+              Les invitamos a responder este breve cuestionario, diseñado para
+              conocer sus impresiones y sugerencias de manera constructiva.
+            </p>
+          </div>
         </div>
 
         <div
@@ -512,7 +627,7 @@ onMounted(() => {
         >
           <div class="flex flex-col items-center gap-3 text-slate-500">
             <div
-              class="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-experience-blue"
+              class="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-experience-pink"
             />
             <p class="text-sm font-medium">Cargando encuesta...</p>
           </div>
@@ -603,38 +718,47 @@ onMounted(() => {
           </section>
 
           <section
-            v-for="section in sections"
+            v-for="(section, sectionIndex) in sections"
             :key="section.id"
             class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
           >
             <button
               type="button"
-              class="flex w-full flex-col gap-4 p-5 text-left transition hover:bg-slate-50 sm:flex-row sm:items-start sm:justify-between"
+              class="flex w-full flex-col gap-4 p-5 text-left transition sm:flex-row sm:items-start sm:justify-between"
+              :class="getSectionTheme(sectionIndex).header"
               @click="toggleSection(section.id)"
             >
               <div>
-                <h2 class="text-xl font-black text-slate-900">
+                <h2
+                  class="text-xl font-black"
+                  :class="getSectionTheme(sectionIndex).title"
+                >
                   {{ section.title }}
                 </h2>
 
                 <p
                   v-if="section.description"
-                  class="mt-2 text-sm leading-relaxed text-slate-500"
+                  class="mt-2 text-sm leading-relaxed"
+                  :class="getSectionTheme(sectionIndex).description"
                 >
                   {{ section.description }}
                 </p>
 
                 <p
                   v-if="section.note"
-                  class="mt-3 rounded-2xl bg-amber-50 p-4 text-sm leading-relaxed text-amber-700 ring-1 ring-amber-100"
+                  class="mt-3 rounded-2xl p-4 text-sm leading-relaxed ring-1"
+                  :class="getSectionTheme(sectionIndex).note"
                 >
                   {{ section.note }}
                 </p>
               </div>
 
               <span
-                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition"
-                :class="isSectionExpanded(section.id) ? 'rotate-180' : ''"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition"
+                :class="[
+                  getSectionTheme(sectionIndex).icon,
+                  isSectionExpanded(section.id) ? 'rotate-180' : '',
+                ]"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -672,35 +796,28 @@ onMounted(() => {
                 >
                   <h3 class="text-base font-black text-slate-900">
                     {{ question.question }}
-                    <span
-                      v-if="question.required"
-                      class="text-rose-500"
-                    >
+                    <span v-if="question.required" class="text-rose-500">
                       *
                     </span>
                   </h3>
 
-                  <div
-                    v-if="question.type === 'scale'"
-                    class="mt-4"
-                  >
+                  <div v-if="question.type === 'scale'" class="mt-5">
                     <div
-                      class="mb-2 flex justify-between text-xs font-semibold text-slate-400"
+                      class="mb-4 flex justify-between text-sm font-black text-slate-400 sm:text-base"
                     >
                       <span>{{ question.minLabel }}</span>
                       <span>{{ question.maxLabel }}</span>
                     </div>
 
-                    <div class="grid grid-cols-5 gap-2 sm:grid-cols-10">
+                    <div :class="getScaleOptionsWrapperClasses(question)">
                       <label
                         v-for="option in question.options"
                         :key="option"
-                        class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-3 text-sm font-bold text-slate-700 transition hover:border-experience-blue hover:bg-experience-blue/5"
-                        :class="
-                          answers[question.id] === option
-                            ? 'border-experience-blue bg-experience-blue/10 text-experience-blue ring-2 ring-experience-blue/10'
-                            : ''
-                        "
+                        class="flex h-14 cursor-pointer flex-col items-center justify-center rounded-3xl border text-base font-black transition-all duration-200 sm:h-16 sm:text-lg"
+                        :class="[
+                          getScaleOptionSizeClasses(question),
+                          getScaleOptionStateClasses(question.id, option),
+                        ]"
                       >
                         <input
                           v-model="answers[question.id]"
@@ -709,8 +826,40 @@ onMounted(() => {
                           :value="option"
                           class="sr-only"
                         />
+
                         {{ option }}
                       </label>
+                    </div>
+                  </div>
+
+                  <div v-if="question.type === 'stars'" class="mt-4">
+                    <div
+                      class="mb-2 flex justify-between text-xs font-semibold text-slate-400"
+                    >
+                      <span>{{ question.minLabel }}</span>
+                      <span>{{ question.maxLabel }}</span>
+                    </div>
+
+                    <div
+                      class="flex flex-wrap items-center justify-center gap-2 rounded-2xl bg-white p-4 ring-1 ring-slate-100"
+                    >
+                      <button
+                        v-for="option in question.options"
+                        :key="option"
+                        type="button"
+                        class="text-4xl leading-none transition hover:scale-110"
+                        :class="getStarClasses(question.id, option)"
+                        @click="setStarRating(question.id, option)"
+                      >
+                        ★
+                      </button>
+
+                      <span
+                        v-if="answers[question.id]"
+                        class="ml-2 rounded-full bg-experience-pink/10 px-3 py-1 text-xs font-bold text-experience-pink"
+                      >
+                        {{ answers[question.id] }} de 5
+                      </span>
                     </div>
                   </div>
 
@@ -721,10 +870,10 @@ onMounted(() => {
                     <label
                       v-for="option in question.options"
                       :key="option"
-                      class="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-experience-blue hover:bg-experience-blue/5"
+                      class="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-experience-pink hover:bg-experience-pink/5"
                       :class="
                         answers[question.id] === option
-                          ? 'border-experience-blue bg-experience-blue/10 ring-2 ring-experience-blue/10'
+                          ? 'border-experience-pink bg-experience-pink/10 ring-2 ring-experience-pink/20'
                           : ''
                       "
                     >
@@ -733,7 +882,7 @@ onMounted(() => {
                         type="radio"
                         :name="question.id"
                         :value="option"
-                        class="h-4 w-4 accent-experience-blue"
+                        class="h-4 w-4 accent-experience-pink"
                       />
                       <span class="text-sm font-semibold text-slate-700">
                         {{ option }}
@@ -745,7 +894,7 @@ onMounted(() => {
                     v-if="question.type === 'textarea'"
                     v-model="answers[question.id]"
                     rows="4"
-                    class="mt-4 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/10"
+                    class="mt-4 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-experience-pink focus:ring-2 focus:ring-experience-pink/10"
                     :placeholder="
                       question.placeholder || 'Escribe tu respuesta...'
                     "
@@ -763,7 +912,7 @@ onMounted(() => {
             >
               <p class="text-sm text-slate-500">
                 Progreso:
-                <span class="font-bold text-experience-blue">
+                <span class="font-bold text-experience-pink">
                   {{ answeredRequiredCount }}
                 </span>
                 /
@@ -775,7 +924,7 @@ onMounted(() => {
 
               <button
                 type="submit"
-                class="inline-flex w-full items-center justify-center rounded-2xl bg-experience-blue px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-experience-blue/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                class="inline-flex w-full items-center justify-center rounded-2xl bg-experience-pink px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-experience-pink/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                 :disabled="!canSubmit || submitting"
               >
                 {{ submitting ? "Enviando..." : "Enviar encuesta" }}

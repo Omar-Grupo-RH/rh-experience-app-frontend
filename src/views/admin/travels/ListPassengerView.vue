@@ -68,7 +68,125 @@ const getOriginLabel = (origin) => {
 
   return origins[origin] || "No registrado";
 };
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: "MXN",
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
 
+const getPassengerCostInfo = (passenger) => {
+  const type = passenger?.registration_type;
+  const status = passenger?.payment_status;
+
+  if (status === "free") {
+    return {
+      label: "Costo",
+      amount: "Gratis",
+      condition: getFreeConditionByType(type),
+      tone: "green",
+    };
+  }
+
+  if (type === "internal") {
+    return {
+      label: "Costo",
+      amount: formatCurrency(500),
+      condition: "Segunda visita en adelante",
+      tone: status === "paid" ? "green" : "orange",
+    };
+  }
+
+  if (type === "family_friend") {
+    return {
+      label: "Costo",
+      amount: formatCurrency(500),
+      condition:
+        "Invitado extra del inversionista, familiares o amigos de Comunidad RH",
+      tone: status === "paid" ? "green" : "orange",
+    };
+  }
+
+  if (type === "prospect") {
+    return {
+      label: "Costo",
+      amount: formatCurrency(1500),
+      condition:
+        "Si decide invertir, se sugiere aplicar este monto a su cuota de apertura",
+      tone: status === "paid" ? "green" : "orange",
+    };
+  }
+
+  if (type === "alliance") {
+    return {
+      label: "Costo",
+      amount: "Gratis",
+      condition: "Con código de alianza",
+      tone: "green",
+    };
+  }
+
+  if (type === "investor") {
+    return {
+      label: "Costo",
+      amount: "Gratis",
+      condition: "Para cualquier proyecto",
+      tone: "green",
+    };
+  }
+
+  if (type === "prize") {
+    return {
+      label: "Costo",
+      amount: "Gratis",
+      condition: "Boleto por premio / código RH Experience",
+      tone: "green",
+    };
+  }
+
+  return {
+    label: "Costo",
+    amount: "No registrado",
+    condition: "Sin información de costo",
+    tone: "slate",
+  };
+};
+
+const getFreeConditionByType = (type) => {
+  const conditions = {
+    internal: "Primera visita gratis",
+    alliance: "Con código de alianza",
+    investor: "Para cualquier proyecto",
+    prize: "Boleto por premio / código RH Experience",
+  };
+
+  return conditions[type] || "No requiere pago";
+};
+
+const getCostCardClasses = (passenger) => {
+  const tone = getPassengerCostInfo(passenger).tone;
+
+  const classes = {
+    green: "bg-green-50 ring-green-100 text-green-700",
+    orange: "bg-orange-50 ring-orange-100 text-orange-700",
+    slate: "bg-slate-50 ring-slate-100 text-slate-700",
+  };
+
+  return classes[tone] || classes.slate;
+};
+
+const getCostLabelClasses = (passenger) => {
+  const tone = getPassengerCostInfo(passenger).tone;
+
+  const classes = {
+    green: "text-green-500",
+    orange: "text-orange-500",
+    slate: "text-slate-400",
+  };
+
+  return classes[tone] || classes.slate;
+};
 const generatePDF = () => {
   const element = document.createElement("div");
 
@@ -90,17 +208,20 @@ const generatePDF = () => {
       ${passengers.value
         .map((p) => {
           const allergies = parseJSON(p.allergies);
+          const healthConditions = parseJSON(p.health_conditions);
           return `
             <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-bottom: 14px;">
               <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 8px 0;">
                 ${p.first_name || ""} ${p.last_name || ""}
               </h3>
 
+              <p style="margin: 4px 0; font-size: 12px;"><strong>Asiento:</strong> ${p.payment_status || ""}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Asiento:</strong> ${p.seat_id || ""}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Email:</strong> ${p.email || ""}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Celular:</strong> ${p.phone || ""}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Fecha nacimiento:</strong> ${formatDateToSpanish(p.born_date)}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Alergias:</strong> ${allergies.length ? allergies.join(", ") : "Sin alergias"}</p>
+              <p style="margin: 4px 0; font-size: 12px;"><strong>Alergias:</strong> ${healthConditions.length ? healthConditions.join(", ") : "Sin problemas de salud"}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Fecha compra:</strong> ${formatDateToSpanish(p.created_at)}</p>
 
               <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 12px 0;" />
@@ -406,16 +527,43 @@ const generatePDF = () => {
                   </p>
                 </div>
                 <div
-                  v-if="p.registration_type === 'prospect'"
-                  class="rounded-lg bg-green-50 p-4 ring-1 ring-green-100"
+                  class="rounded-lg p-4 ring-1"
+                  :class="getCostCardClasses(p)"
                 >
                   <p
-                    class="text-xs font-medium uppercase tracking-wide text-green-500"
+                    class="text-xs font-medium uppercase tracking-wide"
+                    :class="getCostLabelClasses(p)"
                   >
-                    Costo
+                    {{ getPassengerCostInfo(p).label }}
                   </p>
-                  <p class="mt-1 text-sm font-semibold text-green-700">
-                    +$800 MXN
+
+                  <p class="mt-1 text-base font-bold">
+                    {{ getPassengerCostInfo(p).amount }}
+                  </p>
+
+                  <p class="mt-1 text-xs font-medium opacity-80">
+                    {{ getPassengerCostInfo(p).condition }}
+                  </p>
+
+                  <p
+                    v-if="p.payment_status === 'paid'"
+                    class="mt-2 w-fit rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-green-700 ring-1 ring-green-100"
+                  >
+                    Pago confirmado
+                  </p>
+
+                  <p
+                    v-else-if="p.payment_status === 'pending'"
+                    class="mt-2 w-fit rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-orange-700 ring-1 ring-orange-100"
+                  >
+                    Pago pendiente
+                  </p>
+
+                  <p
+                    v-else-if="p.payment_status === 'free'"
+                    class="mt-2 w-fit rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-green-700 ring-1 ring-green-100"
+                  >
+                    No requiere pago
                   </p>
                 </div>
               </div>

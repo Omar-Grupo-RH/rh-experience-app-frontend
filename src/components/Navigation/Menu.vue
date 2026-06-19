@@ -12,8 +12,8 @@ const mobileMenuOpen = ref(false);
 const dashboardRouteName = computed(() => {
   if (!user.value || adminLevel.value <= 0) return null;
 
-  if (adminLevel.value === 1 || adminLevel.value === 2) return "calendar";
-  if (adminLevel.value === 3) return "cobranza";
+  if (adminLevel.value === 1) return "dashboard";
+  if (adminLevel.value === 2 || adminLevel.value === 3) return "calendar";
 
   return null;
 });

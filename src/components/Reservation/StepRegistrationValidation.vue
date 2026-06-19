@@ -76,7 +76,7 @@ onMounted(async () => {
           <input
             v-model="store.registrationData.area_code"
             type="text"
-            class="mt-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
+            class="mt-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20 uppercase"
             placeholder="Ej. RH-MKT-2026"
           />
         </label>
@@ -88,48 +88,55 @@ onMounted(async () => {
       </div>
 
       <!-- Alianzas -->
-      <div v-if="store.registrationType === 'alliance'" class="space-y-5">
-        <label class="block">
-          <span class="font-semibold text-gray-800">
-            Nombre de la alianza
-          </span>
+      <div v-if="store.registrationType === 'alliance'">
+        <div class="space-y-5" v-if="store.allianceOptions.length >= 1">
+          <label class="block">
+            <span class="font-semibold text-gray-800">
+              Nombre de la alianza
+            </span>
 
-          <select
-            v-model="store.registrationData.alliance_name"
-            class="mt-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
-            :disabled="store.loadingAllianceCodes"
-          >
-            <option value="">
-              {{
-                store.loadingAllianceCodes
-                  ? "Cargando alianzas..."
-                  : "Selecciona una alianza"
-              }}
-            </option>
-
-            <option
-              v-for="alliance in store.allianceOptions"
-              :key="alliance.id"
-              :value="alliance.name"
+            <select
+              v-model="store.registrationData.alliance_name"
+              class="mt-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
+              :disabled="store.loadingAllianceCodes"
             >
-              {{ alliance.name }}
-            </option>
-          </select>
-        </label>
+              <option value="">
+                {{
+                  store.loadingAllianceCodes
+                    ? "Cargando alianzas..."
+                    : "Selecciona una alianza"
+                }}
+              </option>
 
-        <label class="block">
-          <span class="font-semibold text-gray-800"> Código de alianza </span>
+              <option
+                v-for="alliance in store.allianceOptions"
+                :key="alliance.id"
+                :value="alliance.name"
+              >
+                {{ alliance.name }}
+              </option>
+            </select>
+          </label>
 
-          <input
-            v-model="store.registrationData.alliance_code"
-            type="text"
-            class="mt-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
-            placeholder="Ingresa el código correspondiente"
-          />
-        </label>
+          <label class="block">
+            <span class="font-semibold text-gray-800"> Código de alianza </span>
 
-        <div class="rounded-xl bg-green-50 p-4 text-sm text-green-700">
-          Esta inscripción no tiene costo.
+            <input
+              v-model="store.registrationData.alliance_code"
+              type="text"
+              class="mt-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
+              placeholder="Ingresa el código correspondiente"
+            />
+          </label>
+
+          <div class="rounded-xl bg-green-50 p-4 text-sm text-green-700">
+            Esta inscripción no tiene costo.
+          </div>
+        </div>
+        <div v-else>
+          <p class="text-center text-gray-400 text-sm">
+            No existen alianzas registradas aún
+          </p>
         </div>
       </div>
 
@@ -307,7 +314,8 @@ onMounted(async () => {
         </label>
 
         <div class="rounded-xl bg-yellow-50 p-4 text-sm text-yellow-700">
-          Esta inscripción tiene un costo de $500 MXN por persona. Al finalizar se generará una ficha de pago.
+          Esta inscripción tiene un costo de $500 MXN por persona. Al finalizar
+          se generará una ficha de pago.
         </div>
       </div>
     </div>

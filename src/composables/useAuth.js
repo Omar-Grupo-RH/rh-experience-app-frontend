@@ -68,11 +68,7 @@ function getDefaultRouteByAdminLevel(level) {
     return { name: "dashboard" };
   }
 
-  if (admin === 2) {
-    return { name: "calendar" };
-  }
-
-  if (admin === 3) {
+  if (admin === 2 || admin === 3) {
     return { name: "calendar" };
   }
 
