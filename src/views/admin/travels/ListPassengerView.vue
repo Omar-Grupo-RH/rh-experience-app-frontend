@@ -34,6 +34,21 @@ const registrationTypeLabels = {
 const getRegistrationTypeLabel = (type) => {
   return registrationTypeLabels[type] || "Sin tipo";
 };
+const isRhevoDevelopment = (development) => {
+  return (
+    String(development || "")
+      .trim()
+      .toUpperCase() === "RHEVO"
+  );
+};
+
+const getStageLabelByDevelopment = (development) => {
+  return isRhevoDevelopment(development) ? "Fracción" : "Etapa";
+};
+
+const getLotLabelByDevelopment = (development) => {
+  return isRhevoDevelopment(development) ? "Unidad" : "Lote";
+};
 
 const parseJSON = (allergies) => {
   try {
@@ -74,7 +89,9 @@ const filteredPassengers = computed(() => {
   });
 });
 
-const displayedPassengersCount = computed(() => filteredPassengers.value.length);
+const displayedPassengersCount = computed(
+  () => filteredPassengers.value.length,
+);
 
 const isPassengerExpanded = (id) => {
   return expandedPassengerIds.value.includes(id);
@@ -294,10 +311,10 @@ const generatePDF = () => {
               ${
                 p.registration_type === "investor"
                   ? `
-                    <p style="margin: 4px 0; font-size: 12px;"><strong>Desarrollo:</strong> ${p.development || "No registrado"}</p>
-                    <p style="margin: 4px 0; font-size: 12px;"><strong>Etapa:</strong> ${p.stage || "No registrada"}</p>
-                    <p style="margin: 4px 0; font-size: 12px;"><strong>Lote:</strong> ${p.lot_number || "No registrado"}</p>
-                  `
+      <p style="margin: 4px 0; font-size: 12px;"><strong>Desarrollo:</strong> ${p.development || "No registrado"}</p>
+      <p style="margin: 4px 0; font-size: 12px;"><strong>${getStageLabelByDevelopment(p.development)}:</strong> ${p.stage || "No registrada"}</p>
+      <p style="margin: 4px 0; font-size: 12px;"><strong>${getLotLabelByDevelopment(p.development)}:</strong> ${p.lot_number || "No registrado"}</p>
+    `
                   : ""
               }
 
@@ -420,7 +437,9 @@ const generatePDF = () => {
         </div>
       </div>
 
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      >
         <div>
           <h3 class="text-2xl font-semibold text-slate-900">
             Pasajeros
@@ -822,7 +841,7 @@ const generatePDF = () => {
                       <p
                         class="text-xs font-medium uppercase tracking-wide text-slate-400"
                       >
-                        Etapa
+                        {{ getStageLabelByDevelopment(p.development) }}
                       </p>
                       <p class="mt-1 font-medium text-slate-800">
                         {{ p.stage || "No registrada" }}
@@ -833,7 +852,7 @@ const generatePDF = () => {
                       <p
                         class="text-xs font-medium uppercase tracking-wide text-slate-400"
                       >
-                        Lote
+                        {{ getLotLabelByDevelopment(p.development) }}
                       </p>
                       <p class="mt-1 font-medium text-slate-800">
                         {{ p.lot_number || "No registrado" }}

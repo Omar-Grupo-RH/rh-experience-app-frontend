@@ -41,7 +41,25 @@ const description = computed(() => {
 
   return descriptions[store.registrationType] || "";
 });
+const isRhevoInvestor = computed(() => {
+  return store.registrationData.development === "RHEVO";
+});
 
+const investorStageLabel = computed(() => {
+  return isRhevoInvestor.value ? "Fracción" : "Etapa";
+});
+
+const investorStagePlaceholder = computed(() => {
+  return isRhevoInvestor.value ? "Ej. Fracción 1" : "Ej. Etapa 1";
+});
+
+const investorLotLabel = computed(() => {
+  return isRhevoInvestor.value ? "Unidad" : "Número de lote";
+});
+
+const investorLotPlaceholder = computed(() => {
+  return isRhevoInvestor.value ? "Ej. Unidad 204" : "Ej. Lote 24";
+});
 const handleNext = async () => {
   if (!store.canContinueRegistrationValidation) return;
 
@@ -161,24 +179,28 @@ onMounted(async () => {
         </label>
 
         <label class="block">
-          <span class="font-semibold text-gray-800"> Etapa </span>
+          <span class="font-semibold text-gray-800">
+            {{ investorStageLabel }}
+          </span>
 
           <input
             v-model="store.registrationData.stage"
             type="text"
             class="mt-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
-            placeholder="Ej. Etapa 1"
+            :placeholder="investorStagePlaceholder"
           />
         </label>
 
         <label class="block">
-          <span class="font-semibold text-gray-800"> Número de lote </span>
+          <span class="font-semibold text-gray-800">
+            {{ investorLotLabel }}
+          </span>
 
           <input
             v-model="store.registrationData.lot_number"
             type="text"
             class="mt-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
-            placeholder="Ej. Lote 24"
+            :placeholder="investorLotPlaceholder"
           />
         </label>
 
