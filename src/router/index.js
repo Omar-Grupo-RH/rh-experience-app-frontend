@@ -76,7 +76,7 @@ const router = createRouter({
             title: "Mis Pasajeros",
             requiresAuth: true,
             adminOnly: true,
-            allowedAdminLevels: [1, 3],
+            allowedAdminLevels: [1, 2, 3],
           },
           component: () => import("@/views/admin/TravelsView.vue"),
         },
@@ -89,7 +89,7 @@ const router = createRouter({
             requiresAuth: true,
             activeMenu: "travels",
             adminOnly: true,
-            allowedAdminLevels: [1, 3],
+            allowedAdminLevels: [1, 2, 3],
           },
           component: () =>
             import("@/views/admin/travels/ListPassengerView.vue"),
