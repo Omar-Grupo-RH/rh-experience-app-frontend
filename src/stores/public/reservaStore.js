@@ -70,14 +70,16 @@ export const useReservaStore = defineStore("reserva", () => {
     {
       value: "investor",
       title: "Inversionistas",
-      description: "Incluye 1 boleto gratis. Invitado extra con cuota de $500.",
+      description:
+        "Para personas que han invertido en algun proyecto de Grupo RH es gratuito.",
       free: true,
-      allowsExtra: true,
+      allowsExtra: false,
     },
     {
       value: "prospect",
       title: "Clientes prospectos",
-      description: "Para personas interesadas en algún desarrollo.",
+      description:
+        "Para personas interesadas en algún desarrollo de Grupo RH, con cuota de $1,500.00 MXN. por persona.",
       free: false,
       allowsExtra: false,
     },
@@ -90,10 +92,11 @@ export const useReservaStore = defineStore("reserva", () => {
     },
     {
       value: "family_friend",
-      title: "Familiares y amigos",
-      description: "Para familiares o amigos.",
+      title: "Invitado extra, familiares o amigos",
+      description:
+        "Invitado extra del inversionista, familiares o amigos con una cuota de $500.00 MXN por persona.",
       free: false,
-      allowsExtra: false,
+      allowsExtra: true,
     },
   ];
 
@@ -103,12 +106,18 @@ export const useReservaStore = defineStore("reserva", () => {
     );
   });
 
+  const hasUnlimitedPassengers = computed(() => {
+    return registrationType.value === "family_friend";
+  });
+
   const requiresExtraPassenger = computed(() => {
-    return ["investor", "prize"].includes(registrationType.value);
+    return ["prize", "family_friend"].includes(registrationType.value);
   });
 
   const maxPassengers = computed(() => {
-    if (requiresExtraPassenger.value) return 2;
+    if (hasUnlimitedPassengers.value) return Infinity;
+
+    if (registrationType.value === "prize") return 2;
 
     return 1;
   });
@@ -433,7 +442,10 @@ export const useReservaStore = defineStore("reserva", () => {
       return;
     }
 
-    if (selectedSeats.value.length >= maxPassengers.value) {
+    if (
+      !hasUnlimitedPassengers.value &&
+      selectedSeats.value.length >= maxPassengers.value
+    ) {
       const max = maxPassengers.value;
 
       toast?.open?.({
@@ -599,6 +611,7 @@ export const useReservaStore = defineStore("reserva", () => {
     isFreeRegistration,
     requiresPayment,
     requiresExtraPassenger,
+    hasUnlimitedPassengers,
     maxPassengers,
     registrationPricePerPerson,
     registrationTotal,
