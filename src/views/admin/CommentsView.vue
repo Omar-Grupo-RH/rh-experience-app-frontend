@@ -22,9 +22,9 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div class="rounded-lg bg-white p-5 shadow-sm">
+    <div class="rounded-lg bg-white p-5 ">
       <div
-        class="grid grid-cols-1 gap-5 lg:grid-cols-3 lg:mt-5"
+        class="grid grid-cols-1 gap-5 lg:grid-cols-3 lg:mt-5 shadow-sm"
         v-if="commentsStore.hasComments"
       >
         <div
@@ -64,7 +64,7 @@ onMounted(async () => {
 
       <div
         v-else
-        class="flex min-h-[260px] flex-col items-center justify-center border-slate-300 bg-slate-50 px-6 py-10 text-center"
+        class="flex min-h-[260px] flex-col items-center justify-center border rounded-2xl border-dashed border-slate-300 bg-slate-50  px-6 py-10 text-center"
       >
         <h3 class="text-lg font-bold text-slate-900">
           No hay comentarios registrados.

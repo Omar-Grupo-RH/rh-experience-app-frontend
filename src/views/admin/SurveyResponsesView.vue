@@ -791,7 +791,7 @@ watch(
 
     <section v-if="activeTab === 'responses'">
       <div
-        class="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-5"
+       
       >
         <div
           v-if="store.loading"
@@ -802,7 +802,7 @@ watch(
 
         <div
           v-else-if="!hasFilteredResponses"
-          class="flex min-h-[260px] items-center justify-center rounded-2xl bg-slate-50 text-center"
+          class="flex min-h-[260px] items-center justify-center border rounded-2xl border-dashed border-slate-300 bg-slate-50  px-6 py-10 text-center"
         >
           <div>
             <p class="font-semibold text-slate-900">
@@ -871,7 +871,7 @@ watch(
 
       <div
         v-else-if="!hasChartData"
-        class="flex min-h-[260px] items-center justify-center rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200"
+        class="flex min-h-[260px] items-center justify-center border rounded-2xl border-dashed border-slate-300 bg-slate-50  px-6 py-10 text-center"
       >
         <div>
           <p class="font-semibold text-slate-900">
