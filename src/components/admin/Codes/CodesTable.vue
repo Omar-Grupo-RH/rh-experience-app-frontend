@@ -1,5 +1,7 @@
 <script setup>
-defineProps({
+import { computed, ref, watch } from "vue";
+
+const props = defineProps({
   codes: {
     type: Array,
     required: true,
@@ -18,6 +20,85 @@ const typeClasses = {
   discount: "bg-emerald-50 text-emerald-700 ring-emerald-100",
   internal: "bg-yellow-50 text-yellow-700 ring-yellow-100",
 };
+
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+const itemsPerPageOptions = [10, 20, 50, 100];
+
+const totalPages = computed(() => {
+  return Math.ceil(props.codes.length / itemsPerPage.value) || 1;
+});
+
+const paginatedCodes = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
+
+  return props.codes.slice(start, end);
+});
+
+const paginationStart = computed(() => {
+  if (!props.codes.length) return 0;
+
+  return (currentPage.value - 1) * itemsPerPage.value + 1;
+});
+
+const paginationEnd = computed(() => {
+  return Math.min(currentPage.value * itemsPerPage.value, props.codes.length);
+});
+
+const visiblePages = computed(() => {
+  const pages = [];
+  const total = totalPages.value;
+  const current = currentPage.value;
+
+  let start = Math.max(1, current - 2);
+  let end = Math.min(total, current + 2);
+
+  if (current <= 2) {
+    end = Math.min(total, 5);
+  }
+
+  if (current >= total - 1) {
+    start = Math.max(1, total - 4);
+  }
+
+  for (let page = start; page <= end; page++) {
+    pages.push(page);
+  }
+
+  return pages;
+});
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return;
+
+  currentPage.value = page;
+};
+
+const nextPage = () => {
+  goToPage(currentPage.value + 1);
+};
+
+const prevPage = () => {
+  goToPage(currentPage.value - 1);
+};
+
+watch(
+  () => props.codes.length,
+  () => {
+    if (currentPage.value > totalPages.value) {
+      currentPage.value = totalPages.value;
+    }
+
+    if (currentPage.value < 1) {
+      currentPage.value = 1;
+    }
+  },
+);
+
+watch(itemsPerPage, () => {
+  currentPage.value = 1;
+});
 </script>
 
 <template>
@@ -38,6 +119,80 @@ const typeClasses = {
       v-else
       class="hidden overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:block"
     >
+    <!-- Paginación -->
+    <div
+      v-if="codes.length"
+      class="flex flex-col gap-4  px-4 py-4 shadow-sm xl:flex-row xl:items-center xl:justify-between"
+    >
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <p class="text-sm font-medium text-slate-500">
+          Mostrando
+          <span class="font-bold text-slate-900">{{ paginationStart }}</span>
+          -
+          <span class="font-bold text-slate-900">{{ paginationEnd }}</span>
+          de
+          <span class="font-bold text-slate-900">{{ codes.length }}</span>
+          códigos
+        </p>
+
+        <div class="flex items-center gap-2">
+          <label class="text-sm font-bold text-slate-500">
+            Mostrar:
+          </label>
+
+          <select
+            v-model.number="itemsPerPage"
+            class="rounded-xl border border-slate-200 bg-white px-5 py-2 text-sm font-bold text-slate-700 outline-none transition focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/10"
+          >
+            <option
+              v-for="option in itemsPerPageOptions"
+              :key="option"
+              :value="option"
+            >
+              {{ option }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div
+        v-if="totalPages > 1"
+        class="flex flex-wrap items-center gap-2"
+      >
+        <button
+          type="button"
+          class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          :disabled="currentPage === 1"
+          @click="prevPage"
+        >
+          Anterior
+        </button>
+
+        <button
+          v-for="page in visiblePages"
+          :key="page"
+          type="button"
+          class="h-10 w-10 rounded-xl text-sm font-bold transition"
+          :class="
+            currentPage === page
+              ? 'bg-experience-blue text-white shadow-sm'
+              : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+          "
+          @click="goToPage(page)"
+        >
+          {{ page }}
+        </button>
+
+        <button
+          type="button"
+          class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          :disabled="currentPage === totalPages"
+          @click="nextPage"
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>
       <table class="w-full">
         <thead class="bg-slate-50">
           <tr class="border-b border-slate-200">
@@ -66,7 +221,7 @@ const typeClasses = {
 
         <tbody class="divide-y divide-slate-100">
           <tr
-            v-for="code in codes"
+            v-for="code in paginatedCodes"
             :key="code.id"
             class="transition hover:bg-slate-50/80"
           >
@@ -126,7 +281,7 @@ const typeClasses = {
 
     <div v-if="codes.length" class="grid gap-4 md:hidden">
       <article
-        v-for="code in codes"
+        v-for="code in paginatedCodes"
         :key="code.id"
         class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm"
       >
@@ -171,5 +326,7 @@ const typeClasses = {
         </div>
       </article>
     </div>
+
+    
   </div>
 </template>
