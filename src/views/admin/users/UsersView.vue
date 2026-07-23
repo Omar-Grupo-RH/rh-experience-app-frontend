@@ -37,77 +37,162 @@ onMounted(async () => {
         />
       </div>
 
-      <div
-        v-if="userStore.showEditModal"
-        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-      >
-        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-          <h3 class="text-lg font-semibold mb-4">Editar usuario</h3>
-
-          <div class="space-y-3">
-            <div>
-              <FormKit
-                type="form"
-                id="editUserForm"
-                @submit="userStore.handleUpdateUser"
-                :actions="false"
-                :classes="{
-                  message: 'hidden',
-                }"
+      <Teleport to="body">
+        <Transition
+          enter-active-class="transition duration-200 ease-out"
+          enter-from-class="opacity-0"
+          enter-to-class="opacity-100"
+          leave-active-class="transition duration-150 ease-in"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
+        >
+          <div
+            v-if="userStore.showEditModal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-6 backdrop-blur-xs"
+            @click.self="userStore.closeEditModal"
+          >
+            <Transition
+              appear
+              enter-active-class="transition duration-300 ease-out"
+              enter-from-class="translate-y-4 scale-95 opacity-0"
+              enter-to-class="translate-y-0 scale-100 opacity-100"
+              leave-active-class="transition duration-150 ease-in"
+              leave-from-class="translate-y-0 scale-100 opacity-100"
+              leave-to-class="translate-y-4 scale-95 opacity-0"
+            >
+              <div
+                class="w-full max-w-xl overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-slate-200"
               >
-                <FormKit
-                  type="text"
-                  label="Nombre completo"
-                  name="full_name"
-                  v-model="userStore.selectedUser.full_name"
-                  placeholder="Jhon Doe"
-                  validation="required|length:3"
-                  :validation-messages="{
-                    required: 'El usuario es obligatorio',
-                    length: 'El usuario debe tener al menos 3 caracteres',
-                  }"
-                />
-                <FormKit
-                  type="text"
-                  label="Nombre de usuario"
-                  name="username"
-                  v-model="userStore.selectedUser.username"
-                  placeholder="Jhon"
-                  validation="required|length:3"
-                  :validation-messages="{
-                    required: 'El usuario es obligatorio',
-                    length: 'El usuario debe tener al menos 3 caracteres',
-                  }"
-                />
+                <!-- Header -->
+                <div
+                  class="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5"
+                >
+                  <div>
+                    <p
+                      class="text-sm font-semibold uppercase tracking-[0.18em] text-experience-blue"
+                    >
+                      Gestión de usuarios
+                    </p>
 
-                <FormKit
-                  type="password"
-                  label="Cambiar contraseña"
-                  name="password"
-                  placeholder="Ingresa la nueva contraseña"
-                  validation="length:6"
-                  :validation-messages="{
-                    required: 'La nueva contraseña es obligatoria',
-                    length: 'La contraseña debe tener al menos 6 caracteres',
-                  }"
-                />
+                    <h3 class="mt-1 text-2xl font-black text-slate-900">
+                      Editar usuario
+                    </h3>
 
-                <div class="mt-6 flex justify-around items-center gap-3">
+                    <p class="mt-1 text-sm text-slate-500">
+                      Actualiza la información del usuario seleccionado.
+                    </p>
+                  </div>
+
                   <button
-                    class="bg-gray-100 w-1/2 h-fit py-2 px-4 rounded cursor-pointer shadow"
+                    type="button"
+                    class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-900"
+                    aria-label="Cerrar modal"
                     @click="userStore.closeEditModal"
                   >
-                    Cancelar
+                    ✕
                   </button>
-                  <div class="w-1/2">
-                    <FormKit type="submit">Guardar datos</FormKit>
-                  </div>
                 </div>
-              </FormKit>
-            </div>
+
+                <!-- Body -->
+                <div class="px-6 py-6">
+                  <FormKit
+                    type="form"
+                    id="editUserForm"
+                    @submit="userStore.handleUpdateUser"
+                    :actions="false"
+                    :classes="{
+                      message: 'hidden',
+                    }"
+                  >
+                    <FormKit
+                      type="text"
+                      label="Nombre completo"
+                      name="full_name"
+                      v-model="userStore.selectedUser.full_name"
+                      placeholder="Ej. John Doe"
+                      validation="required|length:3"
+                      :validation-messages="{
+                        required: 'El nombre es obligatorio',
+                        length: 'El nombre debe tener al menos 3 caracteres',
+                      }"
+                    />
+
+                    <FormKit
+                      type="text"
+                      label="Nombre de usuario"
+                      name="username"
+                      v-model="userStore.selectedUser.username"
+                      placeholder="Ej. john_doe"
+                      validation="required|length:3"
+                      :validation-messages="{
+                        required: 'El usuario es obligatorio',
+                        length: 'El usuario debe tener al menos 3 caracteres',
+                      }"
+                    />
+
+                    <FormKit
+                      type="select"
+                      label="Tipo de privilegios"
+                      name="admin"
+                      placeholder="Selecciona una opción"
+                      v-model="userStore.selectedUser.admin"
+                      :options="[
+                        {
+                          label: 'Selecciona una opción',
+                          value: '',
+                          attrs: { disabled: true },
+                        },
+                        { label: 'Super administrador', value: '1' },
+                        { label: 'Administrador', value: '2' },
+                        { label: 'Front Desk', value: '3' },
+                      ]"
+                      validation="required"
+                      validation-visibility="dirty"
+                      :validation-messages="{
+                        required: 'Debes seleccionar una opción',
+                      }"
+                    />
+
+                    <FormKit
+                      type="password"
+                      label="Cambiar contraseña"
+                      name="password"
+                      placeholder="Dejar vacío si no deseas cambiarla"
+                      validation="length:6"
+                      :validation-messages="{
+                        length:
+                          'La contraseña debe tener al menos 6 caracteres',
+                      }"
+                    />
+
+                    <div
+                      class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"
+                    >
+                      <button
+                        type="button"
+                        class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+                        @click="userStore.closeEditModal"
+                      >
+                        Cancelar
+                      </button>
+
+                      <FormKit
+                        type="submit"
+                        :classes="{
+                          input:
+                            'inline-flex w-full sm:w-auto cursor-pointer items-center justify-center rounded-lg bg-experience-blue px-5 py-3 text-sm font-bold text-white transition hover:bg-experience-blue/90 disabled:cursor-not-allowed disabled:opacity-60',
+                        }"
+                      >
+                        Guardar cambios
+                      </FormKit>
+                    </div>
+                  </FormKit>
+                </div>
+              </div>
+            </Transition>
           </div>
-        </div>
-      </div>
+        </Transition>
+      </Teleport>
 
       <Teleport to="body">
         <Transition
