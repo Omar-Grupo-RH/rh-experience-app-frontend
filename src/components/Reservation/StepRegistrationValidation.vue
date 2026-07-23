@@ -205,7 +205,8 @@ onMounted(async () => {
         </label>
 
         <div class="rounded-xl bg-green-50 p-4 text-sm text-green-700">
-          Esta inscripción no tiene costo e incluye hasta 2 personas.
+          Esta inscripción no tiene costo, incluye solo a la persona
+          inversionista.
         </div>
       </div>
 
@@ -318,7 +319,7 @@ onMounted(async () => {
         </label>
 
         <div class="rounded-xl bg-green-50 p-4 text-sm text-green-700">
-          Esta inscripción no tiene costo e incluye hasta 2 personas.
+          Esta inscripción no tiene costo e incluye un acompañante.
         </div>
       </div>
 

@@ -269,6 +269,8 @@ export const useReservaStore = defineStore("reserva", () => {
   });
 
   const maxStep = computed(() => {
+    if (registrationType.value === "family_friend") return 5;
+
     return 6;
   });
 
@@ -530,12 +532,22 @@ export const useReservaStore = defineStore("reserva", () => {
   }
 
   const next = () => {
-    if (step.value < maxStep.value) {
+    if (registrationType.value === "family_friend" && step.value === 1) {
+      step.value = 3;
+      return;
+    }
+
+    if (step.value < 6) {
       step.value++;
     }
   };
 
   const prev = () => {
+    if (registrationType.value === "family_friend" && step.value === 3) {
+      step.value = 1;
+      return;
+    }
+
     if (step.value > 1) {
       step.value--;
     }

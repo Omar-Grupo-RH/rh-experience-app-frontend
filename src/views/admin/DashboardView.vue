@@ -38,6 +38,7 @@ const registrationTypeLabels = {
   alliance: "Alianza",
   investor: "Inversionista",
   prospect: "Cliente prospecto",
+  family_friend: "Invitado extra, familiares o amigos",
   prize: "Premio",
   sin_tipo: "Sin tipo",
 };
