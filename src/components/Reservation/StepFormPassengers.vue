@@ -1,10 +1,78 @@
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 import ResumeCard from "@/components/Reservation/ResumeCard.vue";
 
 const store = useReservaStore();
 const openPassengers = ref([0]);
+
+const phoneCountryOptions = [
+  { label: "México", value: "52" },
+  { label: "EUA / Canadá", value: "1" }
+];
+
+const normalizePhoneDigits = (value = "") => {
+  return String(value).replace(/\D/g, "").slice(0, 10);
+};
+
+const normalizePhoneCountryCode = (value = "") => {
+  return String(value || "52").replace(/\D/g, "");
+};
+
+const syncPassengerPhone = (passenger) => {
+  passenger.phone_country_code = normalizePhoneCountryCode(
+    passenger.phone_country_code,
+  );
+
+  passenger.phone = normalizePhoneDigits(passenger.phone);
+};
+
+const handlePhoneInput = (event, passenger) => {
+  const cleanPhone = normalizePhoneDigits(event.target.value);
+
+  passenger.phone = cleanPhone;
+  event.target.value = cleanPhone;
+};
+
+const handlePhoneCountryChange = (event, passenger) => {
+  passenger.phone_touched = true;
+  passenger.phone_country_code = normalizePhoneCountryCode(event.target.value);
+};
+
+const markPhoneTouched = (passenger) => {
+  passenger.phone_touched = true;
+};
+
+const getPhoneError = (passenger) => {
+  const phone = normalizePhoneDigits(passenger.phone);
+
+  if (!phone) {
+    return "Teléfono obligatorio";
+  }
+
+  if (phone.length !== 10) {
+    return "Debe tener 10 dígitos";
+  }
+
+  return "";
+};
+
+const hasPhoneError = (passenger) => {
+  return Boolean(getPhoneError(passenger));
+};
+
+watch(
+  () => store.passengers,
+  (passengers) => {
+    passengers.forEach((passenger) => {
+      syncPassengerPhone(passenger);
+    });
+  },
+  {
+    immediate: true,
+    deep: true,
+  },
+);
 
 const togglePassenger = (idx) => {
   if (openPassengers.value.includes(idx)) {
@@ -95,13 +163,7 @@ const handleHealthConditionInput = (event, passenger) => {
 
   if (!value.includes(",")) return;
 
-  addTagsToPassenger(
-    passenger,
-    value,
-    "health_conditions",
-    true,
-    event.target,
-  );
+  addTagsToPassenger(passenger, value, "health_conditions", true, event.target);
 };
 
 const handleHealthConditionEnter = (event, passenger) => {
@@ -147,7 +209,7 @@ const handleHealthConditionBlur = (event, passenger) => {
               <div class="rounded-lg border border-gray-200 overflow-hidden">
                 <button
                   type="button"
-                  class="w-full p-4 flex items-center justify-between gap-4 text-left cursor-pointer bg-white"
+                  class="w-full p-4 flex items-center justify-between gap-4 text-left cursor-pointer bg-white transition hover:bg-slate-50"
                   @click="togglePassenger(idx)"
                 >
                   <div class="min-w-0">
@@ -211,18 +273,91 @@ const handleHealthConditionBlur = (event, passenger) => {
                       }"
                     />
 
-                    <FormKit
-                      type="tel"
-                      name="phone"
-                      label="Teléfono"
-                      v-model="p.phone"
-                      placeholder="10 dígitos"
-                      validation="required|matches:/^[0-9]{10}$/"
-                      :validation-messages="{
-                        required: 'Teléfono obligatorio',
-                        matches: 'Debe tener 10 dígitos',
-                      }"
-                    />
+                    <div class="w-full">
+                      <label
+                        class="mb-1 block text-sm font-bold text-slate-700"
+                      >
+                        Teléfono
+                      </label>
+
+                      <div class="flex gap-0">
+                        <!-- Lada -->
+                        <div class="relative w-[92px] shrink-0">
+                          <select
+                            :value="p.phone_country_code || '52'"
+                            class="h-11 w-full cursor-pointer appearance-none rounded-l-lg border border-slate-300 bg-white px-3 pr-8 text-sm font-bold text-slate-700 outline-none transition focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
+                            @change="handlePhoneCountryChange($event, p)"
+                          >
+                            <option
+                              v-for="option in phoneCountryOptions"
+                              :key="`${option.label}-${option.value}`"
+                              :value="option.value"
+                            >
+                              +{{ option.value }}
+                            </option>
+                          </select>
+                        </div>
+
+                        <!-- Teléfono -->
+                        <div class="min-w-0 flex-1">
+                          <input
+                            type="tel"
+                            name="phone"
+                            :value="p.phone || ''"
+                            inputmode="numeric"
+                            pattern="[0-9]*"
+                            maxlength="10"
+                            autocomplete="tel-national"
+                            placeholder="10 dígitos"
+                            class="h-11 w-full rounded-r-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition placeholder:font-medium placeholder:text-slate-400 focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
+                            :class="{
+                              'border-rose-400 focus:border-rose-400 focus:ring-rose-100':
+                                p.phone_touched && hasPhoneError(p),
+                            }"
+                            @input="handlePhoneInput($event, p)"
+                            @keydown="
+                              [
+                                'Backspace',
+                                'Delete',
+                                'Tab',
+                                'ArrowLeft',
+                                'ArrowRight',
+                              ].includes($event.key) ||
+                              /^[0-9]$/.test($event.key)
+                                ? null
+                                : $event.preventDefault()
+                            "
+                            @paste.prevent="
+                              p.phone = normalizePhoneDigits(
+                                $event.clipboardData.getData('text'),
+                              )
+                            "
+                            @blur="markPhoneTouched(p)"
+                          />
+                        </div>
+                      </div>
+
+                      <p
+                        v-if="p.phone_touched && hasPhoneError(p)"
+                        class="mt-1.5 text-sm text-red-500"
+                      >
+                        {{ getPhoneError(p) }}
+                      </p>
+
+                      <p
+                        v-else-if="p.phone && p.phone.length === 10"
+                        class="mt-1.5 text-xs font-medium text-slate-500"
+                      >
+                        Lada:
+                        <span class=" text-experience-blue">
+                          +{{ p.phone_country_code || "52" }}
+                        </span>
+                        · Teléfono:
+                        <span class="font-bold text-experience-blue">
+                          {{ p.phone }}
+                        </span>
+                      </p>
+                    </div>
 
                     <FormKit
                       type="date"
@@ -260,7 +395,7 @@ const handleHealthConditionBlur = (event, passenger) => {
 
                       <input
                         type="text"
-                        class="w-full outline-none border-0 bg-white rounded-md p-2 text-sm"
+                        class="w-full outline-none border border-slate-200 bg-white rounded-md p-2 text-sm transition focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
                         @input="handleAllergyInput($event, p)"
                         @keydown.enter="handleAllergyEnter($event, p)"
                         @blur="handleAllergyBlur($event, p)"
@@ -293,7 +428,7 @@ const handleHealthConditionBlur = (event, passenger) => {
 
                       <input
                         type="text"
-                        class="w-full outline-none border-0 bg-white rounded-md p-2 text-sm"
+                        class="w-full outline-none border border-slate-200 bg-white rounded-md p-2 text-sm transition focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
                         @input="handleHealthConditionInput($event, p)"
                         @keydown.enter="handleHealthConditionEnter($event, p)"
                         @blur="handleHealthConditionBlur($event, p)"

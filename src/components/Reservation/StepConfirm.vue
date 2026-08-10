@@ -100,6 +100,7 @@ function buildPayload() {
       first_name: p.first_name,
       last_name: p.last_name,
       email: p.email,
+      phone_country_code: p.phone_country_code,
       phone: p.phone,
       born_date: p.born_date,
       allergies: p.allergies,
@@ -393,7 +394,9 @@ watch(
         </div>
 
         <div
-          v-if="store.registrationType === 'investor' && store.registrationTotal > 0"
+          v-if="
+            store.registrationType === 'investor' && store.registrationTotal > 0
+          "
           class="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4"
         >
           <p class="text-sm font-semibold text-amber-900">
@@ -426,9 +429,13 @@ watch(
           v-if="store.registrationTotal > 0"
           class="mb-5 rounded-2xl border border-slate-200 bg-slate-50 p-5"
         >
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+          >
             <div>
-              <p class="text-xs font-bold uppercase tracking-wide text-slate-500">
+              <p
+                class="text-xs font-bold uppercase tracking-wide text-slate-500"
+              >
                 Resumen de pago
               </p>
 
@@ -437,8 +444,12 @@ watch(
               </p>
             </div>
 
-            <div class="rounded-xl bg-white px-4 py-3 text-right ring-1 ring-slate-200">
-              <p class="text-xs font-bold uppercase tracking-wide text-slate-500">
+            <div
+              class="rounded-xl bg-white px-4 py-3 text-right ring-1 ring-slate-200"
+            >
+              <p
+                class="text-xs font-bold uppercase tracking-wide text-slate-500"
+              >
                 Total a pagar
               </p>
 
@@ -450,7 +461,9 @@ watch(
 
           <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div class="rounded-xl bg-white p-3 ring-1 ring-slate-200">
-              <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+              <p
+                class="text-[11px] font-bold uppercase tracking-wide text-slate-500"
+              >
                 Boletos gratis
               </p>
 
@@ -460,7 +473,9 @@ watch(
             </div>
 
             <div class="rounded-xl bg-white p-3 ring-1 ring-slate-200">
-              <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+              <p
+                class="text-[11px] font-bold uppercase tracking-wide text-slate-500"
+              >
                 Boletos con costo
               </p>
 
@@ -470,7 +485,9 @@ watch(
             </div>
 
             <div class="rounded-xl bg-white p-3 ring-1 ring-slate-200">
-              <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+              <p
+                class="text-[11px] font-bold uppercase tracking-wide text-slate-500"
+              >
                 Costo unitario
               </p>
 

@@ -19,6 +19,7 @@ export const useSeatsStore = defineStore("seats", () => {
           first_name: "",
           last_name: "",
           email: "",
+          phone_country_code: "",
           phone: "",
           born_date: "",
           allergies: [],

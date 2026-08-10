@@ -639,7 +639,7 @@ const generatePDF = () => {
                     Celular
                   </p>
                   <p class="mt-1 text-sm font-medium text-slate-700">
-                    {{ p.phone }}
+                    {{p.phone_country_code ? `(+${p.phone_country_code})` : '(-)'}} {{p.phone}}
                   </p>
                 </div>
 
