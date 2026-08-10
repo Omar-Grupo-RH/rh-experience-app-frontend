@@ -175,30 +175,55 @@ export const useCalendarStore = defineStore("calendar", () => {
     if (!target) return;
 
     const { isConfirmed } = await Swal.fire({
-      title: `¿Eliminar a ${target.title}?`,
-      text: "Esta acción no se puede deshacer.",
+      title: `¿Eliminar ${target.title}?`,
+      text: "Se notificará por correo a los pasajeros registrados en este tour.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
+      reverseButtons: true,
     });
 
     if (!isConfirmed) return;
 
-    events.value = events.value.filter((e) => e.id !== String(id));
-
     try {
-      await destroyEvent(id);
+      Swal.fire({
+        title: "Eliminando RH Experience...",
+        text: "Estamos notificando a los pasajeros registrados. Esto puede tardar unos segundos.",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
 
-      Swal.fire("Eliminado", "El Tour ha sido eliminado.", "success");
+      const response = await destroyEvent(id);
+
+      events.value = events.value.filter((e) => e.id !== String(id));
+
+      const notifications = response?.data?.notifications;
+
+      await Swal.fire({
+        title: "Eliminado",
+        text: "RH EXPERIENCE eliminado correctamente.",
+        icon: "success",
+        confirmButtonColor: "#315fa8",
+        confirmButtonText: "Entendido",
+      });
     } catch (e) {
       console.error(e);
 
       events.value = prev;
 
-      Swal.fire("Error", "No se pudo eliminar el tour.", "error");
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo eliminar el tour.",
+        icon: "error",
+        confirmButtonColor: "#315fa8",
+      });
     }
   }
 
