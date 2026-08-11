@@ -102,6 +102,7 @@ function buildPayload() {
       email: p.email,
       phone_country_code: p.phone_country_code,
       phone: p.phone,
+      city: p.city,
       born_date: p.born_date,
       allergies: p.allergies,
       health_conditions: p.health_conditions,
