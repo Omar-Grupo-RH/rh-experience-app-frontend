@@ -2,8 +2,8 @@
 import { formatDateToSpanish } from "@/utils/formatDate";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
+import EditPassengerModal from "@/components/admin/Travels/EditPassengerModal.vue";
 import { useTravelStore } from "@/stores/admin/travelStore";
-import html2pdf from "html2pdf.js";
 import { useAuth } from "@/composables/useAuth";
 
 const { adminLevel } = useAuth();
@@ -13,6 +13,9 @@ const store = useTravelStore();
 
 const expandedPassengerIds = ref([]);
 const ticketSearch = ref("");
+const openMenuPassengerId = ref(null);
+const showEditPassengerModal = ref(false);
+const selectedPassenger = ref(null);
 
 onMounted(async () => {
   try {
@@ -34,6 +37,7 @@ const registrationTypeLabels = {
 const getRegistrationTypeLabel = (type) => {
   return registrationTypeLabels[type] || "Sin tipo";
 };
+
 const isRhevoDevelopment = (development) => {
   return (
     String(development || "")
@@ -50,9 +54,9 @@ const getLotLabelByDevelopment = (development) => {
   return isRhevoDevelopment(development) ? "Unidad" : "Lote";
 };
 
-const parseJSON = (allergies) => {
+const parseJSON = (value) => {
   try {
-    const parsed = JSON.parse(allergies || "[]");
+    const parsed = JSON.parse(value || "[]");
     return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
     return [];
@@ -84,7 +88,6 @@ const filteredPassengers = computed(() => {
 
   return passengers.value.filter((passenger) => {
     const ticketCode = normalizeTicketCode(passenger.ticket_code || "");
-
     return ticketCode.includes(search);
   });
 });
@@ -108,6 +111,56 @@ const togglePassenger = (id) => {
   expandedPassengerIds.value.push(id);
 };
 
+const isPassengerMenuOpen = (id) => {
+  return openMenuPassengerId.value === id;
+};
+
+const togglePassengerMenu = (id) => {
+  openMenuPassengerId.value = openMenuPassengerId.value === id ? null : id;
+};
+
+const closePassengerMenu = () => {
+  openMenuPassengerId.value = null;
+};
+
+const closeEditPassengerModal = () => {
+  showEditPassengerModal.value = false;
+  selectedPassenger.value = null;
+};
+
+const editPassenger = (passenger) => {
+  closePassengerMenu();
+
+  selectedPassenger.value = {
+    ...passenger,
+  };
+
+  showEditPassengerModal.value = true;
+};
+
+const handleUpdatePassenger = async (payload) => {
+  const wasUpdated = await store.updatePassengerInfoStore(payload);
+
+  if (wasUpdated) {
+    closeEditPassengerModal();
+  }
+};
+
+const reschedulePassenger = (passenger) => {
+  closePassengerMenu();
+  console.log("Reagendar pasajero", passenger);
+};
+
+const resendPassengerEmail = (passenger) => {
+  closePassengerMenu();
+  console.log("Reenviar correo", passenger);
+};
+
+const deletePassenger = (passenger) => {
+  closePassengerMenu();
+  console.log("Eliminar pasajero", passenger);
+};
+
 const getOriginLabel = (origin) => {
   const origins = {
     directo_rh: "Grupo RH",
@@ -123,6 +176,17 @@ const formatCurrency = (amount) => {
     currency: "MXN",
     maximumFractionDigits: 0,
   }).format(amount);
+};
+
+const getFreeConditionByType = (type) => {
+  const conditions = {
+    internal: "Primera visita gratis",
+    alliance: "Con código de alianza",
+    investor: "Para cualquier proyecto",
+    prize: "Boleto por premio / código RH Experience",
+  };
+
+  return conditions[type] || "No requiere pago";
 };
 
 const getPassengerCostInfo = (passenger) => {
@@ -202,17 +266,6 @@ const getPassengerCostInfo = (passenger) => {
   };
 };
 
-const getFreeConditionByType = (type) => {
-  const conditions = {
-    internal: "Primera visita gratis",
-    alliance: "Con código de alianza",
-    investor: "Para cualquier proyecto",
-    prize: "Boleto por premio / código RH Experience",
-  };
-
-  return conditions[type] || "No requiere pago";
-};
-
 const getCostCardClasses = (passenger) => {
   const tone = getPassengerCostInfo(passenger).tone;
 
@@ -237,7 +290,8 @@ const getCostLabelClasses = (passenger) => {
   return classes[tone] || classes.slate;
 };
 
-const generatePDF = () => {
+const generatePDF = async () => {
+  const html2pdf = (await import("html2pdf.js")).default;
   const element = document.createElement("div");
   const passengersToExport = filteredPassengers.value;
 
@@ -277,7 +331,9 @@ const generatePDF = () => {
               <p style="margin: 4px 0; font-size: 12px;"><strong>Estado de pago:</strong> ${p.payment_status || ""}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Asiento:</strong> ${p.seat_id || ""}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Email:</strong> ${p.email || ""}</p>
-              <p style="margin: 4px 0; font-size: 12px;"><strong>Celular:</strong> ${p.phone || ""}</p>
+              <p style="margin: 4px 0; font-size: 12px;"><strong>Celular:</strong> ${
+                p.phone_country_code ? `(+${p.phone_country_code}) ` : ""
+              }${p.phone || ""}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Fecha nacimiento:</strong> ${formatDateToSpanish(p.born_date)}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Alergias:</strong> ${allergies.length ? allergies.join(", ") : "Sin alergias"}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Condiciones de salud:</strong> ${healthConditions.length ? healthConditions.join(", ") : "Sin problemas de salud"}</p>
@@ -286,53 +342,6 @@ const generatePDF = () => {
               <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 12px 0;" />
 
               <p style="margin: 4px 0; font-size: 12px;"><strong>Tipo inscripción:</strong> ${getRegistrationTypeLabel(p.registration_type)}</p>
-
-              ${
-                p.registration_type === "internal"
-                  ? `<p style="margin: 4px 0; font-size: 12px;"><strong>Código de área:</strong> ${p.area_code || "No registrado"}</p>`
-                  : ""
-              }
-
-              ${
-                p.registration_type === "alliance"
-                  ? `
-                    <p style="margin: 4px 0; font-size: 12px;"><strong>Alianza:</strong> ${p.alliance_name || "No registrada"}</p>
-                    <p style="margin: 4px 0; font-size: 12px;"><strong>Código alianza:</strong> ${p.alliance_code || "No registrado"}</p>
-                  `
-                  : ""
-              }
-
-              ${
-                p.registration_type === "prize"
-                  ? `<p style="margin: 4px 0; font-size: 12px;"><strong>Código premio:</strong> ${p.prize_code || "No registrado"}</p>`
-                  : ""
-              }
-
-              ${
-                p.registration_type === "investor"
-                  ? `
-      <p style="margin: 4px 0; font-size: 12px;"><strong>Desarrollo:</strong> ${p.development || "No registrado"}</p>
-      <p style="margin: 4px 0; font-size: 12px;"><strong>${getStageLabelByDevelopment(p.development)}:</strong> ${p.stage || "No registrada"}</p>
-      <p style="margin: 4px 0; font-size: 12px;"><strong>${getLotLabelByDevelopment(p.development)}:</strong> ${p.lot_number || "No registrado"}</p>
-    `
-                  : ""
-              }
-
-              ${
-                p.registration_type === "prospect"
-                  ? `
-                    <p style="margin: 4px 0; font-size: 12px;"><strong>Desarrollo:</strong> ${p.development || "No registrado"}</p>
-                    <p style="margin: 4px 0; font-size: 12px;"><strong>Asesor:</strong> ${p.advisor_name || "No registrado"}</p>
-                    <p style="margin: 4px 0; font-size: 12px;"><strong>Código asesor:</strong> ${p.advisor_code || "No registrado"}</p>
-                    <p style="margin: 4px 0; font-size: 12px;"><strong>Origen:</strong> ${getOriginLabel(p.origin)}</p>
-                    ${
-                      p.origin === "alianza"
-                        ? `<p style="margin: 4px 0; font-size: 12px;"><strong>Alianza origen:</strong> ${p.origin_alliance_name || "No registrada"}</p>`
-                        : ""
-                    }
-                  `
-                  : ""
-              }
             </div>
           `;
         })
@@ -379,7 +388,7 @@ const generatePDF = () => {
 
       <RouterLink
         :to="{ name: 'travels' }"
-        class="inline-flex gap-2 w-fit items-center justify-center rounded-lg bg-experience-blue px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-experience-blue/90 hover:shadow-md"
+        class="inline-flex w-fit items-center justify-center gap-2 rounded-lg bg-experience-blue px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-experience-blue/90 hover:shadow-md"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -402,6 +411,7 @@ const generatePDF = () => {
     <div
       v-if="store.hasPassengersByTravel"
       class="space-y-6 rounded-xl bg-white p-4 sm:p-6"
+      @click="closePassengerMenu"
     >
       <div class="rounded-xl bg-slate-50 p-5 ring-1 ring-slate-100">
         <div
@@ -427,7 +437,7 @@ const generatePDF = () => {
             </p>
 
             <button
-              class="inline-flex mt-3 cursor-pointer items-center justify-center rounded-lg bg-experience-pink px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:shadow-md"
+              class="mt-3 inline-flex cursor-pointer items-center justify-center rounded-lg bg-experience-pink px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:shadow-md"
               type="button"
               @click="generatePDF"
             >
@@ -527,11 +537,10 @@ const generatePDF = () => {
         <article
           v-for="p in filteredPassengers"
           :key="p.id"
-          class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:border-experience-blue/20 hover:shadow-md"
+          class="relative rounded-lg border border-slate-200 bg-white shadow-sm transition hover:border-experience-blue/20 hover:shadow-md"
         >
           <!-- Vista inicial -->
-          <button
-            type="button"
+          <div
             class="flex w-full flex-col gap-4 p-5 text-left transition hover:bg-slate-50/60 sm:flex-row sm:items-center sm:justify-between"
           >
             <div class="flex min-w-0 items-center gap-4">
@@ -552,7 +561,10 @@ const generatePDF = () => {
               </div>
             </div>
 
-            <div class="flex items-center gap-3 sm:justify-end">
+            <div
+              class="flex flex-wrap items-center gap-3 sm:justify-end"
+              @click.stop
+            >
               <span
                 class="w-fit rounded-full bg-experience-blue/10 px-4 py-2 text-sm font-medium text-experience-blue ring-1 ring-experience-blue/10"
               >
@@ -584,10 +596,11 @@ const generatePDF = () => {
                 Gratis
               </span>
 
-              <span
-                class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition cursor-pointer"
+              <button
+                type="button"
+                class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
                 :class="isPassengerExpanded(p.id) ? 'rotate-180' : ''"
-                @click="togglePassenger(p.id)"
+                @click.stop="togglePassenger(p.id)"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -603,9 +616,100 @@ const generatePDF = () => {
                     d="M19 9l-7 7-7-7"
                   />
                 </svg>
-              </span>
+              </button>
+
+              <!-- Menú de acciones -->
+              <div class="relative">
+                <button
+                  type="button"
+                  class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
+                  :class="{
+                    'bg-experience-blue/10 text-experience-blue':
+                      isPassengerMenuOpen(p.id),
+                  }"
+                  aria-label="Abrir menú de acciones"
+                  @click.stop="togglePassengerMenu(p.id)"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M12 6C12.5523 6 13 5.55228 13 5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5C11 5.55228 11.4477 6 12 6Z"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M12 20C12.5523 20 13 19.5523 13 19C13 18.4477 12.5523 18 12 18C11.4477 18 11 18.4477 11 19C11 19.5523 11.4477 20 12 20Z"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+
+                <Transition
+                  enter-active-class="transition duration-150 ease-out"
+                  enter-from-class="opacity-0 scale-95 translate-y-1"
+                  enter-to-class="opacity-100 scale-100 translate-y-0"
+                  leave-active-class="transition duration-100 ease-in"
+                  leave-from-class="opacity-100 scale-100 translate-y-0"
+                  leave-to-class="opacity-0 scale-95 translate-y-1"
+                >
+                  <div
+                    v-if="isPassengerMenuOpen(p.id)"
+                    class="absolute right-0 top-12 z-50 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5"
+                    @click.stop
+                  >
+                    <button
+                      type="button"
+                      class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-slate-700 transition hover:bg-slate-50"
+                      @click="editPassenger(p)"
+                    >
+                      Editar
+                    </button>
+
+                    <!-- <button
+                      type="button"
+                      class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-slate-700 transition hover:bg-slate-50"
+                      @click="reschedulePassenger(p)"
+                    >
+                      Reagendar
+                    </button>
+
+                    <button
+                      type="button"
+                      class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-slate-700 transition hover:bg-slate-50"
+                      @click="resendPassengerEmail(p)"
+                    >
+                      Reenviar correo
+                    </button>
+
+                    <button
+                      type="button"
+                      class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-rose-600 transition hover:bg-rose-50"
+                      @click="deletePassenger(p)"
+                    >
+                      Eliminar
+                    </button> -->
+                  </div>
+                </Transition>
+              </div>
             </div>
-          </button>
+          </div>
 
           <!-- Dropdown -->
           <Transition
@@ -620,7 +724,7 @@ const generatePDF = () => {
               v-if="isPassengerExpanded(p.id)"
               class="border-t border-slate-100 bg-white p-5"
             >
-              <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
                 <div class="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-100">
                   <p
                     class="text-xs font-medium uppercase tracking-wide text-slate-400"
@@ -639,7 +743,12 @@ const generatePDF = () => {
                     Celular
                   </p>
                   <p class="mt-1 text-sm font-medium text-slate-700">
-                    {{p.phone_country_code ? `(+${p.phone_country_code})` : '(-)'}} {{p.phone}}
+                    {{
+                      p.phone_country_code
+                        ? `(+${p.phone_country_code})`
+                        : "(-)"
+                    }}
+                    {{ p.phone }}
                   </p>
                 </div>
 
@@ -651,6 +760,16 @@ const generatePDF = () => {
                   </p>
                   <p class="mt-1 text-sm font-medium text-slate-700">
                     {{ formatDateToSpanish(p.born_date) }}
+                  </p>
+                </div>
+                <div class="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-100">
+                  <p
+                    class="text-xs font-medium uppercase tracking-wide text-slate-400"
+                  >
+                    Ciudad
+                  </p>
+                  <p class="mt-1 text-sm font-medium text-slate-700">
+                    {{ p.city }}
                   </p>
                 </div>
 
@@ -666,7 +785,7 @@ const generatePDF = () => {
                 </div>
 
                 <div
-                  class="rounded-lg p-4 ring-1"
+                  class="rounded-lg p-4 ring-1 col-span-2"
                   :class="getCostCardClasses(p)"
                 >
                   <p
@@ -945,5 +1064,11 @@ const generatePDF = () => {
         No hay pasajeros registrados para este RH EXPERIENCE.
       </p>
     </div>
+    <EditPassengerModal
+      :show="showEditPassengerModal"
+      :passenger="selectedPassenger"
+      @close="closeEditPassengerModal"
+      @save="handleUpdatePassenger"
+    />
   </div>
 </template>

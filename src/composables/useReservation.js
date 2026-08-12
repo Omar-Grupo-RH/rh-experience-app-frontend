@@ -26,11 +26,17 @@ export function useReservation() {
     return data.data ?? "";
   };
 
+  const updatePassengerInfo = async (payload) => {
+    const { data } = await ReservationAPI.updatePassenger(payload);
+    return data ?? [];
+  }
+
   return {
     listEvents,
     getSeatsByTrip,
     getCouponDiscount,
     setReverse,
     getPassengerEmail,
+    updatePassengerInfo
   };
 }

@@ -1,4 +1,5 @@
 import { useTravel } from "@/composables/useTravel";
+import { useReservation } from "@/composables/useReservation";
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import Swal from "sweetalert2";
@@ -8,7 +9,7 @@ export const useTravelStore = defineStore(
   () => {
     const { listTravels, passengersByTravel, confirmPassengerPayment } =
       useTravel();
-
+    const { updatePassengerInfo } = useReservation();
     const travels = ref([]);
     const passengersByTravelArray = ref([]);
     const travelSelected = ref({});
@@ -199,6 +200,87 @@ export const useTravelStore = defineStore(
       }
     }
 
+    async function updatePassengerInfoStore(payload) {
+      try {
+        const data = await updatePassengerInfo(payload);
+
+        if (!data?.success) {
+          await Swal.fire({
+            title: "No se pudo guardar",
+            text:
+              data?.message || "Revisa la información e intenta nuevamente.",
+            icon: "error",
+            confirmButtonColor: "#315fa8",
+          });
+
+          return false;
+        }
+
+        const updatedPassenger = data?.data ?? payload;
+
+        passengersByTravelArray.value = passengersByTravelArray.value.map(
+          (p) => {
+            if (Number(p.id) !== Number(updatedPassenger.id)) return p;
+
+            return {
+              ...p,
+              ...updatedPassenger,
+              allergies: JSON.stringify(updatedPassenger.allergies || []),
+              health_conditions: JSON.stringify(
+                updatedPassenger.health_conditions || [],
+              ),
+            };
+          },
+        );
+
+        await Swal.fire({
+          title: "Información actualizada",
+          text:
+            data?.message ||
+            "La información del pasajero se ha actualizado correctamente.",
+          icon: "success",
+          confirmButtonColor: "#315fa8",
+          timer: 1800,
+          showConfirmButton: false,
+        });
+
+        return true;
+      } catch (error) {
+        console.error(error);
+
+        const backendData = error?.response?.data;
+
+        const backendMessage =
+          backendData?.message ||
+          "No se pudo actualizar la información del pasajero.";
+
+        const backendErrors = backendData?.errors || null;
+
+        let errorHtml = `<p>${backendMessage}</p>`;
+
+        if (backendErrors && typeof backendErrors === "object") {
+          const errorList = Object.values(backendErrors)
+            .map((message) => `<li>${message}</li>`)
+            .join("");
+
+          errorHtml += `
+        <ul style="text-align:center; margin-top:12px;">
+          ${errorList}
+        </ul>
+      `;
+        }
+
+        await Swal.fire({
+          title: "No se pudo guardar",
+          html: errorHtml,
+          icon: "error",
+          confirmButtonColor: "#315fa8",
+        });
+
+        return false;
+      }
+    }
+
     return {
       travels,
       hasTravels,
@@ -209,6 +291,7 @@ export const useTravelStore = defineStore(
       quantityPassengers,
       travelSelected,
       sortTravelsByUpcomingFirst,
+      updatePassengerInfoStore,
 
       getPassengerPaymentStatus,
       getPassengerPaymentLabel,

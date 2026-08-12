@@ -42,4 +42,8 @@ export default {
       },
     });
   },
+
+  updatePassenger(payload) {
+    return api.post("/passengers/update", payload);
+  },
 };
