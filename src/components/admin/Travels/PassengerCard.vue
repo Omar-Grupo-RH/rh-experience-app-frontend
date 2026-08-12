@@ -21,7 +21,13 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["toggle", "toggle-menu", "edit", "confirm-payment"]);
+const emit = defineEmits([
+  "toggle",
+  "toggle-menu",
+  "edit",
+  "confirm-payment",
+  "reschedule-passenger",
+]);
 
 const registrationTypeLabels = {
   internal: "Personal interno",
@@ -214,6 +220,7 @@ const canConfirmPayment = computed(() => {
 });
 
 const allergies = computed(() => parseJSON(props.passenger.allergies));
+
 const healthConditions = computed(() =>
   parseJSON(props.passenger.health_conditions),
 );
@@ -360,14 +367,15 @@ const healthConditions = computed(() =>
               >
                 Editar
               </button>
-              <!-- <button
-                      type="button"
-                      class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-slate-700 transition hover:bg-slate-50"
-                      @click="reschedulePassenger(p)"
-                    >
-                      Reagendar
-                    </button>
+              <button
+                type="button"
+                class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-slate-700 transition hover:bg-slate-50"
+                @click="emit('reschedule-passenger', passenger)"
+              >
+                Reagendar
+              </button>
 
+              <!-- 
                     <button
                       type="button"
                       class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-slate-700 transition hover:bg-slate-50"

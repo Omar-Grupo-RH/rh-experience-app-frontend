@@ -46,4 +46,8 @@ export default {
   updatePassenger(payload) {
     return api.post("/passengers/update", payload);
   },
+
+  reschedulePassenger(payload) {
+    return api.post("/passenger/reschedule", payload);
+  },
 };

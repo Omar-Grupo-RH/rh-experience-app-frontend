@@ -29,7 +29,12 @@ export function useReservation() {
   const updatePassengerInfo = async (payload) => {
     const { data } = await ReservationAPI.updatePassenger(payload);
     return data ?? [];
-  }
+  };
+
+  const reschedulePassengerApi = async (payload) => {
+    const { data } = await ReservationAPI.reschedulePassenger(payload);
+    return data ?? null;
+  };
 
   return {
     listEvents,
@@ -37,6 +42,7 @@ export function useReservation() {
     getCouponDiscount,
     setReverse,
     getPassengerEmail,
-    updatePassengerInfo
+    updatePassengerInfo,
+    reschedulePassengerApi,
   };
 }

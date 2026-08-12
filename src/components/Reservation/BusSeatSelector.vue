@@ -1,6 +1,14 @@
 <script setup>
 import { ref, computed, watch, onMounted } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
+import api from "@/lib/axios";
+
+const props = defineProps({
+  selectedTripId: {
+    type: Number,
+    default: null,
+  },
+});
 
 const store = useReservaStore();
 
@@ -13,8 +21,11 @@ const rowHeight = seatSize + 10;
 
 const fixedOccupied = ["A1", "A2"]; // siempre ocupados
 const dynamicOccupied = ref([]); // ocupados que vienen del backend
+const selectedSeatForModal = ref(null); // asiento seleccionado en modo modal
 
 const rows = ["A", "B", "C", "D", "E", "F"];
+
+const emit = defineEmits(["seat-selected"]);
 
 // Generador de asientos
 const seats = computed(() => {
@@ -60,6 +71,12 @@ function isOccupied(id) {
 
 // función para saber si el asiento está seleccionado
 function isSelected(id) {
+  // Si estamos en modo modal de reagendamiento
+  if (props.selectedTripId && !store.selectedTripId) {
+    return selectedSeatForModal.value === id;
+  }
+
+  // Modo normal en reserva
   return store.selectedSeats.includes(id);
 }
 
@@ -77,27 +94,82 @@ function textFill(id) {
 // click en asiento
 function onClickSeat(id) {
   if (isOccupied(id)) return; // nunca permitir seleccionar ocupados
-  store.toggleSeat(id);
+
+  if (props.selectedTripId && !store.selectedTripId) {
+    // Cuando se usa en el modal de reagendamiento
+    if (selectedSeatForModal.value === id) {
+      selectedSeatForModal.value = null;
+      emit("seat-selected", null);
+    } else {
+      selectedSeatForModal.value = id;
+      emit("seat-selected", id);
+    }
+  } else {
+    // Comportamiento normal en reserva
+    store.toggleSeat(id);
+  }
 }
+
+// Cargar asientos ocupados del backend
+const loadOccupiedSeats = async (tripId) => {
+  if (!tripId) {
+    dynamicOccupied.value = [];
+    return;
+  }
+
+  try {
+    const { data } = await api.get("/trip", { params: { id: tripId } });
+
+    if (data?.data?.seats_location) {
+      dynamicOccupied.value = data.data.seats_location;
+    } else {
+      dynamicOccupied.value = [];
+    }
+  } catch (error) {
+    console.error("Error cargando asientos:", error);
+    dynamicOccupied.value = [];
+  }
+};
 
 // tamaño del SVG
 const svgWidth = 300;
 const svgHeight = startY + rows.length * rowHeight + 40;
 
-// actualizar dinámicamente los asientos ocupados al cambiar de viaje
+// actualizar dinámicamente los asientos ocupados
+watch(
+  () => props.selectedTripId,
+  (newTripId) => {
+    // Si hay un tripId en prop (modo modal), cargar de la prop
+    if (newTripId) {
+      loadOccupiedSeats(newTripId);
+    }
+  },
+  { immediate: true },
+);
+
+// También monitorear store.selectedTripId para el modo normal
 watch(
   () => store.selectedTripId,
   async (newTripId) => {
-    if (!newTripId) return;
-
-    try {
-      const data = await store.seatsSold(newTripId);
-      dynamicOccupied.value = data.seats_location || [];
-    } catch (error) {
-      console.log(error);
+    // Solo si NO estamos en modo modal
+    if (!props.selectedTripId && newTripId) {
+      try {
+        const data = await store.seatsSold(newTripId);
+        dynamicOccupied.value = data.seats_location || [];
+      } catch (error) {
+        console.log(error);
+      }
     }
   },
-  { immediate: true }
+  { immediate: true },
+);
+
+// Resetear asiento seleccionado cuando cambia el tour en modo modal
+watch(
+  () => props.selectedTripId,
+  () => {
+    selectedSeatForModal.value = null;
+  },
 );
 </script>
 

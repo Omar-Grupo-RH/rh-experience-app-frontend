@@ -9,7 +9,7 @@ export const useTravelStore = defineStore(
   () => {
     const { listTravels, passengersByTravel, confirmPassengerPayment } =
       useTravel();
-    const { updatePassengerInfo } = useReservation();
+    const { updatePassengerInfo, reschedulePassengerApi } = useReservation();
     const travels = ref([]);
     const passengersByTravelArray = ref([]);
     const travelSelected = ref({});
@@ -281,6 +281,58 @@ export const useTravelStore = defineStore(
       }
     }
 
+    async function reschedulePassengerStore(payload) {
+      try {
+        const response = await reschedulePassengerApi(payload);
+
+        if (!response?.success) {
+          await Swal.fire({
+            title: "No se pudo reagendar",
+            text:
+              response?.message ||
+              "Revisa la información e intenta nuevamente.",
+            icon: "error",
+            confirmButtonColor: "#315fa8",
+          });
+
+          return false;
+        }
+
+        const updatedPassenger = response?.data;
+
+        // Remover el pasajero del array actual (ya está en otro viaje)
+        passengersByTravelArray.value = passengersByTravelArray.value.filter(
+          (p) => Number(p.id) !== Number(updatedPassenger.id),
+        );
+
+        await Swal.fire({
+          title: "Pasajero reagendado",
+          text: `${updatedPassenger.first_name} ${updatedPassenger.last_name} ha sido reagendado correctamente. Nuevo asiento: ${updatedPassenger.seat_id}`,
+          icon: "success",
+          confirmButtonColor: "#315fa8",
+          timer: 2500,
+          showConfirmButton: false,
+        });
+
+        return true;
+      } catch (error) {
+        console.error(error);
+
+        const backendData = error?.response?.data;
+        const backendMessage =
+          backendData?.message || "No se pudo reagendar al pasajero.";
+
+        await Swal.fire({
+          title: "No se pudo reagendar",
+          text: backendMessage,
+          icon: "error",
+          confirmButtonColor: "#315fa8",
+        });
+
+        return false;
+      }
+    }
+
     return {
       travels,
       hasTravels,
@@ -292,6 +344,7 @@ export const useTravelStore = defineStore(
       travelSelected,
       sortTravelsByUpcomingFirst,
       updatePassengerInfoStore,
+      reschedulePassengerStore,
 
       getPassengerPaymentStatus,
       getPassengerPaymentLabel,

@@ -4,6 +4,7 @@ import { generatePassengersPDF } from "@/utils/generatePassengersPDF";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import EditPassengerModal from "@/components/admin/Travels/EditPassengerModal.vue";
+import ReschedulePassengerModal from "@/components/admin/Travels/ReschedulePassengerModal.vue";
 import PassengerCard from "@/components/admin/Travels/PassengerCard.vue";
 import { useTravelStore } from "@/stores/admin/travelStore";
 import { useAuth } from "@/composables/useAuth";
@@ -17,6 +18,7 @@ const expandedPassengerIds = ref([]);
 const ticketSearch = ref("");
 const openMenuPassengerId = ref(null);
 const showEditPassengerModal = ref(false);
+const showReschedulePassengerModal = ref(false);
 const selectedPassenger = ref(null);
 
 onMounted(async () => {
@@ -26,7 +28,6 @@ onMounted(async () => {
     console.log(error);
   }
 });
-
 
 const passengers = computed(() => store.passengersByTravelArray || []);
 
@@ -93,6 +94,11 @@ const closeEditPassengerModal = () => {
   selectedPassenger.value = null;
 };
 
+const closeReschedulePassengerModal = () => {
+  showReschedulePassengerModal.value = false;
+  selectedPassenger.value = null;
+};
+
 const editPassenger = (passenger) => {
   closePassengerMenu();
 
@@ -103,11 +109,29 @@ const editPassenger = (passenger) => {
   showEditPassengerModal.value = true;
 };
 
+const reschedulePassenger = (passenger) => {
+  closePassengerMenu();
+
+  selectedPassenger.value = {
+    ...passenger,
+  };
+
+  showReschedulePassengerModal.value = true;
+};
+
 const handleUpdatePassenger = async (payload) => {
   const wasUpdated = await store.updatePassengerInfoStore(payload);
 
   if (wasUpdated) {
     closeEditPassengerModal();
+  }
+};
+
+const handleReschedulePassenger = async (payload) => {
+  const wasRescheduled = await store.reschedulePassengerStore(payload);
+
+  if (wasRescheduled) {
+    closeReschedulePassengerModal();
   }
 };
 
@@ -295,6 +319,7 @@ const generatePDF = async () => {
           @toggle-menu="togglePassengerMenu"
           @edit="editPassenger"
           @confirm-payment="store.tooglePayment"
+          @reschedule-passenger="reschedulePassenger"
         />
       </div>
     </div>
@@ -313,6 +338,14 @@ const generatePDF = async () => {
       :passenger="selectedPassenger"
       @close="closeEditPassengerModal"
       @save="handleUpdatePassenger"
+    />
+
+    <ReschedulePassengerModal
+      :show="showReschedulePassengerModal"
+      :passenger="selectedPassenger"
+      :current-trip-id="Number(route.params.id)"
+      @close="closeReschedulePassengerModal"
+      @save="handleReschedulePassenger"
     />
   </div>
 </template>
