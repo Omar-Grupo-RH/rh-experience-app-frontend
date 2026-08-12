@@ -36,6 +36,22 @@ const getRegistrationTypeLabel = (type) => {
   return registrationTypeLabels[type] || "Sin tipo";
 };
 
+const getRegistrationTypeColors = (type) => {
+  const colors = {
+    internal: "bg-blue-50 text-blue-700 ring-blue-100",
+    alliance: "bg-pink-50 text-pink-700 ring-pink-100",
+    prize: "bg-amber-50 text-amber-700 ring-amber-100",
+    investor: "bg-cyan-50 text-cyan-700 ring-cyan-100",
+    prospect: "bg-lime-50 text-lime-700 ring-lime-100",
+    family_friend: "bg-purple-50 text-purple-700 ring-purple-100",
+  };
+
+  return (
+    colors[type] ||
+    "bg-experience-blue/10 text-experience-blue ring-experience-blue/10"
+  );
+};
+
 const parseJSON = (value) => {
   try {
     const parsed = JSON.parse(value || "[]");
@@ -212,9 +228,19 @@ const healthConditions = computed(() =>
     >
       <div class="flex min-w-0 items-center gap-4">
         <div class="min-w-0">
-          <h3 class="truncate text-xl font-semibold capitalize text-slate-900">
-            {{ passenger.first_name }} {{ passenger.last_name }}
-          </h3>
+          <div class="flex items-center gap-2">
+            <h3
+              class="truncate text-xl font-semibold capitalize text-slate-900"
+            >
+              {{ passenger.first_name }} {{ passenger.last_name }}
+            </h3>
+            <span
+              class="text-xs font-medium px-1.5 py-0.5 rounded-full"
+              :class="getRegistrationTypeColors(passenger.registration_type)"
+            >
+              {{ getRegistrationTypeLabel(passenger.registration_type) }}
+            </span>
+          </div>
 
           <p class="mt-1 text-sm font-medium text-slate-500">
             Asiento {{ passenger.seat_id }}
@@ -227,19 +253,13 @@ const healthConditions = computed(() =>
       </div>
 
       <div class="flex flex-wrap items-center gap-3 sm:justify-end" @click.stop>
-        <span
-          class="w-fit rounded-full bg-experience-blue/10 px-4 py-2 text-sm font-medium text-experience-blue ring-1 ring-experience-blue/10"
-        >
-          {{ getRegistrationTypeLabel(passenger.registration_type) }}
-        </span>
-
         <button
           v-if="canConfirmPayment"
           type="button"
-          class="w-fit cursor-pointer rounded-full px-4 py-2 text-sm font-medium ring-1 transition"
+          class="w-fit cursor-pointer rounded-lg px-4 py-2 text-sm font-medium ring-1 transition"
           :class="
             passenger.payment_status === 'paid'
-              ? 'bg-green-50 text-green-700 ring-green-100'
+              ? 'bg-experience-green/10 text-green-600 ring-experience-green/10 cursor-not-allowed'
               : 'bg-experience-pink/10 text-experience-pink ring-experience-pink/10 hover:bg-experience-pink/15'
           "
           :disabled="passenger.payment_status === 'paid'"
@@ -252,7 +272,7 @@ const healthConditions = computed(() =>
 
         <span
           v-if="passenger.payment_status === 'free'"
-          class="w-fit rounded-full bg-green-50 px-4 py-2 text-sm font-medium text-green-700 ring-1 ring-green-100"
+          class="w-fit rounded-lg bg-experience-green/10 px-4 py-2 text-sm font-medium text-green-600 ring-1 ring-experience-green/10"
         >
           Gratis
         </span>
