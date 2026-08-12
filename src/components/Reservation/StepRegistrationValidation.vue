@@ -95,7 +95,7 @@ onMounted(async () => {
             v-model="store.registrationData.area_code"
             type="text"
             class="mt-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20 uppercase"
-            placeholder="Ej. RH-MKT-2026"
+            placeholder="Ej. GRUPO_RH_MKT"
           />
         </label>
 
@@ -142,8 +142,8 @@ onMounted(async () => {
             <input
               v-model="store.registrationData.alliance_code"
               type="text"
-              class="mt-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
-              placeholder="Ingresa el código correspondiente"
+              class="mt-2 w-full rounded-md border uppercase border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
+              placeholder="Ej. Grupo_rh"
             />
           </label>
 
@@ -251,8 +251,8 @@ onMounted(async () => {
           <input
             v-model="store.registrationData.advisor_code"
             type="text"
-            class="mt-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
-            placeholder="Código del asesor"
+            class="mt-2 w-full rounded-md uppercase border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
+            placeholder="VENTAI_JDOE"
           />
         </label>
 
@@ -313,8 +313,8 @@ onMounted(async () => {
           <input
             v-model="store.registrationData.prize_code"
             type="text"
-            class="mt-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
-            placeholder="Ingresa el código otorgado por RH Experience"
+            class="mt-2 w-full rounded-md border uppercase border-gray-300 px-4 py-3 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
+            placeholder="EXPERIENCE_VIAJE"
           />
         </label>
 
