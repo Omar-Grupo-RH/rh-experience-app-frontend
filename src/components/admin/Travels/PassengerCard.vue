@@ -219,6 +219,10 @@ const canConfirmPayment = computed(() => {
   );
 });
 
+const canShowOptions = computed(() => {
+  return Number(props.adminLevel) === 1 || Number(props.adminLevel) === 2;
+});
+
 const allergies = computed(() => parseJSON(props.passenger.allergies));
 
 const healthConditions = computed(() =>
@@ -306,7 +310,7 @@ const healthConditions = computed(() =>
           </svg>
         </button>
 
-        <div class="relative">
+        <div class="relative" v-if="canShowOptions">
           <button
             type="button"
             class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
