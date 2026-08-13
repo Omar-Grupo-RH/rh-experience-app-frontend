@@ -20,6 +20,7 @@ const openMenuPassengerId = ref(null);
 const showEditPassengerModal = ref(false);
 const showReschedulePassengerModal = ref(false);
 const selectedPassenger = ref(null);
+const isRescheduling = ref(false);
 
 onMounted(async () => {
   try {
@@ -128,10 +129,15 @@ const handleUpdatePassenger = async (payload) => {
 };
 
 const handleReschedulePassenger = async (payload) => {
-  const wasRescheduled = await store.reschedulePassengerStore(payload);
+  isRescheduling.value = true;
+  try {
+    const wasRescheduled = await store.reschedulePassengerStore(payload);
 
-  if (wasRescheduled) {
-    closeReschedulePassengerModal();
+    if (wasRescheduled) {
+      closeReschedulePassengerModal();
+    }
+  } finally {
+    isRescheduling.value = false;
   }
 };
 
@@ -344,6 +350,7 @@ const generatePDF = async () => {
       :show="showReschedulePassengerModal"
       :passenger="selectedPassenger"
       :current-trip-id="Number(route.params.id)"
+      :is-loading="isRescheduling"
       @close="closeReschedulePassengerModal"
       @save="handleReschedulePassenger"
     />
