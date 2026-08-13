@@ -27,6 +27,7 @@ const emit = defineEmits([
   "edit",
   "confirm-payment",
   "reschedule-passenger",
+  "resend-email",
 ]);
 
 const registrationTypeLabels = {
@@ -378,15 +379,15 @@ const healthConditions = computed(() =>
               >
                 Reagendar
               </button>
-
+              <button
+                type="button"
+                class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-slate-700 transition hover:bg-slate-50"
+                @click="emit('resend-email', passenger)"
+              >
+                Reenviar correo
+              </button>
               <!-- 
-                    <button
-                      type="button"
-                      class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-slate-700 transition hover:bg-slate-50"
-                      @click="resendPassengerEmail(p)"
-                    >
-                      Reenviar correo
-                    </button>
+                    
 
                     <button
                       type="button"

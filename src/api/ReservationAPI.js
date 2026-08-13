@@ -50,4 +50,8 @@ export default {
   reschedulePassenger(payload) {
     return api.post("/passenger/reschedule", payload);
   },
+
+  resendPassengerTickets(payload) {
+    return api.post("/passenger/resend-tickets", payload);
+  },
 };

@@ -9,7 +9,11 @@ export const useTravelStore = defineStore(
   () => {
     const { listTravels, passengersByTravel, confirmPassengerPayment } =
       useTravel();
-    const { updatePassengerInfo, reschedulePassengerApi } = useReservation();
+    const {
+      updatePassengerInfo,
+      reschedulePassengerApi,
+      resendPassengerTicketsApi,
+    } = useReservation();
     const travels = ref([]);
     const passengersByTravelArray = ref([]);
     const travelSelected = ref({});
@@ -333,6 +337,79 @@ export const useTravelStore = defineStore(
       }
     }
 
+    async function resendPassengerTicketsStore(passengerId) {
+      if (!passengerId) return false;
+
+      const passenger = passengersByTravelArray.value.find(
+        (p) => Number(p.id) === Number(passengerId),
+      );
+
+      const { isConfirmed } = await Swal.fire({
+        title: "Reenviar correo",
+        text: passenger?.email
+          ? `Se reenviarán los boletos a ${passenger.email}.`
+          : "Se reenviarán los boletos al pasajero.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Reenviar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#315fa8",
+      });
+
+      if (!isConfirmed) return false;
+
+      Swal.fire({
+        title: "Enviando correo",
+        text: "Estamos reenviando los boletos al pasajero.",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      try {
+        const response = await resendPassengerTicketsApi({
+          passenger_id: passengerId,
+        });
+
+        if (!response?.success) {
+          await Swal.fire({
+            title: "No se pudo reenviar",
+            text: response?.message || "Intenta nuevamente en unos momentos.",
+            icon: "error",
+            confirmButtonColor: "#315fa8",
+          });
+
+          return false;
+        }
+
+        await Swal.fire({
+          title: "Correo reenviado",
+          text: response.message,
+          icon: "success",
+          confirmButtonColor: "#315fa8",
+          timer: 2500,
+          showConfirmButton: false,
+        });
+
+        return true;
+      } catch (error) {
+        console.error(error);
+
+        const backendMessage =
+          error?.response?.data?.message ||
+          "No se pudo reenviar el correo del pasajero.";
+
+        await Swal.fire({
+          title: "No se pudo reenviar",
+          text: backendMessage,
+          icon: "error",
+          confirmButtonColor: "#315fa8",
+        });
+
+        return false;
+      }
+    }
+
     return {
       travels,
       hasTravels,
@@ -345,6 +422,7 @@ export const useTravelStore = defineStore(
       sortTravelsByUpcomingFirst,
       updatePassengerInfoStore,
       reschedulePassengerStore,
+      resendPassengerTicketsStore,
 
       getPassengerPaymentStatus,
       getPassengerPaymentLabel,
