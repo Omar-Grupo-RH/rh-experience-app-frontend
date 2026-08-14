@@ -41,6 +41,11 @@ export function useReservation() {
     return data ?? null;
   };
 
+  const deletePassengerApi = async (payload) => {
+    const { data } = await ReservationAPI.deletePassenger(payload);
+    return data ?? null;
+  };
+
   return {
     listEvents,
     getSeatsByTrip,
@@ -50,5 +55,6 @@ export function useReservation() {
     updatePassengerInfo,
     reschedulePassengerApi,
     resendPassengerTicketsApi,
+    deletePassengerApi,
   };
 }

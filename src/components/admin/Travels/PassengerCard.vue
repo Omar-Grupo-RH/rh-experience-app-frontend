@@ -28,6 +28,7 @@ const emit = defineEmits([
   "confirm-payment",
   "reschedule-passenger",
   "resend-email",
+  "delete-passenger",
 ]);
 
 const registrationTypeLabels = {
@@ -370,14 +371,14 @@ const healthConditions = computed(() =>
                 class="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                 @click="emit('edit', passenger)"
               >
-                Editar
+                Editar información
               </button>
               <button
                 type="button"
                 class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-slate-700 transition hover:bg-slate-50"
                 @click="emit('reschedule-passenger', passenger)"
               >
-                Reagendar
+                Reagendar pasajero
               </button>
               <button
                 type="button"
@@ -386,16 +387,13 @@ const healthConditions = computed(() =>
               >
                 Reenviar correo
               </button>
-              <!-- 
-                    
-
-                    <button
-                      type="button"
-                      class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-rose-600 transition hover:bg-rose-50"
-                      @click="deletePassenger(p)"
-                    >
-                      Eliminar
-                    </button> -->
+              <button
+                type="button"
+                class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-rose-600 transition hover:bg-rose-50"
+                @click="emit('delete-passenger', passenger)"
+              >
+                Eliminar pasajero
+              </button>
             </div>
           </Transition>
         </div>

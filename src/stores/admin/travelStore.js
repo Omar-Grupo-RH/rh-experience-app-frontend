@@ -13,6 +13,7 @@ export const useTravelStore = defineStore(
       updatePassengerInfo,
       reschedulePassengerApi,
       resendPassengerTicketsApi,
+      deletePassengerApi,
     } = useReservation();
     const travels = ref([]);
     const passengersByTravelArray = ref([]);
@@ -410,6 +411,89 @@ export const useTravelStore = defineStore(
       }
     }
 
+    async function deletePassengerStore(passengerId) {
+      if (!passengerId) return false;
+
+      const passenger = passengersByTravelArray.value.find(
+        (p) => Number(p.id) === Number(passengerId),
+      );
+
+      if (!passenger) {
+        await Swal.fire({
+          title: "Pasajero no encontrado",
+          text: "No se encontró la información del pasajero.",
+          icon: "error",
+          confirmButtonColor: "#315fa8",
+        });
+        return false;
+      }
+
+      const { isConfirmed } = await Swal.fire({
+        title: "¿Eliminar pasajero?",
+        text: `Se eliminará a ${passenger.first_name} ${passenger.last_name} y se liberará su asiento.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#64748b",
+      });
+
+      if (!isConfirmed) return false;
+
+      Swal.fire({
+        title: "Eliminando pasajero",
+        text: "Estamos liberando el asiento.",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      try {
+        const response = await deletePassengerApi({
+          passenger_id: passengerId,
+        });
+
+        if (!response?.success) {
+          await Swal.fire({
+            title: "No se pudo eliminar",
+            text: response?.message || "Intenta nuevamente en unos momentos.",
+            icon: "error",
+            confirmButtonColor: "#315fa8",
+          });
+          return false;
+        }
+
+        passengersByTravelArray.value = passengersByTravelArray.value.filter(
+          (p) => Number(p.id) !== Number(passengerId),
+        );
+
+        await Swal.fire({
+          title: "Pasajero eliminado",
+          text: response.message,
+          icon: "success",
+          confirmButtonColor: "#315fa8",
+          timer: 2200,
+          showConfirmButton: false,
+        });
+
+        return true;
+      } catch (error) {
+        console.error(error);
+
+        await Swal.fire({
+          title: "No se pudo eliminar",
+          text:
+            error?.response?.data?.message ||
+            "No se pudo eliminar el pasajero.",
+          icon: "error",
+          confirmButtonColor: "#315fa8",
+        });
+
+        return false;
+      }
+    }
+
     return {
       travels,
       hasTravels,
@@ -423,6 +507,7 @@ export const useTravelStore = defineStore(
       updatePassengerInfoStore,
       reschedulePassengerStore,
       resendPassengerTicketsStore,
+      deletePassengerStore,
 
       getPassengerPaymentStatus,
       getPassengerPaymentLabel,

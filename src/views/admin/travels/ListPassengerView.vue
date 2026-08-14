@@ -147,6 +147,12 @@ const resendPassengerEmail = async (passenger) => {
   await store.resendPassengerTicketsStore(passenger.id);
 };
 
+const deletePassenger = async (passenger) => {
+  closePassengerMenu();
+
+  await store.deletePassengerStore(passenger.id);
+};
+
 const generatePDF = async () => {
   await generatePassengersPDF({
     passengers: filteredPassengers.value,
@@ -333,6 +339,7 @@ const generatePDF = async () => {
           @confirm-payment="store.tooglePayment"
           @reschedule-passenger="reschedulePassenger"
           @resend-email="resendPassengerEmail"
+          @delete-passenger="deletePassenger"
         />
       </div>
     </div>

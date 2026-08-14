@@ -54,4 +54,8 @@ export default {
   resendPassengerTickets(payload) {
     return api.post("/passenger/resend-tickets", payload);
   },
+
+  deletePassenger(payload) {
+    return api.post("/passenger/delete", payload);
+  },
 };
