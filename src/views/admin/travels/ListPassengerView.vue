@@ -153,6 +153,10 @@ const deletePassenger = async (passenger) => {
   await store.deletePassengerStore(passenger.id);
 };
 
+const updateAttendance = async (passenger, attendanceStatus) => {
+  await store.updateAttendanceStatusStore(passenger.id, attendanceStatus);
+};
+
 const generatePDF = async () => {
   await generatePassengersPDF({
     passengers: filteredPassengers.value,
@@ -340,6 +344,7 @@ const generatePDF = async () => {
           @reschedule-passenger="reschedulePassenger"
           @resend-email="resendPassengerEmail"
           @delete-passenger="deletePassenger"
+          @update-attendance="updateAttendance"
         />
       </div>
     </div>

@@ -46,6 +46,11 @@ export function useReservation() {
     return data ?? null;
   };
 
+  const updateAttendanceStatusApi = async (payload) => {
+    const { data } = await ReservationAPI.updateAttendanceStatus(payload);
+    return data ?? null;
+  };
+
   return {
     listEvents,
     getSeatsByTrip,
@@ -56,5 +61,6 @@ export function useReservation() {
     reschedulePassengerApi,
     resendPassengerTicketsApi,
     deletePassengerApi,
+    updateAttendanceStatusApi,
   };
 }

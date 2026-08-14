@@ -29,6 +29,7 @@ const emit = defineEmits([
   "reschedule-passenger",
   "resend-email",
   "delete-passenger",
+  "update-attendance",
 ]);
 
 const registrationTypeLabels = {
@@ -230,6 +231,33 @@ const allergies = computed(() => parseJSON(props.passenger.allergies));
 const healthConditions = computed(() =>
   parseJSON(props.passenger.health_conditions),
 );
+
+const attendanceOptions = [
+  {
+    value: "no_show_interno",
+    label: "No show interno",
+    activeClass: "bg-slate-700 text-white ring-slate-700",
+  },
+  {
+    value: "ausencia_justificada",
+    label: "Ausencia justificada",
+    activeClass: "bg-amber-500 text-white ring-amber-500",
+  },
+  {
+    value: "ausencia",
+    label: "Ausencia",
+    activeClass: "bg-rose-500 text-white ring-rose-500",
+  },
+  {
+    value: "asistio",
+    label: "Asistió",
+    activeClass: "bg-emerald-600 text-white ring-emerald-600",
+  },
+];
+
+const attendanceStatus = computed(
+  () => props.passenger.attendance_status || "ausencia",
+);
 </script>
 
 <template>
@@ -262,6 +290,28 @@ const healthConditions = computed(() =>
           <p class="mt-1 text-xs font-semibold text-slate-400">
             Código: {{ passenger.ticket_code || "Sin código" }}
           </p>
+
+          <div
+            v-if="canShowOptions"
+            class="mt-3 flex flex-wrap gap-1.5"
+            @click.stop
+          >
+            <button
+              v-for="option in attendanceOptions"
+              :key="option.value"
+              type="button"
+              class="rounded-md px-2 py-1 text-[11px] font-semibold ring-1 transition cursor-pointer"
+              :class="
+                attendanceStatus === option.value
+                  ? option.activeClass
+                  : 'bg-white text-slate-500 ring-slate-200 hover:bg-slate-50 hover:text-slate-800'
+              "
+              :aria-pressed="attendanceStatus === option.value"
+              @click.stop="emit('update-attendance', passenger, option.value)"
+            >
+              {{ option.label }}
+            </button>
+          </div>
         </div>
       </div>
 

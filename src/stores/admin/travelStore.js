@@ -14,6 +14,7 @@ export const useTravelStore = defineStore(
       reschedulePassengerApi,
       resendPassengerTicketsApi,
       deletePassengerApi,
+      updateAttendanceStatusApi,
     } = useReservation();
     const travels = ref([]);
     const passengersByTravelArray = ref([]);
@@ -494,6 +495,49 @@ export const useTravelStore = defineStore(
       }
     }
 
+    async function updateAttendanceStatusStore(passengerId, attendanceStatus) {
+      if (!passengerId || !attendanceStatus) return false;
+
+      try {
+        const response = await updateAttendanceStatusApi({
+          passenger_id: passengerId,
+          attendance_status: attendanceStatus,
+        });
+
+        if (!response?.success) {
+          await Swal.fire({
+            title: "No se pudo actualizar",
+            text: response?.message || "Intenta nuevamente.",
+            icon: "error",
+            confirmButtonColor: "#315fa8",
+          });
+          return false;
+        }
+
+        passengersByTravelArray.value = passengersByTravelArray.value.map(
+          (passenger) =>
+            Number(passenger.id) === Number(passengerId)
+              ? { ...passenger, attendance_status: attendanceStatus }
+              : passenger,
+        );
+
+        return true;
+      } catch (error) {
+        console.error(error);
+
+        await Swal.fire({
+          title: "No se pudo actualizar",
+          text:
+            error?.response?.data?.message ||
+            "No se pudo guardar la asistencia del pasajero.",
+          icon: "error",
+          confirmButtonColor: "#315fa8",
+        });
+
+        return false;
+      }
+    }
+
     return {
       travels,
       hasTravels,
@@ -508,6 +552,7 @@ export const useTravelStore = defineStore(
       reschedulePassengerStore,
       resendPassengerTicketsStore,
       deletePassengerStore,
+      updateAttendanceStatusStore,
 
       getPassengerPaymentStatus,
       getPassengerPaymentLabel,

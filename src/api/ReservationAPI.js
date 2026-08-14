@@ -58,4 +58,8 @@ export default {
   deletePassenger(payload) {
     return api.post("/passenger/delete", payload);
   },
+
+  updateAttendanceStatus(payload) {
+    return api.post("/passenger/attendance", payload);
+  },
 };
