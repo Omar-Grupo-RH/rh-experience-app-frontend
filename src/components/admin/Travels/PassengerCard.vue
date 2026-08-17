@@ -513,7 +513,7 @@ const attendanceStatus = computed(
             <p
               class="text-xs font-medium uppercase tracking-wide text-slate-400"
             >
-              Fecha compra
+              Fecha registro
             </p>
             <p class="mt-1 text-sm font-medium text-slate-700">
               {{ formatDateToSpanish(passenger.created_at) }}
