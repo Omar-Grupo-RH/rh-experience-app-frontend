@@ -62,4 +62,10 @@ export default {
   updateAttendanceStatus(payload) {
     return api.post("/passenger/attendance", payload);
   },
+
+  downloadPassengerDocuments(payload) {
+    return api.post("/passenger/documents", payload, {
+      responseType: "blob",
+    });
+  },
 };

@@ -51,6 +51,10 @@ export function useReservation() {
     return data ?? null;
   };
 
+  const downloadPassengerDocumentsApi = async (payload) => {
+    return ReservationAPI.downloadPassengerDocuments(payload);
+  };
+
   return {
     listEvents,
     getSeatsByTrip,
@@ -62,5 +66,6 @@ export function useReservation() {
     resendPassengerTicketsApi,
     deletePassengerApi,
     updateAttendanceStatusApi,
+    downloadPassengerDocumentsApi,
   };
 }

@@ -157,6 +157,12 @@ const updateAttendance = async (passenger, attendanceStatus) => {
   await store.updateAttendanceStatusStore(passenger.id, attendanceStatus);
 };
 
+const downloadPassengerDocuments = async (passenger) => {
+  closePassengerMenu();
+
+  await store.downloadPassengerDocumentsStore(passenger.id);
+};
+
 const generatePDF = async () => {
   await generatePassengersPDF({
     passengers: filteredPassengers.value,
@@ -345,6 +351,7 @@ const generatePDF = async () => {
           @resend-email="resendPassengerEmail"
           @delete-passenger="deletePassenger"
           @update-attendance="updateAttendance"
+          @download-docs="downloadPassengerDocuments"
         />
       </div>
     </div>

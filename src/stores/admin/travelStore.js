@@ -15,6 +15,7 @@ export const useTravelStore = defineStore(
       resendPassengerTicketsApi,
       deletePassengerApi,
       updateAttendanceStatusApi,
+      downloadPassengerDocumentsApi,
     } = useReservation();
     const travels = ref([]);
     const passengersByTravelArray = ref([]);
@@ -538,6 +539,78 @@ export const useTravelStore = defineStore(
       }
     }
 
+    async function parseBlobErrorMessage(error, fallbackMessage) {
+      const blob = error?.response?.data;
+
+      if (!(blob instanceof Blob)) {
+        return error?.response?.data?.message || fallbackMessage;
+      }
+
+      try {
+        const text = await blob.text();
+        const parsed = JSON.parse(text);
+        return parsed?.message || fallbackMessage;
+      } catch (parseError) {
+        return fallbackMessage;
+      }
+    }
+
+    async function downloadPassengerDocumentsStore(passengerId) {
+      if (!passengerId) return false;
+
+      const passenger = passengersByTravelArray.value.find(
+        (p) => Number(p.id) === Number(passengerId),
+      );
+
+      Swal.fire({
+        title: "Generando documento",
+        text: "Estamos preparando la ficha de pago y los boletos.",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      try {
+        const response = await downloadPassengerDocumentsApi({
+          passenger_id: passengerId,
+        });
+
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+        const fileName = `RH-Documentos-${
+          passenger?.first_name || "pasajero"
+        }-${passenger?.last_name || ""}.pdf`.replace(/\s+/g, "-");
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        Swal.close();
+
+        return true;
+      } catch (error) {
+        console.error(error);
+
+        const message = await parseBlobErrorMessage(
+          error,
+          "No se pudo generar el documento del pasajero.",
+        );
+
+        await Swal.fire({
+          title: "No se pudo descargar",
+          text: message,
+          icon: "error",
+          confirmButtonColor: "#315fa8",
+        });
+
+        return false;
+      }
+    }
+
     return {
       travels,
       hasTravels,
@@ -553,6 +626,7 @@ export const useTravelStore = defineStore(
       resendPassengerTicketsStore,
       deletePassengerStore,
       updateAttendanceStatusStore,
+      downloadPassengerDocumentsStore,
 
       getPassengerPaymentStatus,
       getPassengerPaymentLabel,
