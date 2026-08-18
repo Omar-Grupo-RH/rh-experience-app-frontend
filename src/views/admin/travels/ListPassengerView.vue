@@ -212,7 +212,7 @@ const generatePDF = async () => {
 
     <div
       v-if="store.hasPassengersByTravel"
-      class="space-y-6 rounded-xl bg-white p-4 sm:p-6"
+      class="space-y-6 rounded-xl bg-white "
       @click="closePassengerMenu"
     >
       <div class="rounded-xl bg-slate-50 p-5 ring-1 ring-slate-100">

@@ -270,14 +270,14 @@ const attendanceStatus = computed(
     >
       <div class="flex min-w-0 items-center gap-4">
         <div class="min-w-0">
-          <div class="flex items-center gap-2">
+          <div class="flex flex-col md:flex-row md:items-center gap-2">
             <h3
-              class="truncate text-xl font-semibold capitalize text-slate-900"
+              class="text-xl lg:truncate font-semibold capitalize text-slate-900"
             >
               {{ passenger.first_name }} {{ passenger.last_name }}
             </h3>
             <span
-              class="text-xs font-medium px-1.5 py-0.5 rounded-full"
+              class="text-xs font-medium px-1.5 py-0.5 w-fit rounded-full"
               :class="getRegistrationTypeColors(passenger.registration_type)"
             >
               {{ getRegistrationTypeLabel(passenger.registration_type) }}
@@ -467,8 +467,8 @@ const attendanceStatus = computed(
       leave-to-class="opacity-0 -translate-y-2"
     >
       <div v-if="isExpanded" class="border-t border-slate-100 bg-white p-5">
-        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          <div class="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-100">
+        <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          <div class="rounded-lg col-span-2 md:col-span-1 bg-slate-50 p-4 ring-1 ring-slate-100">
             <p
               class="text-xs font-medium uppercase tracking-wide text-slate-400"
             >
@@ -479,7 +479,7 @@ const attendanceStatus = computed(
             </p>
           </div>
 
-          <div class="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-100">
+          <div class="rounded-lg col-span-2 md:col-span-1 bg-slate-50 p-4 ring-1 ring-slate-100">
             <p
               class="text-xs font-medium uppercase tracking-wide text-slate-400"
             >
@@ -495,7 +495,7 @@ const attendanceStatus = computed(
             </p>
           </div>
 
-          <div class="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-100">
+          <div class="rounded-lg col-span-2 md:col-span-1 bg-slate-50 p-4 ring-1 ring-slate-100">
             <p
               class="text-xs font-medium uppercase tracking-wide text-slate-400"
             >
@@ -506,7 +506,7 @@ const attendanceStatus = computed(
             </p>
           </div>
 
-          <div class="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-100">
+          <div class="rounded-lg col-span-2 md:col-span-1 bg-slate-50 p-4 ring-1 ring-slate-100">
             <p
               class="text-xs font-medium uppercase tracking-wide text-slate-400"
             >
@@ -517,7 +517,7 @@ const attendanceStatus = computed(
             </p>
           </div>
 
-          <div class="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-100">
+          <div class="rounded-lg col-span-2 md:col-span-1 bg-slate-50 p-4 ring-1 ring-slate-100">
             <p
               class="text-xs font-medium uppercase tracking-wide text-slate-400"
             >

@@ -118,9 +118,7 @@ const closeMobileMenu = () => {
       <!-- Menú móvil -->
       <Transition name="mobile-menu">
         <div v-if="mobileMenuOpen" class="md:hidden overflow-hidden pb-4">
-          <div
-            class="rounded-3xl border border-white/10 bg-white/[0.08] p-2 shadow-[0_16px_40px_rgba(0,0,0,0.22)] backdrop-blur-xl"
-          >
+          <div>
             <div v-if="!isAuthenticated">
               <Link
                 to="login"

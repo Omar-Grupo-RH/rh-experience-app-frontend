@@ -24,35 +24,10 @@ const closeModal = () => {
           class="relative flex max-h-[90dvh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-white/20"
         >
           <!-- Header -->
-          <div class="relative overflow-hidden bg-experience-blue px-6 py-7 text-white sm:px-8">
-            <div
-              class="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-white/10"
-            ></div>
-            <div
-              class="pointer-events-none absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-experience-pink/30"
-            ></div>
+          <div class="relative  bg-experience-blue px-6 py-7 text-white sm:px-8">
+            
 
-            <button
-              type="button"
-              class="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-white transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/60"
-              aria-label="Cerrar términos y condiciones"
-              @click="closeModal"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M6 18 18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+            
 
             <div class="relative pr-10">
               <span

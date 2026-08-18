@@ -71,7 +71,7 @@ const handleFilterChange = async (event) => {
 </script>
 
 <template>
-  <div class="mx-auto space-y-8 p-5">
+  <div class="mx-auto space-y-8 lg:p-8">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-1">
         

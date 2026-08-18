@@ -100,7 +100,7 @@ const closeSidebar = () => {
 
       <!-- Content -->
       <main class="min-w-0 flex-1 bg-white">
-        <div class="p-4 sm:p-6 ">
+        <div>
           <div
             class="min-h-[calc(100dvh-2rem)] p-4 sm:p-6 lg:min-h-[calc(100dvh-4rem)] lg:p-0"
           >

@@ -226,7 +226,7 @@ watch(
         </p>
       </div>
 
-      <div class="p-6 sm:p-8">
+      <div class="p-3 sm:p-8">
         <div
           class="grid grid-cols-1 md:grid-cols-2 mb-8 bg-gray-50 border border-gray-100 rounded-xl"
         >
@@ -255,7 +255,7 @@ watch(
                 Fecha Seleccionada
               </p>
 
-              <p class="text-base text-gray-800">
+              <p class="text-sm md:text-base text-gray-800">
                 {{ formatDateToSpanish(store.date) }}
               </p>
             </div>
@@ -292,7 +292,7 @@ watch(
                 Punto de Encuentro
               </p>
 
-              <p class="text-base text-gray-800">Oficinas de Grupo RH</p>
+              <p class="text-sm md:text-base text-gray-800">Oficinas de Grupo RH</p>
             </div>
           </div>
 
@@ -321,7 +321,7 @@ watch(
                 Hora de salida
               </p>
 
-              <p class="text-base text-gray-800">9:00 AM</p>
+              <p class="text-sm md:text-base text-gray-800">9:00 AM</p>
             </div>
           </div>
 
@@ -349,7 +349,7 @@ watch(
                 Los boletos serán enviados a
               </p>
 
-              <p class="text-base text-gray-800">
+              <p class="text-sm md:text-base text-gray-800">
                 {{ store.passengers[0]?.email }}
               </p>
             </div>

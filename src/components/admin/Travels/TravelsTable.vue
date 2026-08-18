@@ -192,7 +192,7 @@ watch(
     <template v-else>
       <!-- Toolbar -->
       <div
-        class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+        class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
       >
         <div
           class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
@@ -207,7 +207,7 @@ watch(
                 v-model="search"
                 type="text"
                 placeholder="Buscar fecha"
-                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-11 text-sm font-medium text-slate-700 outline-none transition focus:border-experience-blue focus:bg-white focus:ring-2 focus:ring-experience-blue/20"
+                class="w-full rounded-md border border-slate-200 bg-slate-50 px-4 py-3 pr-11 text-sm font-medium text-slate-700 outline-none transition focus:border-experience-blue focus:bg-white focus:ring-2 focus:ring-experience-blue/20"
               />
 
               <button
@@ -229,7 +229,7 @@ watch(
 
               <select
                 v-model.number="perPage"
-                class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20 sm:w-36"
+                class="mt-2 w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20 sm:w-36"
               >
                 <option
                   v-for="option in perPageOptions"
@@ -242,7 +242,7 @@ watch(
             </div>
 
             <div
-              class="rounded-2xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500 ring-1 ring-slate-200"
+              class="rounded-md bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500 ring-1 ring-slate-200"
             >
               {{ filteredTravels.length }}
               {{ filteredTravels.length === 1 ? "viaje" : "viajes" }}
@@ -298,7 +298,7 @@ watch(
           <article
             v-for="travel in paginatedTravels"
             :key="travel.id"
-            class="group overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-experience-blue/20 hover:shadow-xl"
+            class="group overflow-hidden rounded-lg border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-experience-blue/20 hover:shadow-xl"
             :class="
               isPastTravel(travel)
                 ? 'border-slate-200 opacity-70 grayscale-[0.15]'
@@ -310,9 +310,9 @@ watch(
               class="border-b border-slate-100 p-5"
               :class="isPastTravel(travel) ? 'bg-slate-100' : 'bg-slate-50/70'"
             >
-              <div class="flex items-start gap-4">
+              <div class="flex items-center justify-between gap-4">
                 <div
-                  class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ring-1"
+                  class="flex size-10 lg:size-12 shrink-0 items-center justify-center rounded-2xl ring-1"
                   :class="
                     isPastTravel(travel)
                       ? 'bg-slate-200 text-slate-500 ring-slate-200'
@@ -321,7 +321,7 @@ watch(
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="h-6 w-6"
+                    class="size-5 lg:size-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -352,7 +352,7 @@ watch(
 
                     <span
                       v-else
-                      class="rounded-full bg-experience-green/5 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-experience-green ring-1 ring-experience-green"
+                      class="rounded-full bg-experience-pink/5 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wide text-experience-pink ring-1 ring-experience-pink"
                     >
                       Próximo
                     </span>
@@ -367,30 +367,30 @@ watch(
 
             <!-- Body -->
             <div class="space-y-4 p-5">
-              <div class="grid grid-cols-2 gap-3">
-                <div class="rounded-2xl bg-rose-50 p-4 ring-1 ring-rose-100">
+              <div class="grid md:grid-cols-2 gap-3">
+                <div
+                  class="rounded-lg flex gap-3 items-center lg:flex-col-reverse lg:items-start lg:gap-1 bg-rose-50 p-2 md:p-4 ring-1 ring-rose-500"
+                >
+                  <p class="text-2xl font-black text-rose-700">
+                    {{ getReservedSeats(travel) }}
+                  </p>
                   <p
                     class="text-[11px] font-bold uppercase tracking-wide text-rose-500"
                   >
                     Reservados
                   </p>
-
-                  <p class="mt-2 text-2xl font-black text-rose-700">
-                    {{ getReservedSeats(travel) }}
-                  </p>
                 </div>
 
                 <div
-                  class="rounded-2xl bg-experience-aqua/20 p-4 ring-1 ring-experience-aqua"
+                  class="rounded-lg flex gap-3 items-center lg:flex-col-reverse lg:items-start lg:gap-1 bg-experience-aqua/20 p-2 md:p-4 ring-1 ring-experience-aqua"
                 >
+                  <p class="text-2xl font-black text-emerald-700">
+                    {{ getAvailableSeats(travel) }}
+                  </p>
                   <p
                     class="text-[11px] font-bold uppercase tracking-wide text-emerald-500"
                   >
                     Disponibles
-                  </p>
-
-                  <p class="mt-2 text-2xl font-black text-emerald-700">
-                    {{ getAvailableSeats(travel) }}
                   </p>
                 </div>
               </div>
@@ -399,7 +399,7 @@ watch(
                 class="inline-flex w-full items-center justify-center rounded-xl bg-experience-blue px-4 py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:bg-experience-blue/90 hover:shadow-md"
                 :to="{ name: 'list-passenger', params: { id: travel.id } }"
               >
-                Ver pasajeros
+                Ver lista de pasajeros
               </RouterLink>
             </div>
           </article>
@@ -407,7 +407,7 @@ watch(
 
         <!-- Pagination -->
         <div
-          class="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+          class="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
         >
           <p class="text-sm font-medium text-slate-500">
             Mostrando

@@ -70,7 +70,7 @@ const handleSubmit = (formData) => {
             <div
               class="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5"
             >
-              <div>
+              <div class="flex-1">
                 <p
                   class="text-sm font-semibold uppercase tracking-[0.18em] text-experience-blue"
                 >
@@ -79,14 +79,12 @@ const handleSubmit = (formData) => {
                 <h3 class="mt-1 text-2xl font-black text-slate-900">
                   {{ isEditing ? "Editar código" : "Crear código" }}
                 </h3>
-                <p class="mt-1 text-sm text-slate-500">
-                  Completa la información para administrar el acceso.
-                </p>
+                
               </div>
 
               <button
                 type="button"
-                class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-900"
+                class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-900"
                 @click="$emit('close')"
               >
                 ✕

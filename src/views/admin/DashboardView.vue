@@ -328,7 +328,7 @@ const hasSatisfactionData = computed(
 
 <template>
   <div
-    class="mx-auto w-full max-w-full space-y-6 overflow-x-hidden p-3 sm:space-y-8 sm:p-5"
+    class="mx-auto w-full max-w-full space-y-6 overflow-x-hidden sm:space-y-8 lg:p-8"
   >
     <div
       class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
@@ -348,7 +348,7 @@ const hasSatisfactionData = computed(
 
         <select
           :value="store.days"
-          class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
+          class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
           @change="store.setDays($event.target.value)"
         >
           <option :value="7">Últimos 7 días</option>
@@ -370,7 +370,7 @@ const hasSatisfactionData = computed(
       <!-- KPIs -->
       <div class="grid w-full min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div
-          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+          class="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
         >
           <div class="flex items-center justify-between gap-3">
             <p
@@ -390,7 +390,7 @@ const hasSatisfactionData = computed(
         </div>
 
         <div
-          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+          class="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
         >
           <div class="flex items-center justify-between gap-3">
             <p
@@ -408,7 +408,7 @@ const hasSatisfactionData = computed(
         </div>
 
         <div
-          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+          class="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
         >
           <div class="flex items-center justify-between gap-3">
             <p
@@ -426,7 +426,7 @@ const hasSatisfactionData = computed(
         </div>
 
         <div
-          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+          class="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
         >
           <div class="flex items-center justify-between gap-3">
             <p
@@ -448,7 +448,7 @@ const hasSatisfactionData = computed(
 
       <!-- Próximo Experience -->
       <section
-        class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+        class="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
       >
         <div v-if="store.hasNextExperience">
           <div
@@ -474,7 +474,7 @@ const hasSatisfactionData = computed(
               class="grid w-full min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4"
             >
               <div
-                class="min-w-0 rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100"
+                class="min-w-0 rounded-xl bg-blue-50 p-4 ring-1 ring-blue-100"
               >
                 <p class="text-xs font-semibold uppercase text-blue-500">
                   Inscritos
@@ -486,7 +486,7 @@ const hasSatisfactionData = computed(
               </div>
 
               <div
-                class="min-w-0 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100"
+                class="min-w-0 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100"
               >
                 <p class="text-xs font-semibold uppercase text-slate-400">
                   Disponibles
@@ -498,7 +498,7 @@ const hasSatisfactionData = computed(
               </div>
 
               <div
-                class="min-w-0 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-100"
+                class="min-w-0 rounded-xl bg-amber-50 p-4 ring-1 ring-amber-100"
               >
                 <p class="text-xs font-semibold uppercase text-amber-500">
                   Ocupación
@@ -510,7 +510,7 @@ const hasSatisfactionData = computed(
               </div>
 
               <div
-                class="min-w-0 rounded-2xl bg-green-50 p-4 ring-1 ring-green-100"
+                class="min-w-0 rounded-xl bg-green-50 p-4 ring-1 ring-green-100"
               >
                 <p class="text-xs font-semibold uppercase text-green-500">
                   Ingreso estimado
@@ -523,7 +523,7 @@ const hasSatisfactionData = computed(
             </div>
           </div>
 
-          <div class="mt-5 h-3 overflow-hidden rounded-full bg-slate-100">
+          <div class="mt-5 h-3 overflow-hidden rounded-full bg-slate-100 hidden lg:block">
             <div
               class="h-full rounded-full bg-experience-blue"
               :style="{
@@ -549,7 +549,7 @@ const hasSatisfactionData = computed(
       <!-- Gráficas principales -->
       <div class="grid w-full min-w-0 gap-4 xl:grid-cols-2">
         <section
-          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+          class="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
         >
           <div class="flex flex-wrap items-center justify-between gap-3">
             <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
@@ -579,7 +579,7 @@ const hasSatisfactionData = computed(
         </section>
 
         <section
-          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+          class="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
         >
           <div class="flex flex-wrap items-center justify-between gap-3">
             <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
@@ -612,7 +612,7 @@ const hasSatisfactionData = computed(
       <!-- Gráficas secundarias -->
       <div class="grid w-full min-w-0 gap-4 xl:grid-cols-2">
         <section
-          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+          class="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
         >
           <div class="flex flex-wrap items-center justify-between gap-3">
             <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
@@ -645,7 +645,7 @@ const hasSatisfactionData = computed(
         </section>
 
         <section
-          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+          class="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
         >
           <div class="flex flex-wrap items-center justify-between gap-3">
             <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
@@ -681,7 +681,7 @@ const hasSatisfactionData = computed(
       <!-- Listas rápidas -->
       <div class="grid w-full min-w-0 gap-4 xl:grid-cols-2">
         <section
-          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+          class="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
         >
           <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
             Reservaciones recientes
@@ -729,7 +729,7 @@ const hasSatisfactionData = computed(
         </section>
 
         <section
-          class="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+          class="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
         >
           <h3 class="text-base font-semibold text-slate-900 sm:text-lg">
             Encuestas recientes

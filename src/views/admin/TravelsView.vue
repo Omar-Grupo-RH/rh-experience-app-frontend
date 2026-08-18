@@ -11,7 +11,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="mx-auto lg:p-5 space-y-10">
+  <div class="mx-auto space-y-10 lg:p-8">
     <div class="flex justify-between items-center">
       <div class="space-y-1">
         <h2 class="text-4xl font-semibold">Tus pasajeros</h2>
@@ -19,7 +19,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div class="lg:p-5">
+    <div>
       <TravelsTable v-if="store.hasTravels" :travels="store.travels" />
       <div
         v-else
