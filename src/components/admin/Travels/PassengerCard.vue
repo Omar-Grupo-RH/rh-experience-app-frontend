@@ -19,6 +19,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  isLast: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits([
@@ -414,7 +418,12 @@ const attendanceStatus = computed(
           >
             <div
               v-if="isMenuOpen"
-              class="absolute right-0 top-12 z-50 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5"
+              class="absolute right-0 z-50 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5"
+              :class="
+                isLast
+                  ? 'bottom-12 origin-bottom-right'
+                  : 'top-12 origin-top-right'
+              "
               @click.stop
             >
               <button
@@ -468,7 +477,9 @@ const attendanceStatus = computed(
     >
       <div v-if="isExpanded" class="border-t border-slate-100 bg-white p-5">
         <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-          <div class="rounded-lg col-span-2 md:col-span-1 bg-slate-50 p-4 ring-1 ring-slate-100">
+          <div
+            class="rounded-lg col-span-2 md:col-span-1 bg-slate-50 p-4 ring-1 ring-slate-100"
+          >
             <p
               class="text-xs font-medium uppercase tracking-wide text-slate-400"
             >
@@ -479,7 +490,9 @@ const attendanceStatus = computed(
             </p>
           </div>
 
-          <div class="rounded-lg col-span-2 md:col-span-1 bg-slate-50 p-4 ring-1 ring-slate-100">
+          <div
+            class="rounded-lg col-span-2 md:col-span-1 bg-slate-50 p-4 ring-1 ring-slate-100"
+          >
             <p
               class="text-xs font-medium uppercase tracking-wide text-slate-400"
             >
@@ -495,7 +508,9 @@ const attendanceStatus = computed(
             </p>
           </div>
 
-          <div class="rounded-lg col-span-2 md:col-span-1 bg-slate-50 p-4 ring-1 ring-slate-100">
+          <div
+            class="rounded-lg col-span-2 md:col-span-1 bg-slate-50 p-4 ring-1 ring-slate-100"
+          >
             <p
               class="text-xs font-medium uppercase tracking-wide text-slate-400"
             >
@@ -506,7 +521,9 @@ const attendanceStatus = computed(
             </p>
           </div>
 
-          <div class="rounded-lg col-span-2 md:col-span-1 bg-slate-50 p-4 ring-1 ring-slate-100">
+          <div
+            class="rounded-lg col-span-2 md:col-span-1 bg-slate-50 p-4 ring-1 ring-slate-100"
+          >
             <p
               class="text-xs font-medium uppercase tracking-wide text-slate-400"
             >
@@ -517,7 +534,9 @@ const attendanceStatus = computed(
             </p>
           </div>
 
-          <div class="rounded-lg col-span-2 md:col-span-1 bg-slate-50 p-4 ring-1 ring-slate-100">
+          <div
+            class="rounded-lg col-span-2 md:col-span-1 bg-slate-50 p-4 ring-1 ring-slate-100"
+          >
             <p
               class="text-xs font-medium uppercase tracking-wide text-slate-400"
             >

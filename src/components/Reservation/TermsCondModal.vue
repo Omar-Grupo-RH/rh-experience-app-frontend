@@ -1,11 +1,36 @@
 <script setup>
+import { nextTick, ref, watch } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 
 const store = useReservaStore();
 
-defineProps({
+const props = defineProps({
   isVisible: Boolean,
 });
+
+const termsContent = ref(null);
+const hasReachedEnd = ref(false);
+
+const updateScrollState = () => {
+  const content = termsContent.value;
+
+  if (!content) return;
+
+  hasReachedEnd.value =
+    content.scrollTop + content.clientHeight >= content.scrollHeight - 1;
+};
+
+watch(
+  () => props.isVisible,
+  async (isVisible) => {
+    hasReachedEnd.value = false;
+
+    if (isVisible) {
+      await nextTick();
+      updateScrollState();
+    }
+  },
+);
 
 const closeModal = () => {
   store.modal = false;
@@ -24,11 +49,7 @@ const closeModal = () => {
           class="relative flex max-h-[90dvh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-white/20"
         >
           <!-- Header -->
-          <div class="relative  bg-experience-blue px-6 py-7 text-white sm:px-8">
-            
-
-            
-
+          <div class="relative bg-experience-blue px-6 py-7 text-white sm:px-8">
             <div class="relative pr-10">
               <span
                 class="inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-[0.22em] text-white/80 ring-1 ring-white/20"
@@ -40,15 +61,21 @@ const closeModal = () => {
                 Términos y condiciones
               </h2>
 
-              <p class="mt-3 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
-                Antes de continuar, lee cuidadosamente la información relacionada
-                con tu participación en el recorrido.
+              <p
+                class="mt-3 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base"
+              >
+                Antes de continuar, lee cuidadosamente la información
+                relacionada con tu participación en el recorrido.
               </p>
             </div>
           </div>
 
           <!-- Body -->
-          <div class="custom-scroll flex-1 overflow-y-auto bg-slate-50 px-5 py-6 sm:px-8">
+          <div
+            ref="termsContent"
+            class="custom-scroll flex-1 overflow-y-auto bg-slate-50 px-5 py-6 sm:px-8"
+            @scroll="updateScrollState"
+          >
             <div class="mx-auto max-w-3xl space-y-5">
               <div
                 class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
@@ -78,9 +105,13 @@ const closeModal = () => {
                       Participación voluntaria
                     </h3>
 
-                    <p class="mt-2 text-sm leading-7 text-slate-600 sm:text-base">
+                    <p
+                      class="mt-2 text-sm leading-7 text-slate-600 sm:text-base"
+                    >
                       Yo manifiesto que es mi voluntad participar en el
-                      <strong class="font-black uppercase italic text-slate-900">
+                      <strong
+                        class="font-black uppercase italic text-slate-900"
+                      >
                         Recorrido "RH Experience"
                       </strong>
                       a los siguientes municipios y comisarías: Motul de Felipe
@@ -119,24 +150,28 @@ const closeModal = () => {
                       Deslinde de responsabilidad
                     </h3>
 
-                    <p class="mt-2 text-sm leading-7 text-slate-600 sm:text-base">
-                      Declaro bajo protesta de decir verdad que deslindo y libero
-                      de toda responsabilidad civil, laboral y penal a
+                    <p
+                      class="mt-2 text-sm leading-7 text-slate-600 sm:text-base"
+                    >
+                      Declaro bajo protesta de decir verdad que deslindo y
+                      libero de toda responsabilidad civil, laboral y penal a
                       <strong class="font-black uppercase text-slate-900">
                         "Desarrollo Inmobiliario Peninsular RH" Sociedad Anónima
                         de Capital Variable, "Inversiones Inmobiliarias R & H
                         del Sureste", Sociedad Anónima de Capital Variable,
-                        Creación y Estrategia Inmobiliaria RH Sociedad Anónima de
-                        Capital Variable
+                        Creación y Estrategia Inmobiliaria RH Sociedad Anónima
+                        de Capital Variable
                       </strong>
                       y todas las empresas pertenecientes a Grupo RH, así como a
-                      sus trabajadores, guías, ayudantes, representantes legales o
-                      personal de apoyo en el viaje y oficinas, por cualquier
-                      accidente, consecuencia o fatalidad que pudiera presentarse
-                      durante el
-                      <strong class="font-black uppercase italic text-slate-900">
-                        Recorrido "RH Experience"
-                      </strong>.
+                      sus trabajadores, guías, ayudantes, representantes legales
+                      o personal de apoyo en el viaje y oficinas, por cualquier
+                      accidente, consecuencia o fatalidad que pudiera
+                      presentarse durante el
+                      <strong
+                        class="font-black uppercase italic text-slate-900"
+                      >
+                        Recorrido "RH Experience" </strong
+                      >.
                     </p>
                   </div>
                 </div>
@@ -170,17 +205,20 @@ const closeModal = () => {
                       Indicaciones y medidas de seguridad
                     </h3>
 
-                    <p class="mt-2 text-sm leading-7 text-slate-600 sm:text-base">
+                    <p
+                      class="mt-2 text-sm leading-7 text-slate-600 sm:text-base"
+                    >
                       Hago constar que seguiré las indicaciones, instrucciones y
                       sugerencias de el/la/los guía(s) a cargo del
-                      <strong class="font-black uppercase italic text-slate-900">
-                        Recorrido "RH Experience"
-                      </strong>,
-                      así como acatar las medidas de seguridad necesarias. Cuidaré
-                      de mi persona y de quienes me rodean para desempeñar las
-                      actividades que son de mi conocimiento y para las cuales, de
-                      manera voluntaria, consciente y responsable, decidí ser
-                      partícipe.
+                      <strong
+                        class="font-black uppercase italic text-slate-900"
+                      >
+                        Recorrido "RH Experience" </strong
+                      >, así como acatar las medidas de seguridad necesarias.
+                      Cuidaré de mi persona y de quienes me rodean para
+                      desempeñar las actividades que son de mi conocimiento y
+                      para las cuales, de manera voluntaria, consciente y
+                      responsable, decidí ser partícipe.
                     </p>
                   </div>
                 </div>
@@ -198,9 +236,7 @@ const closeModal = () => {
           </div>
 
           <!-- Footer -->
-          <div
-            class="border-t border-slate-200 bg-white px-5 py-4 sm:px-8"
-          >
+          <div class="border-t border-slate-200 bg-white px-5 py-4 sm:px-8">
             <div
               class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
             >
@@ -211,7 +247,8 @@ const closeModal = () => {
 
               <button
                 type="button"
-                class="inline-flex w-full items-center justify-center rounded-2xl bg-experience-pink px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-experience-pink/30 sm:w-auto"
+                :disabled="!hasReachedEnd"
+                class="inline-flex w-full items-center justify-center rounded-2xl bg-experience-pink px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-experience-pink/30 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto cursor-pointer"
                 @click="closeModal"
               >
                 Entendido

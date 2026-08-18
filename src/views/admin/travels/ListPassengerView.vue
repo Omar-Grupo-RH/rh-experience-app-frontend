@@ -212,7 +212,7 @@ const generatePDF = async () => {
 
     <div
       v-if="store.hasPassengersByTravel"
-      class="space-y-6 rounded-xl bg-white "
+      class="space-y-6 rounded-xl bg-white"
       @click="closePassengerMenu"
     >
       <div class="rounded-xl bg-slate-50 p-5 ring-1 ring-slate-100">
@@ -337,12 +337,13 @@ const generatePDF = async () => {
         </div>
 
         <PassengerCard
-          v-for="p in filteredPassengers"
+          v-for="(p, index) in filteredPassengers"
           :key="p.id"
           :passenger="p"
           :admin-level="adminLevel"
           :is-expanded="isPassengerExpanded(p.id)"
           :is-menu-open="isPassengerMenuOpen(p.id)"
+          :is-last="index === filteredPassengers.length - 1"
           @toggle="togglePassenger"
           @toggle-menu="togglePassengerMenu"
           @edit="editPassenger"
