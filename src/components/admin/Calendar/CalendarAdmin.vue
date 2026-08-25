@@ -8,14 +8,13 @@ import { useCalendarStore } from "@/stores/admin/calendarStore";
 import { useAuth } from "@/composables/useAuth";
 
 const store = useCalendarStore();
-const { adminLevel } = useAuth();
+const { adminLevel } = useAuth();                    
 
 const calendarRef = ref(null);
-
+      
 const canManageEvents = computed(() => Number(adminLevel.value) === 1);
 
-const isMobile = () => window.innerWidth < 768;
-
+const isMobile = () => window.innerWidth < 768;                                   
 const handleDateClick = (info) => {
   if (!canManageEvents.value) return;
 
