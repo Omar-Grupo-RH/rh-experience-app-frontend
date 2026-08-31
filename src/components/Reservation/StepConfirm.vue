@@ -1,5 +1,5 @@
 <script setup>
-import { ref, inject, onMounted, watch } from "vue";
+import { computed, ref, inject, onMounted, watch } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 import { formatDateToSpanish } from "@/utils/formatDate";
 import PassengersItem from "@/components/Reservation/PassengersItem.vue";
@@ -11,6 +11,66 @@ const store = useReservaStore();
 const toast = inject("toast");
 
 const loading = ref(false);
+const checkingAttendance = ref(false);
+const attendanceChecks = ref({});
+
+const penalizedPassengers = computed(() =>
+  store.passengers.filter((passenger) => {
+    const email = passenger.email?.trim().toLowerCase();
+    return email && attendanceChecks.value[email]?.requires_no_show_penalty;
+  }),
+);
+
+const effectivePaymentDetails = computed(() =>
+  store.passengers.map((passenger, index) => {
+    const email = passenger.email?.trim().toLowerCase();
+    const hasPenalty = Boolean(
+      email && attendanceChecks.value[email]?.requires_no_show_penalty,
+    );
+    const penaltyAmount = hasPenalty ? 500 : 0;
+    let baseAmount = 0;
+
+    if (store.registrationType === "prospect") baseAmount = 1500;
+    if (store.registrationType === "family_friend") baseAmount = 500;
+    if (store.registrationType === "internal") {
+      baseAmount = store.emailVerification?.exists ? 500 : 0;
+    }
+    if (store.registrationType === "investor") {
+      baseAmount = index > 0 ? 500 : 0;
+    }
+
+    return {
+      baseAmount,
+      penaltyAmount,
+      amount: baseAmount + penaltyAmount,
+    };
+  }),
+);
+
+const effectivePaidTicketsCount = computed(
+  () => effectivePaymentDetails.value.filter(({ amount }) => amount > 0).length,
+);
+const effectiveFreeTicketsCount = computed(
+  () => store.passengers.length - effectivePaidTicketsCount.value,
+);
+const effectiveRegistrationTotal = computed(() =>
+  effectivePaymentDetails.value.reduce(
+    (total, { amount }) => total + amount,
+    0,
+  ),
+);
+const totalPenaltyAmount = computed(() =>
+  effectivePaymentDetails.value.reduce(
+    (total, { penaltyAmount }) => total + penaltyAmount,
+    0,
+  ),
+);
+const effectivePricePerPerson = computed(() =>
+  effectivePaymentDetails.value.reduce(
+    (highest, { amount }) => Math.max(highest, amount),
+    0,
+  ),
+);
 
 function buildRegistrationPayload(store) {
   const data = store.registrationData;
@@ -120,7 +180,40 @@ async function verifyInternalPassengerEmail() {
   await store.verifyEmailRegister(email);
 }
 
+async function verifyPassengerAttendance() {
+  const emails = [
+    ...new Set(
+      store.passengers
+        .map((passenger) => passenger.email?.trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  ];
+
+  if (!emails.length) {
+    attendanceChecks.value = {};
+    return;
+  }
+
+  try {
+    checkingAttendance.value = true;
+
+    const responses = await Promise.all(
+      emails.map((email) => ReservationAPI.passengerByEmail(email)),
+    );
+
+    attendanceChecks.value = Object.fromEntries(
+      emails.map((email, index) => [email, responses[index]?.data || {}]),
+    );
+  } catch {
+    attendanceChecks.value = {};
+  } finally {
+    checkingAttendance.value = false;
+  }
+}
+
 async function startCheckout() {
+  if (checkingAttendance.value) return;
+
   if (!store.canPay) {
     toast?.open?.({
       message: "Debes aceptar términos y condiciones.",
@@ -183,7 +276,10 @@ async function startCheckout() {
 }
 
 onMounted(async () => {
-  await verifyInternalPassengerEmail();
+  await Promise.all([
+    verifyInternalPassengerEmail(),
+    verifyPassengerAttendance(),
+  ]);
 });
 
 watch(
@@ -191,6 +287,11 @@ watch(
   async () => {
     await verifyInternalPassengerEmail();
   },
+);
+
+watch(
+  () => store.passengers.map((passenger) => passenger.email).join("|"),
+  verifyPassengerAttendance,
 );
 </script>
 
@@ -292,7 +393,9 @@ watch(
                 Punto de Encuentro
               </p>
 
-              <p class="text-sm md:text-base text-gray-800">Oficinas de Grupo RH</p>
+              <p class="text-sm md:text-base text-gray-800">
+                Oficinas de Grupo RH
+              </p>
             </div>
           </div>
 
@@ -368,6 +471,15 @@ watch(
         </div>
 
         <div
+          v-if="checkingAttendance"
+          class="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-4"
+        >
+          <p class="text-sm font-semibold text-slate-700">
+            Verificando el historial de asistencia de los pasajeros...
+          </p>
+        </div>
+
+        <div
           v-if="
             store.registrationType === 'internal' &&
             store.emailVerificationLoading
@@ -376,6 +488,32 @@ watch(
         >
           <p class="text-sm font-semibold text-slate-700">
             Verificando si ya has tomado un RH Experience previamente...
+          </p>
+        </div>
+
+        <div
+          v-if="penalizedPassengers.length"
+          class="mb-5 rounded-xl border border-rose-200 bg-rose-50 p-4"
+        >
+          <p class="text-sm font-bold text-rose-900">
+            Se aplicará una penalización de $500 MXN por boleto debido a dos
+            inasistencias previas registradas.
+          </p>
+          <p class="mt-2 text-sm text-rose-800">
+            Pasajeros afectados:
+            {{
+              penalizedPassengers
+                .map(
+                  (passenger) =>
+                    `${passenger.first_name} ${passenger.last_name}`.trim() ||
+                    passenger.email,
+                )
+                .join(", ")
+            }}. Los $500 MXN son adicionales al precio normal de cada boleto. El
+            recargo total por penalizaciones es de ${{
+              totalPenaltyAmount.toLocaleString("es-MX")
+            }}
+            MXN y la ficha de pago se enviará junto con los boletos.
           </p>
         </div>
 
@@ -427,7 +565,7 @@ watch(
         </div>
 
         <div
-          v-if="store.registrationTotal > 0"
+          v-if="effectiveRegistrationTotal > 0"
           class="mb-5 rounded-2xl border border-slate-200 bg-slate-50 p-5"
         >
           <div
@@ -455,7 +593,7 @@ watch(
               </p>
 
               <p class="text-2xl font-black text-slate-900">
-                ${{ store.registrationTotal.toLocaleString("es-MX") }} MXN
+                ${{ effectiveRegistrationTotal.toLocaleString("es-MX") }} MXN
               </p>
             </div>
           </div>
@@ -469,7 +607,7 @@ watch(
               </p>
 
               <p class="mt-1 text-lg font-black text-emerald-700">
-                {{ store.freeTicketsCount }}
+                {{ effectiveFreeTicketsCount }}
               </p>
             </div>
 
@@ -481,7 +619,7 @@ watch(
               </p>
 
               <p class="mt-1 text-lg font-black text-amber-700">
-                {{ store.paidTicketsCount }}
+                {{ effectivePaidTicketsCount }}
               </p>
             </div>
 
@@ -493,7 +631,7 @@ watch(
               </p>
 
               <p class="mt-1 text-lg font-black text-slate-900">
-                ${{ store.registrationPricePerPerson.toLocaleString("es-MX") }}
+                ${{ effectivePricePerPerson.toLocaleString("es-MX") }}
               </p>
             </div>
           </div>
@@ -534,7 +672,7 @@ watch(
 
         <div class="flex flex-col sm:flex-row-reverse gap-3 sm:gap-4 mt-6">
           <button
-            :disabled="!store.canPay || loading"
+            :disabled="!store.canPay || loading || checkingAttendance"
             @click="startCheckout"
             class="flex-1 px-6 py-3.5 bg-experience-blue text-white font-semibold rounded-xl shadow-sm transition-all flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-experience-blue"
           >
