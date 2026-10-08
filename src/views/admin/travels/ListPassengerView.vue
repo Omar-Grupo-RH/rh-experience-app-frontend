@@ -148,6 +148,12 @@ const resendPassengerEmail = async (passenger) => {
   await store.resendPassengerTicketsStore(passenger.id);
 };
 
+const resendPassengerSurvey = async (passenger) => {
+  closePassengerMenu();
+
+  await store.resendPassengerSurveyStore(passenger.id);
+};
+
 const deletePassenger = async (passenger) => {
   closePassengerMenu();
 
@@ -429,6 +435,7 @@ const generateExcel = () => {
           @confirm-payment="store.tooglePayment"
           @reschedule-passenger="reschedulePassenger"
           @resend-email="resendPassengerEmail"
+          @resend-survey="resendPassengerSurvey"
           @delete-passenger="deletePassenger"
           @update-attendance="updateAttendance"
           @download-docs="downloadPassengerDocuments"

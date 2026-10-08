@@ -20,4 +20,12 @@ export default {
   getStats(params = {}) {
     return api.get("/admin/survey-stats", { params });
   },
+
+  getDeliveries(params = {}) {
+    return api.get("/admin/survey-deliveries", { params });
+  },
+
+  resendSurvey(payload) {
+    return api.post("/survey/resend", payload);
+  },
 };

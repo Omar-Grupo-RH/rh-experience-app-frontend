@@ -3,6 +3,7 @@ import { useReservation } from "@/composables/useReservation";
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import Swal from "sweetalert2";
+import SurveyAPI from "@/api/SurveyAPI";
 
 export const useTravelStore = defineStore(
   "travels",
@@ -413,6 +414,63 @@ export const useTravelStore = defineStore(
       }
     }
 
+    async function resendPassengerSurveyStore(passengerId) {
+      if (!passengerId) return false;
+
+      const passenger = passengersByTravelArray.value.find(
+        (item) => Number(item.id) === Number(passengerId),
+      );
+
+      const { isConfirmed } = await Swal.fire({
+        title: "Reenviar encuesta",
+        text: passenger?.email
+          ? `Se enviará la encuesta a ${passenger.email}.`
+          : "Se enviará la encuesta al pasajero.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Enviar encuesta",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#315fa8",
+      });
+
+      if (!isConfirmed) return false;
+
+      Swal.fire({
+        title: "Enviando encuesta",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      try {
+        const { data } = await SurveyAPI.resendSurvey({
+          passenger_id: passengerId,
+        });
+
+        await Swal.fire({
+          title: "Encuesta enviada",
+          text: data.message,
+          icon: "success",
+          confirmButtonColor: "#315fa8",
+          timer: 2500,
+          showConfirmButton: false,
+        });
+
+        return true;
+      } catch (error) {
+        await Swal.fire({
+          title: "No se pudo enviar",
+          text:
+            error?.response?.data?.message ||
+            "No se pudo reenviar la encuesta del pasajero.",
+          icon: "error",
+          confirmButtonColor: "#315fa8",
+        });
+
+        return false;
+      }
+    }
+
     async function deletePassengerStore(passengerId) {
       if (!passengerId) return false;
 
@@ -624,6 +682,7 @@ export const useTravelStore = defineStore(
       updatePassengerInfoStore,
       reschedulePassengerStore,
       resendPassengerTicketsStore,
+      resendPassengerSurveyStore,
       deletePassengerStore,
       updateAttendanceStatusStore,
       downloadPassengerDocumentsStore,

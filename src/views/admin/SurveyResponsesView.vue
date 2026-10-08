@@ -1,5 +1,12 @@
 <script setup>
-import { computed, onMounted, ref, nextTick, watch, onBeforeUnmount } from "vue";
+import {
+  computed,
+  onMounted,
+  ref,
+  nextTick,
+  watch,
+  onBeforeUnmount,
+} from "vue";
 import { Chart, registerables } from "chart.js";
 import { useSurveyStore } from "@/stores/admin/surveyStore";
 import { formatDateToSpanish } from "@/utils/formatDate";
@@ -9,7 +16,7 @@ Chart.register(...registerables);
 const store = useSurveyStore();
 
 const showDetail = ref(false);
-const selectedDate = ref("");
+const selectedTripId = ref("");
 const activeTab = ref("responses");
 
 const chartRefs = ref({});
@@ -287,7 +294,11 @@ const surveySections = [
 ];
 
 onMounted(async () => {
-  await Promise.all([store.getResponses(), store.getStats()]);
+  await Promise.all([
+    store.getResponses(),
+    store.getStats(),
+    store.getDeliveries(),
+  ]);
   await nextTick();
   renderCharts();
 });
@@ -296,23 +307,37 @@ onBeforeUnmount(() => {
   destroyCharts();
 });
 
-const availableDates = computed(() => {
-  const responseDates = store.responses
-    .map((item) => item.trip_date)
-    .filter(Boolean);
+const availableExperiences = computed(() => {
+  const experiences = new Map();
 
-  const statsDates = store.stats.map((item) => item.trip_date).filter(Boolean);
+  [...store.deliveries, ...store.responses].forEach((item) => {
+    if (!item.trip_id) return;
 
-  return [...new Set([...responseDates, ...statsDates])].sort(
-    (a, b) => new Date(b) - new Date(a),
+    experiences.set(String(item.trip_id), {
+      id: String(item.trip_id),
+      title: item.trip_title || "RH Experience",
+      date: item.trip_date,
+    });
+  });
+
+  return [...experiences.values()].sort(
+    (a, b) => new Date(b.date) - new Date(a.date),
   );
 });
 
 const filteredResponses = computed(() => {
-  if (!selectedDate.value) return store.responses;
+  if (!selectedTripId.value) return store.responses;
 
   return store.responses.filter((response) => {
-    return response.trip_date === selectedDate.value;
+    return String(response.trip_id) === selectedTripId.value;
+  });
+});
+
+const filteredDeliveries = computed(() => {
+  if (!selectedTripId.value) return store.deliveries;
+
+  return store.deliveries.filter((delivery) => {
+    return String(delivery.trip_id) === selectedTripId.value;
   });
 });
 
@@ -320,10 +345,16 @@ const totalFilteredResponses = computed(() => {
   return filteredResponses.value.length;
 });
 
-const selectedDateLabel = computed(() => {
-  if (!selectedDate.value) return "Todas las fechas";
+const selectedExperienceLabel = computed(() => {
+  if (!selectedTripId.value) return "Todas las experiences";
 
-  return formatDateToSpanish(selectedDate.value);
+  const experience = availableExperiences.value.find(
+    (item) => item.id === selectedTripId.value,
+  );
+
+  if (!experience) return "Experience seleccionada";
+
+  return `${experience.title} · ${formatDateToSpanish(experience.date)}`;
 });
 
 const hasFilteredResponses = computed(() => {
@@ -365,8 +396,8 @@ const hasChartData = computed(() => {
   return totalAnsweredQuestions.value > 0;
 });
 
-const clearDateFilter = () => {
-  selectedDate.value = "";
+const clearExperienceFilter = () => {
+  selectedTripId.value = "";
 };
 
 const setChartRef = (key, element) => {
@@ -677,7 +708,7 @@ async function renderCharts() {
 }
 
 watch(
-  [selectedDate, activeTab, responsesWithAnswers],
+  [selectedTripId, activeTab, responsesWithAnswers],
   async () => {
     await renderCharts();
   },
@@ -727,6 +758,19 @@ watch(
       >
         Gráficas
       </button>
+
+      <button
+        type="button"
+        class="cursor-pointer rounded-xl px-4 py-2 text-sm font-semibold transition"
+        :class="
+          activeTab === 'deliveries'
+            ? 'bg-white text-slate-900 shadow-sm'
+            : 'text-slate-500 hover:text-slate-800'
+        "
+        @click="activeTab = 'deliveries'"
+      >
+        Envíos
+      </button>
     </div>
 
     <div class="grid gap-4 lg:grid-cols-3">
@@ -739,8 +783,8 @@ watch(
 
         <p class="mt-1 text-xs text-slate-400">
           {{
-            selectedDate
-              ? "Según la fecha seleccionada"
+            selectedTripId
+              ? "Según la experience seleccionada"
               : "Todas las respuestas"
           }}
         </p>
@@ -754,17 +798,22 @@ watch(
         >
           <div class="w-full lg:max-w-sm">
             <label class="text-sm font-semibold text-slate-700">
-              Filtrar por fecha del RH Experience
+              Filtrar por RH Experience
             </label>
 
             <select
-              v-model="selectedDate"
+              v-model="selectedTripId"
               class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-experience-blue focus:ring-2 focus:ring-experience-blue/20"
             >
-              <option value="">Todas las fechas</option>
+              <option value="">Todas las experiences</option>
 
-              <option v-for="date in availableDates" :key="date" :value="date">
-                {{ formatDateToSpanish(date) }}
+              <option
+                v-for="experience in availableExperiences"
+                :key="experience.id"
+                :value="experience.id"
+              >
+                {{ experience.title }} ·
+                {{ formatDateToSpanish(experience.date) }}
               </option>
             </select>
           </div>
@@ -773,14 +822,14 @@ watch(
             <span
               class="w-fit rounded-full bg-experience-blue/10 px-4 py-2 text-sm font-semibold text-experience-blue ring-1 ring-experience-blue/10"
             >
-              {{ selectedDateLabel }}
+              {{ selectedExperienceLabel }}
             </span>
 
             <button
-              v-if="selectedDate"
+              v-if="selectedTripId"
               type="button"
               class="w-fit rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200"
-              @click="clearDateFilter"
+              @click="clearExperienceFilter"
             >
               Limpiar filtro
             </button>
@@ -790,9 +839,7 @@ watch(
     </div>
 
     <section v-if="activeTab === 'responses'">
-      <div
-       
-      >
+      <div>
         <div
           v-if="store.loading"
           class="flex min-h-[260px] items-center justify-center"
@@ -802,7 +849,7 @@ watch(
 
         <div
           v-else-if="!hasFilteredResponses"
-          class="flex min-h-[260px] items-center justify-center border rounded-2xl border-dashed border-slate-300 bg-slate-50  px-6 py-10 text-center"
+          class="flex min-h-[260px] items-center justify-center border rounded-2xl border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center"
         >
           <div>
             <p class="font-semibold text-slate-900">
@@ -871,7 +918,7 @@ watch(
 
       <div
         v-else-if="!hasChartData"
-        class="flex min-h-[260px] items-center justify-center border rounded-2xl border-dashed border-slate-300 bg-slate-50  px-6 py-10 text-center"
+        class="flex min-h-[260px] items-center justify-center border rounded-2xl border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center"
       >
         <div>
           <p class="font-semibold text-slate-900">
@@ -909,9 +956,7 @@ watch(
                   <p class="mt-1 text-sm text-slate-500">
                     {{ question.totalResponses }}
                     {{
-                      question.totalResponses === 1
-                        ? "respuesta"
-                        : "respuestas"
+                      question.totalResponses === 1 ? "respuesta" : "respuestas"
                     }}
                     <span v-if="question.average">
                       · Promedio: {{ question.average }}
@@ -935,9 +980,7 @@ watch(
 
                   <div class="mt-3 flex items-center justify-center gap-1">
                     <span
-                      v-for="(filled, index) in getStarsArray(
-                        question.average,
-                      )"
+                      v-for="(filled, index) in getStarsArray(question.average)"
                       :key="`${question.key}-avg-${index}`"
                       class="text-4xl"
                       :class="filled ? 'text-yellow-400' : 'text-slate-300'"
@@ -982,7 +1025,9 @@ watch(
                       ></div>
                     </div>
 
-                    <p class="w-20 text-right text-sm font-semibold text-slate-600">
+                    <p
+                      class="w-20 text-right text-sm font-semibold text-slate-600"
+                    >
                       {{ item.total }}
                       {{ item.total === 1 ? "resp." : "resps." }}
                     </p>
@@ -1007,6 +1052,73 @@ watch(
           </div>
         </section>
       </template>
+    </section>
+
+    <section v-if="activeTab === 'deliveries'" class="space-y-4">
+      <div
+        v-if="store.loadingDeliveries"
+        class="flex min-h-[260px] items-center justify-center text-slate-500"
+      >
+        Cargando envíos...
+      </div>
+
+      <div
+        v-else-if="!filteredDeliveries.length"
+        class="flex min-h-[260px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center"
+      >
+        <p class="font-semibold text-slate-700">
+          No hay pasajeros para esta experience.
+        </p>
+      </div>
+
+      <div v-else class="grid gap-4">
+        <article
+          v-for="delivery in filteredDeliveries"
+          :key="delivery.passenger_id"
+          class="rounded-2xl border p-5 transition"
+          :class="
+            delivery.sent
+              ? 'border-slate-200 bg-white shadow-sm'
+              : 'border-slate-200 bg-slate-100 opacity-55'
+          "
+        >
+          <div
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div>
+              <h3 class="text-lg font-semibold text-slate-900">
+                {{ delivery.passenger_name || "Sin nombre" }}
+              </h3>
+              <p class="text-sm text-slate-500">
+                {{ delivery.email || "Sin correo registrado" }}
+              </p>
+              <p class="mt-1 text-sm font-medium text-slate-700">
+                {{ delivery.trip_title }} ·
+                {{ formatDateToSpanish(delivery.trip_date) }}
+              </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <span
+                class="rounded-full px-3 py-1 text-xs font-semibold"
+                :class="
+                  delivery.sent
+                    ? 'bg-green-50 text-green-700 ring-1 ring-green-100'
+                    : 'bg-slate-200 text-slate-600 ring-1 ring-slate-300'
+                "
+              >
+                {{ delivery.sent ? "Encuesta enviada" : "No enviada" }}
+              </span>
+              <span
+                v-if="delivery.answered"
+                class="rounded-full bg-experience-blue/10 px-3 py-1 text-xs font-semibold text-experience-blue"
+              >
+                Respondida
+              </span>
+            </div>
+          </div>
+        </article>
+      </div>
     </section>
 
     <Teleport to="body">

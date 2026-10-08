@@ -6,9 +6,11 @@ export const useSurveyStore = defineStore("survey-admin", () => {
   const responses = ref([]);
   const selectedResponse = ref(null);
   const stats = ref([]);
+  const deliveries = ref([]);
 
   const loading = ref(false);
   const loadingDetail = ref(false);
+  const loadingDeliveries = ref(false);
 
   const filters = ref({
     trip_id: "",
@@ -82,6 +84,20 @@ export const useSurveyStore = defineStore("survey-admin", () => {
     }
   }
 
+  async function getDeliveries(params = {}) {
+    try {
+      loadingDeliveries.value = true;
+      const { data } = await SurveyAPI.getDeliveries(params);
+      deliveries.value = data.data ?? [];
+    } catch (error) {
+      console.error("Error cargando envíos de encuestas:", error);
+      deliveries.value = [];
+      throw error;
+    } finally {
+      loadingDeliveries.value = false;
+    }
+  }
+
   async function setTripFilter(tripId) {
     filters.value.trip_id = tripId;
     await Promise.all([getResponses(), getStats()]);
@@ -95,8 +111,10 @@ export const useSurveyStore = defineStore("survey-admin", () => {
     responses,
     selectedResponse,
     stats,
+    deliveries,
     loading,
     loadingDetail,
+    loadingDeliveries,
     filters,
 
     hasResponses,
@@ -104,6 +122,7 @@ export const useSurveyStore = defineStore("survey-admin", () => {
     getResponses,
     getResponse,
     getStats,
+    getDeliveries,
     setTripFilter,
     clearSelectedResponse,
   };

@@ -32,6 +32,7 @@ const emit = defineEmits([
   "confirm-payment",
   "reschedule-passenger",
   "resend-email",
+  "resend-survey",
   "delete-passenger",
   "update-attendance",
   "download-docs",
@@ -446,6 +447,13 @@ const attendanceStatus = computed(
                 @click="emit('resend-email', passenger)"
               >
                 Reenviar correo
+              </button>
+              <button
+                type="button"
+                class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-slate-700 transition hover:bg-slate-50"
+                @click="emit('resend-survey', passenger)"
+              >
+                Reenviar encuesta
               </button>
               <button
                 type="button"
