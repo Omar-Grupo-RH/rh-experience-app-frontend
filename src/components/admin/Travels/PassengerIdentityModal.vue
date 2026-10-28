@@ -19,6 +19,120 @@ const frontUrl = ref("");
 const backUrl = ref("");
 const error = ref("");
 
+const replacementFront = ref(null);
+const replacementBack = ref(null);
+const replacing = ref(false);
+
+const canReview = computed(
+  () =>
+    document.value?.verification_status === "pending" &&
+    document.value?.has_identity &&
+    Boolean(frontUrl.value) &&
+    Boolean(backUrl.value),
+);
+
+const canUploadReplacement = computed(
+  () =>
+    document.value?.verification_status === "rejected" &&
+    document.value?.can_replace === true,
+);
+
+function validateReplacementFile(file) {
+  if (!(file instanceof File)) return false;
+
+  return (
+    ["image/jpeg", "image/png", "image/webp"].includes(file.type) &&
+    file.size > 0 &&
+    file.size <= 8 * 1024 * 1024
+  );
+}
+
+function selectReplacement(event, side) {
+  const file = event.target.files?.[0] || null;
+
+  if (file && !validateReplacementFile(file)) {
+    Swal.fire(
+      "Archivo inválido",
+      "Selecciona una imagen JPG, PNG o WebP de máximo 8 MB.",
+      "warning",
+    );
+
+    if (side === "front") replacementFront.value = null;
+    else replacementBack.value = null;
+
+    event.target.value = "";
+    return;
+  }
+
+  if (side === "front") replacementFront.value = file;
+  else replacementBack.value = file;
+
+  event.target.value = "";
+}
+
+async function uploadReplacement() {
+  if (
+    !canUploadReplacement.value ||
+    !validateReplacementFile(replacementFront.value) ||
+    !validateReplacementFile(replacementBack.value) ||
+    replacing.value
+  ) {
+    await Swal.fire(
+      "Documentos incompletos",
+      "Selecciona imágenes válidas del frente y reverso.",
+      "warning",
+    );
+    return;
+  }
+
+  const confirmation = await Swal.fire({
+    title: "¿Registrar nuevo INE?",
+    text: "Las nuevas imágenes quedarán pendientes de verificación.",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Subir imágenes",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#315fa8",
+  });
+
+  if (!confirmation.isConfirmed) return;
+
+  replacing.value = true;
+
+  try {
+    await IdentityAdminAPI.replace(
+      props.passenger.id,
+      replacementFront.value,
+      replacementBack.value,
+    );
+
+    replacementFront.value = null;
+    replacementBack.value = null;
+
+    await loadDocument();
+
+    emit("updated", {
+      passenger_id: props.passenger.id,
+      verification_status: "pending",
+    });
+
+    await Swal.fire({
+      icon: "success",
+      title: "INE actualizado",
+      text: "Las nuevas imágenes quedaron pendientes de revisión.",
+    });
+  } catch (err) {
+    await Swal.fire(
+      "Error",
+      err.response?.data?.message ||
+        "No se pudieron subir las nuevas imágenes.",
+      "error",
+    );
+  } finally {
+    replacing.value = false;
+  }
+}
+
 const fullName = computed(() => {
   if (!props.passenger) return "";
 
@@ -117,7 +231,7 @@ async function loadDocument() {
 }
 
 async function updateStatus(status) {
-  if (!document.value?.has_identity || saving.value) return;
+  if (!canReview.value || saving.value) return;
 
   const isVerify = status === "verified";
 
@@ -126,9 +240,9 @@ async function updateStatus(status) {
       ? "¿Verificar identificación?"
       : "¿Rechazar identificación?",
     text: isVerify
-      ? "Confirma que revisaste ambos lados del INE."
-      : "El INE quedará marcado como rechazado.",
-    icon: "question",
+      ? "Una vez verificado, el INE quedará bloqueado."
+      : "Se retirarán ambas fotografías y se notificará al pasajero por correo.",
+    icon: isVerify ? "question" : "warning",
     showCancelButton: true,
     confirmButtonText: isVerify ? "Sí, verificar" : "Sí, rechazar",
     cancelButtonText: "Cancelar",
@@ -140,28 +254,38 @@ async function updateStatus(status) {
   saving.value = true;
 
   try {
-    await IdentityAdminAPI.verify(props.passenger.id, status);
+    const result = await IdentityAdminAPI.verify(props.passenger.id, status);
 
-    document.value = {
-      ...document.value,
-      verification_status: status,
-    };
+    await loadDocument();
 
     emit("updated", {
       passenger_id: props.passenger.id,
       verification_status: status,
     });
 
-    await Swal.fire({
-      icon: "success",
-      title: isVerify ? "INE verificado" : "INE rechazado",
-      timer: 1600,
-      showConfirmButton: false,
-    });
+    if (!isVerify && !result.data?.email_sent) {
+      await Swal.fire({
+        icon: "warning",
+        title: "INE rechazado",
+        text:
+          "El rechazo quedó registrado, pero el correo no pudo enviarse. " +
+          (result.data?.email_error || ""),
+      });
+    } else {
+      await Swal.fire({
+        icon: "success",
+        title: isVerify ? "INE verificado" : "INE rechazado",
+        text: isVerify
+          ? "La identificación quedó verificada."
+          : "El pasajero fue notificado por correo.",
+      });
+    }
   } catch (err) {
+    await loadDocument();
+
     await Swal.fire(
       "Error",
-      err.response?.data?.message || "No se pudo actualizar el estado.",
+      err.response?.data?.message || "No se pudo actualizar el estado del INE.",
       "error",
     );
   } finally {
@@ -251,6 +375,95 @@ onBeforeUnmount(() => {
             >
               Reintentar
             </button>
+          </div>
+
+          <!-- Identificación rechazada: nueva carga -->
+          <div v-else-if="canUploadReplacement" class="space-y-5">
+            <div class="rounded-xl border border-red-200 bg-red-50 p-5">
+              <h3 class="font-bold text-red-700">Identificación rechazada</h3>
+
+              <p class="mt-2 text-sm text-red-600">
+                Las imágenes anteriores fueron retiradas del expediente. Puedes
+                registrar nuevas fotografías del frente y reverso del INE de
+                este pasajero.
+              </p>
+            </div>
+
+            <div class="grid gap-5 md:grid-cols-2">
+              <div
+                v-for="side in ['front', 'back']"
+                :key="side"
+                class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5"
+              >
+                <h4 class="mb-3 text-sm font-bold text-slate-800">
+                  INE —
+                  {{ side === "front" ? "Frente" : "Reverso" }}
+                </h4>
+
+                <label
+                  class="flex cursor-pointer flex-col items-center gap-3 rounded-lg bg-white p-6 text-center ring-1 ring-slate-200"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-10 w-10 text-experience-blue"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 16V4m-5 5 5-5 5 5" />
+                    <path d="M4 16v4h16v-4" />
+                  </svg>
+
+                  <span class="text-sm font-semibold text-experience-blue">
+                    Seleccionar imagen
+                  </span>
+
+                  <span class="text-xs text-slate-500">
+                    JPG, PNG o WebP · Máximo 8 MB
+                  </span>
+
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    class="sr-only"
+                    @change="selectReplacement($event, side)"
+                  />
+                </label>
+
+                <p
+                  v-if="side === 'front' ? replacementFront : replacementBack"
+                  class="mt-3 break-all text-xs font-medium text-green-700"
+                >
+                  {{
+                    side === "front"
+                      ? replacementFront?.name
+                      : replacementBack?.name
+                  }}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              :disabled="replacing || !replacementFront || !replacementBack"
+              class="w-full rounded-xl bg-experience-blue px-5 py-3 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              @click="uploadReplacement"
+            >
+              {{
+                replacing
+                  ? "Subiendo identificaciones..."
+                  : "Guardar nuevas imágenes del INE"
+              }}
+            </button>
+
+            <p class="text-center text-xs text-slate-500">
+              Las nuevas fotografías deberán verificarse nuevamente antes de
+              considerarse aprobadas.
+            </p>
           </div>
 
           <div
@@ -346,10 +559,11 @@ onBeforeUnmount(() => {
             Cerrar
           </button>
 
-          <template v-if="document?.has_identity && !loading">
+          <!-- Acciones disponibles solo si está pendiente -->
+          <template v-if="canReview && !loading">
             <button
               type="button"
-              :disabled="saving || !!error"
+              :disabled="saving"
               class="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
               @click="updateStatus('rejected')"
             >
@@ -358,13 +572,35 @@ onBeforeUnmount(() => {
 
             <button
               type="button"
-              :disabled="saving || !!error || !frontUrl || !backUrl"
+              :disabled="saving"
               class="rounded-lg bg-experience-blue px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
               @click="updateStatus('verified')"
             >
               {{ saving ? "Guardando..." : "Verificar INE" }}
             </button>
           </template>
+
+          <!-- Verificado: sin acciones de modificación -->
+          <span
+            v-else-if="document?.verification_status === 'verified'"
+            class="inline-flex items-center gap-2 rounded-lg bg-green-50 px-4 py-2.5 text-sm font-semibold text-green-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m5 12 4 4L19 6" />
+            </svg>
+
+            INE verificado
+          </span>
         </footer>
       </section>
     </div>

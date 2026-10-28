@@ -38,4 +38,19 @@ export default {
 
     return data;
   },
+
+  async replace(passengerId, frontFile, backFile) {
+    const formData = new FormData();
+
+    formData.append("passenger_id", String(passengerId));
+    formData.append("ine_front", frontFile);
+    formData.append("ine_back", backFile);
+
+    const { data } = await api.post("/admin/identity/replace", formData, {
+      // El navegador/Axios genera el boundary.
+      headers: { "Content-Type": undefined },
+    });
+
+    return data;
+  },
 };
