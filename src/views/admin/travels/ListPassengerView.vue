@@ -7,6 +7,7 @@ import { useRoute } from "vue-router";
 import EditPassengerModal from "@/components/admin/Travels/EditPassengerModal.vue";
 import ReschedulePassengerModal from "@/components/admin/Travels/ReschedulePassengerModal.vue";
 import PassengerCard from "@/components/admin/Travels/PassengerCard.vue";
+import PassengerIdentityModal from "@/components/admin/Travels/PassengerIdentityModal.vue";
 import { useTravelStore } from "@/stores/admin/travelStore";
 import { useAuth } from "@/composables/useAuth";
 
@@ -21,6 +22,7 @@ const openMenuPassengerId = ref(null);
 const showEditPassengerModal = ref(false);
 const showReschedulePassengerModal = ref(false);
 const selectedPassenger = ref(null);
+const identityPassenger = ref(null);
 const isRescheduling = ref(false);
 
 onMounted(async () => {
@@ -119,6 +121,16 @@ const reschedulePassenger = (passenger) => {
   };
 
   showReschedulePassengerModal.value = true;
+};
+
+const viewPassengerIdentity = (passenger) => {
+  closePassengerMenu();
+
+  identityPassenger.value = { ...passenger };
+};
+
+const closePassengerIdentity = () => {
+  identityPassenger.value = null;
 };
 
 const handleUpdatePassenger = async (payload) => {
@@ -432,6 +444,7 @@ const generateExcel = () => {
           @toggle="togglePassenger"
           @toggle-menu="togglePassengerMenu"
           @edit="editPassenger"
+          @view-identity="viewPassengerIdentity"
           @confirm-payment="store.tooglePayment"
           @reschedule-passenger="reschedulePassenger"
           @resend-email="resendPassengerEmail"
@@ -466,6 +479,13 @@ const generateExcel = () => {
       :is-loading="isRescheduling"
       @close="closeReschedulePassengerModal"
       @save="handleReschedulePassenger"
+    />
+
+    <!-- Visor seguro de INE -->
+    <PassengerIdentityModal
+      v-if="identityPassenger"
+      :passenger="identityPassenger"
+      @close="closePassengerIdentity"
     />
   </div>
 </template>

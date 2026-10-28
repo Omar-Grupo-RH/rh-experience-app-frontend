@@ -29,6 +29,7 @@ const emit = defineEmits([
   "toggle",
   "toggle-menu",
   "edit",
+  "view-identity",
   "confirm-payment",
   "reschedule-passenger",
   "resend-email",
@@ -434,46 +435,173 @@ const attendanceStatus = computed(
               "
               @click.stop
             >
+              <!-- Editar información -->
               <button
                 type="button"
                 class="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                 @click="emit('edit', passenger)"
               >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-[18px] w-[18px] shrink-0 text-slate-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z" />
+                </svg>
                 Editar información
               </button>
+
+              <!-- Ver INE -->
               <button
                 type="button"
-                class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-slate-700 transition hover:bg-slate-50"
+                class="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                @click="emit('view-identity', passenger)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-[18px] w-[18px] shrink-0 text-slate-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <circle cx="8.5" cy="11.5" r="2" />
+                  <path d="M5.5 16c.8-1.5 1.8-2 3-2s2.2.5 3 2" />
+                  <path d="M14 10h4M14 14h4" />
+                </svg>
+                Ver INE
+              </button>
+
+              <!-- Reagendar pasajero -->
+              <button
+                type="button"
+                class="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                 @click="emit('reschedule-passenger', passenger)"
               >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-[18px] w-[18px] shrink-0 text-slate-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="3" y="4" width="18" height="17" rx="2" />
+                  <path d="M8 2v4M16 2v4M3 10h18" />
+                  <path d="M8 16h8M13 13l3 3-3 3" />
+                </svg>
                 Reagendar pasajero
               </button>
+
+              <!-- Reenviar correo -->
               <button
                 type="button"
-                class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-slate-700 transition hover:bg-slate-50"
+                class="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                 @click="emit('resend-email', passenger)"
               >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-[18px] w-[18px] shrink-0 text-slate-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="m2 6 10 7 10-7" />
+                  <path d="M16 16h4M18 14v4" />
+                </svg>
                 Reenviar correo
               </button>
+
+              <!-- Reenviar encuesta -->
               <button
                 type="button"
-                class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-slate-700 transition hover:bg-slate-50"
+                class="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                 @click="emit('resend-survey', passenger)"
               >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-[18px] w-[18px] shrink-0 text-slate-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="5" y="4" width="14" height="17" rx="2" />
+                  <path d="M9 4.5h6M8 10h8M8 14h3" />
+                  <path d="m13 16 2 2 4-4" />
+                </svg>
                 Reenviar encuesta
               </button>
+
+              <!-- Descargar tickets -->
               <button
                 type="button"
-                class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-slate-700 transition hover:bg-slate-50"
+                class="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                 @click="emit('download-docs', passenger)"
               >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-[18px] w-[18px] shrink-0 text-slate-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 3v12" />
+                  <path d="m7 10 5 5 5-5" />
+                  <path d="M5 17v3a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3" />
+                </svg>
                 Descargar tickets
               </button>
+
+              <!-- Separador de acción destructiva -->
+              <div class="my-1 border-t border-slate-100"></div>
+
+              <!-- Eliminar pasajero -->
               <button
                 type="button"
-                class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm cursor-pointer text-rose-600 transition hover:bg-rose-50"
+                class="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-rose-600 transition hover:bg-rose-50"
                 @click="emit('delete-passenger', passenger)"
               >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-[18px] w-[18px] shrink-0 text-rose-500"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M3 6h18M8 6V4h8v2M5 6l1 15h12l1-15" />
+                  <path d="M10 10v7M14 10v7" />
+                </svg>
                 Eliminar pasajero
               </button>
             </div>
