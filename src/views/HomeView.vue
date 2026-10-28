@@ -9,6 +9,7 @@ import StepsContainer from "@/components/Reservation/StepsContainer.vue";
 import StepSeats from "@/components/Reservation/StepSeats.vue";
 import StepRegistrationType from "@/components/Reservation/StepRegistrationType.vue";
 import StepRegistrationValidation from "@/components/Reservation/StepRegistrationValidation.vue";
+import StepPassengerDocuments from "@/components/Reservation/StepPassengerDocuments.vue";
 
 import { useAuth } from "@/composables/useAuth";
 const store = useReservaStore();
@@ -67,6 +68,12 @@ const { isAuthenticated, user, adminLevel, hydrateFromToken } = useAuth();
             <!-- Paso 6 -->
             <div
               v-else-if="store.step === 6"
+              class="bg-white lg:p-10 rounded-lg w-full"
+            >
+              <StepPassengerDocuments />
+            </div>
+            <div
+              v-else-if="store.step === 7"
               class="bg-white lg:p-10 rounded-lg w-full"
             >
               <StepConfirm />

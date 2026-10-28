@@ -35,14 +35,22 @@ const steps = [
   },
   {
     id: 6,
-    label: "Confirmar",
+    label: "Documentación",
     svg: "M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 0 1 9 9v.375M10.125 2.25A3.375 3.375 0 0 1 13.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 0 1 3.375 3.375M9 15l2.25 2.25L15 12",
+  },
+  {
+    id: 7,
+    label: "Confirmar",
+    svg: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
   },
 ];
 
 // Helpers de estado
 const isCompleted = (s) => store.step > s.id;
 const isCurrent = (s) => store.step === s.id;
+
+// La línea va del centro del primer círculo al centro del último
+const lineInset = `${100 / (steps.length * 2)}%`;
 
 // Cálculo dinámico para rellenar la línea azul
 const progressWidth = computed(() => {
@@ -59,7 +67,8 @@ const progressWidth = computed(() => {
   >
     <div class="relative z-0">
       <div
-        class="absolute top-4 sm:top-5 lg:top-6 left-[8.33%] right-[8.33%] h-1 bg-gray-200 rounded-full -z-10 transform -translate-y-1/2"
+        class="absolute top-4 sm:top-5 lg:top-6 h-1 bg-gray-200 rounded-full -z-10 transform -translate-y-1/2"
+        :style="{ left: lineInset, right: lineInset }"
       >
         <div
           class="h-full bg-experience-pink rounded-full transition-all duration-500 ease-in-out"
@@ -67,7 +76,7 @@ const progressWidth = computed(() => {
         ></div>
       </div>
 
-      <ol class="grid grid-cols-6 w-full">
+      <ol class="grid grid-cols-7 w-full">
         <li
           v-for="s in steps"
           :key="s.id"

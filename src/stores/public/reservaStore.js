@@ -271,7 +271,7 @@ export const useReservaStore = defineStore("reserva", () => {
   const maxStep = computed(() => {
     if (registrationType.value === "family_friend") return 5;
 
-    return 6;
+    return 7;
   });
 
   const allianceOptions = computed(() => {
@@ -490,6 +490,45 @@ export const useReservaStore = defineStore("reserva", () => {
     return aceptedTerms.value;
   });
 
+  // Identificaciones por asiento: { [seat]: { front: File|null, back: File|null } }
+  const passengerDocuments = ref({});
+
+  function setPassengerDocument(seat, side, file) {
+    if (!["front", "back"].includes(side)) return;
+
+    const key = String(seat);
+    const current = passengerDocuments.value[key] || { front: null, back: null };
+
+    passengerDocuments.value = {
+      ...passengerDocuments.value,
+      [key]: { ...current, [side]: file || null },
+    };
+  }
+
+  function getPassengerDocuments(seat) {
+    return passengerDocuments.value[String(seat)] || { front: null, back: null };
+  }
+
+  function isPassengerDocumentationComplete(seat) {
+    const docs = getPassengerDocuments(seat);
+    return Boolean(docs.front && docs.back);
+  }
+
+  const canContinueDocuments = computed(() => {
+    const list = passengers.value || [];
+
+    return (
+      list.length > 0 &&
+      list.every((p) => isPassengerDocumentationComplete(p.seat))
+    );
+  });
+
+  const pendingDocumentsCount = computed(() => {
+    return (passengers.value || []).filter(
+      (p) => !isPassengerDocumentationComplete(p.seat),
+    ).length;
+  });
+
   async function loadEvents() {
     try {
       await evts.loadEvents();
@@ -537,7 +576,16 @@ export const useReservaStore = defineStore("reserva", () => {
       return;
     }
 
-    if (step.value < 6) {
+    if (step.value === 6 && !canContinueDocuments.value) {
+      toast?.open?.({
+        message:
+          "Debes subir el frente y reverso de la identificación de cada pasajero.",
+        type: "error",
+      });
+      return;
+    }
+
+    if (step.value < 7) {
       step.value++;
     }
   };
@@ -558,6 +606,7 @@ export const useReservaStore = defineStore("reserva", () => {
     aceptedTerms.value = false;
     modal.value = false;
     validationErrors.value = [];
+    passengerDocuments.value = {};
 
     resetRegistration();
     resetRegistrationCodeValidation();
@@ -583,6 +632,25 @@ export const useReservaStore = defineStore("reserva", () => {
     ],
     () => {
       resetRegistrationCodeValidation();
+    },
+  );
+
+  // Descartar documentos de asientos que ya no están seleccionados
+  watch(
+    () => selectedSeats.value.map(String),
+    (currentSeats) => {
+      const kept = Object.fromEntries(
+        Object.entries(passengerDocuments.value).filter(([seat]) =>
+          currentSeats.includes(seat),
+        ),
+      );
+
+      if (
+        Object.keys(kept).length !==
+        Object.keys(passengerDocuments.value).length
+      ) {
+        passengerDocuments.value = kept;
+      }
     },
   );
 
@@ -616,6 +684,13 @@ export const useReservaStore = defineStore("reserva", () => {
 
     canContinuePassengers,
     canPay,
+
+    passengerDocuments,
+    setPassengerDocument,
+    getPassengerDocuments,
+    isPassengerDocumentationComplete,
+    canContinueDocuments,
+    pendingDocumentsCount,
     allAdults,
     validationErrors,
 
