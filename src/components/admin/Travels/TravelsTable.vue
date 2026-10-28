@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from "vue";
 import { formatDateToSpanish } from "@/utils/formatDate";
+import { DEFAULT_BUS_CAPACITY } from "@/utils/busLayout";
 
 const props = defineProps({
   travels: {
@@ -9,7 +10,7 @@ const props = defineProps({
   },
 });
 
-const MAX_SEATS_PER_TRIP = 15;
+const MAX_SEATS_PER_TRIP = DEFAULT_BUS_CAPACITY;
 
 const search = ref("");
 const currentPage = ref(1);
@@ -118,8 +119,10 @@ const getReservedSeats = (travel) => {
 
 const getAvailableSeats = (travel) => {
   const reservedSeats = getReservedSeats(travel);
+  const totalSeats =
+    Number.parseInt(travel.total_seats, 10) || MAX_SEATS_PER_TRIP;
 
-  return Math.max(0, MAX_SEATS_PER_TRIP - reservedSeats);
+  return Math.max(0, totalSeats - reservedSeats);
 };
 
 const goToPage = (page) => {

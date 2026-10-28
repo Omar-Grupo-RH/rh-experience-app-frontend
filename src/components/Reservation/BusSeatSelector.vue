@@ -1,7 +1,13 @@
 <script setup>
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 import api from "@/lib/axios";
+import {
+  DEFAULT_BUS_CAPACITY,
+  STAFF_SEATS,
+  getBusRows,
+  normalizeBusCapacity,
+} from "@/utils/busLayout";
 
 const props = defineProps({
   selectedTripId: {
@@ -19,35 +25,23 @@ const startX = 20;
 const startY = 70;
 const rowHeight = seatSize + 10;
 
-const fixedOccupied = ["A1", "A2"]; // siempre ocupados
+const fixedOccupied = STAFF_SEATS; // siempre ocupados
 const dynamicOccupied = ref([]); // ocupados que vienen del backend
 const selectedSeatForModal = ref(null); // asiento seleccionado en modo modal
+const capacity = ref(DEFAULT_BUS_CAPACITY); // 8 o 15 según el viaje
 
-const rows = ["A", "B", "C", "D", "E", "F"];
+const rows = computed(() => getBusRows(capacity.value));
 
 const emit = defineEmits(["seat-selected"]);
 
 // Generador de asientos
 const seats = computed(() => {
   const arr = [];
-  rows.forEach((rowLetter, rowIndex) => {
+  rows.value.forEach(({ row: rowLetter, seats: count }, rowIndex) => {
     const y = startY + rowIndex * rowHeight;
 
-    if (rowLetter === "F") {
-      for (let i = 1; i <= 4; i++)
-        arr.push({
-          id: `${rowLetter}${i}`,
-          x: startX + (i - 1) * (seatSize + seatGap),
-          y,
-        });
-    } else if (rowLetter === "A" || rowLetter === "B") {
-      for (let i = 1; i <= 2; i++)
-        arr.push({
-          id: `${rowLetter}${i}`,
-          x: startX + (i - 1) * (seatSize + seatGap),
-          y,
-        });
-    } else {
+    if (count === 3) {
+      // 2 asientos + pasillo + 1 asiento
       for (let i = 1; i <= 2; i++)
         arr.push({
           id: `${rowLetter}${i}`,
@@ -59,10 +53,22 @@ const seats = computed(() => {
         x: startX + 2 * (seatSize + seatGap) + 60,
         y,
       });
+    } else {
+      for (let i = 1; i <= count; i++)
+        arr.push({
+          id: `${rowLetter}${i}`,
+          x: startX + (i - 1) * (seatSize + seatGap),
+          y,
+        });
     }
   });
   return arr;
 });
+
+function applyTripData(trip) {
+  dynamicOccupied.value = trip?.seats_location || [];
+  capacity.value = normalizeBusCapacity(trip?.total_seats);
+}
 
 // función que devuelve si un asiento está ocupado
 function isOccupied(id) {
@@ -113,27 +119,25 @@ function onClickSeat(id) {
 // Cargar asientos ocupados del backend
 const loadOccupiedSeats = async (tripId) => {
   if (!tripId) {
-    dynamicOccupied.value = [];
+    applyTripData(null);
     return;
   }
 
   try {
     const { data } = await api.get("/trip", { params: { id: tripId } });
 
-    if (data?.data?.seats_location) {
-      dynamicOccupied.value = data.data.seats_location;
-    } else {
-      dynamicOccupied.value = [];
-    }
+    applyTripData(data?.data);
   } catch (error) {
     console.error("Error cargando asientos:", error);
-    dynamicOccupied.value = [];
+    applyTripData(null);
   }
 };
 
 // tamaño del SVG
 const svgWidth = 300;
-const svgHeight = startY + rows.length * rowHeight + 40;
+const svgHeight = computed(
+  () => startY + rows.value.length * rowHeight + 40,
+);
 
 // actualizar dinámicamente los asientos ocupados
 watch(
@@ -155,7 +159,7 @@ watch(
     if (!props.selectedTripId && newTripId) {
       try {
         const data = await store.seatsSold(newTripId);
-        dynamicOccupied.value = data.seats_location || [];
+        applyTripData(data);
       } catch (error) {
         console.log(error);
       }

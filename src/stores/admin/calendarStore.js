@@ -4,6 +4,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import Swal from "sweetalert2";
 import { formatDateToSpanish } from "@/utils/formatDate";
+import { BUS_CAPACITIES, DEFAULT_BUS_CAPACITY } from "@/utils/busLayout";
 
 export const useCalendarStore = defineStore("calendar", () => {
   const { createEvent, listEvents, destroyEvent, getTrip, updateEvent } =
@@ -15,7 +16,7 @@ export const useCalendarStore = defineStore("calendar", () => {
   const selectedDate = ref(null);
   const isLoading = ref(false);
 
-  const MAX_SEATS_PER_TRIP = 15;
+  const MAX_SEATS_PER_TRIP = DEFAULT_BUS_CAPACITY;
 
   function canManageEvents() {
     return Number(adminLevel.value) === 1;
@@ -106,18 +107,24 @@ export const useCalendarStore = defineStore("calendar", () => {
       return;
     }
 
-    const formData = {
-      trip_date: dateStr,
-      total_seats: MAX_SEATS_PER_TRIP,
-      title: "RH EXPERIENCE",
-    };
-
     const result = await Swal.fire({
       title: "¿Agendar tour?",
-      text: `¿Deseas agendar "RH EXPERIENCE" el ${formatDateToSpanish(
-        formData.trip_date,
-      )}?`,
+      html: `¿Deseas agendar "RH EXPERIENCE" el ${formatDateToSpanish(
+        dateStr,
+      )}?<br><br><strong>Selecciona el número de pasajeros de la unidad:</strong>`,
       icon: "question",
+      input: "radio",
+      inputOptions: Object.fromEntries(
+        BUS_CAPACITIES.map((capacity) => [
+          String(capacity),
+          `${capacity} pasajeros`,
+        ]),
+      ),
+      inputValue: String(DEFAULT_BUS_CAPACITY),
+      inputValidator: (value) =>
+        BUS_CAPACITIES.includes(Number(value))
+          ? undefined
+          : "Selecciona el número de pasajeros.",
       showCancelButton: true,
       confirmButtonText: "Sí, agendar",
       cancelButtonText: "Cancelar",
@@ -125,6 +132,12 @@ export const useCalendarStore = defineStore("calendar", () => {
     });
 
     if (!result.isConfirmed) return;
+
+    const formData = {
+      trip_date: dateStr,
+      total_seats: Number(result.value),
+      title: "RH EXPERIENCE",
+    };
 
     try {
       const resp = await createEvent(formData);
@@ -346,6 +359,7 @@ export const useCalendarStore = defineStore("calendar", () => {
         html: `
           <div style="text-align:center">
             <p><strong>Fecha:</strong> ${formatDateToSpanish(trip_date)}</p>
+            <p><strong>Capacidad de la unidad:</strong> ${totalSeats} pasajeros</p>
             <p><strong>Lugares disponibles:</strong> ${availableSeats}</p>
             <p><strong>Lugares reservados:</strong> ${reservedSeats}</p>
           </div>

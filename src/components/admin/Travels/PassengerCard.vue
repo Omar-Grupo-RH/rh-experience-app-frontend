@@ -318,6 +318,13 @@ const attendanceStatus = computed(
               {{ option.label }}
             </button>
           </div>
+          <p
+            v-if="canShowOptions && attendanceStatus === 'no_show_interno'"
+            class="mt-2 max-w-xl text-xs font-medium text-slate-600"
+          >
+            Este registro restringe nuevas inscripciones durante seis meses;
+            durante ese periodo se requiere pagar $500 MXN adicionales.
+          </p>
         </div>
       </div>
 

@@ -12,12 +12,20 @@ const toast = inject("toast");
 
 const loading = ref(false);
 const checkingAttendance = ref(false);
+const attendanceVerificationError = ref("");
 const attendanceChecks = ref({});
 
 const penalizedPassengers = computed(() =>
   store.passengers.filter((passenger) => {
     const email = passenger.email?.trim().toLowerCase();
     return email && attendanceChecks.value[email]?.requires_no_show_penalty;
+  }),
+);
+
+const internalNoShowPassengers = computed(() =>
+  penalizedPassengers.value.filter((passenger) => {
+    const email = passenger.email?.trim().toLowerCase();
+    return email && attendanceChecks.value[email]?.requires_internal_no_show_penalty;
   }),
 );
 
@@ -191,11 +199,13 @@ async function verifyPassengerAttendance() {
 
   if (!emails.length) {
     attendanceChecks.value = {};
+    attendanceVerificationError.value = "";
     return;
   }
 
   try {
     checkingAttendance.value = true;
+    attendanceVerificationError.value = "";
 
     const responses = await Promise.all(
       emails.map((email) => ReservationAPI.passengerByEmail(email)),
@@ -204,8 +214,11 @@ async function verifyPassengerAttendance() {
     attendanceChecks.value = Object.fromEntries(
       emails.map((email, index) => [email, responses[index]?.data || {}]),
     );
-  } catch {
+  } catch (error) {
     attendanceChecks.value = {};
+    attendanceVerificationError.value =
+      error?.response?.data?.message ||
+      "No se pudo verificar el historial de asistencia. Intenta nuevamente.";
   } finally {
     checkingAttendance.value = false;
   }
@@ -213,6 +226,14 @@ async function verifyPassengerAttendance() {
 
 async function startCheckout() {
   if (checkingAttendance.value) return;
+
+  if (attendanceVerificationError.value) {
+    toast?.open?.({
+      message: attendanceVerificationError.value,
+      type: "error",
+    });
+    return;
+  }
 
   if (!store.canPay) {
     toast?.open?.({
@@ -480,6 +501,23 @@ watch(
         </div>
 
         <div
+          v-if="attendanceVerificationError"
+          class="mb-5 flex flex-col gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <p class="text-sm font-semibold text-rose-800">
+            {{ attendanceVerificationError }}
+          </p>
+          <button
+            type="button"
+            class="w-fit rounded-lg bg-rose-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-800 disabled:opacity-50"
+            :disabled="checkingAttendance"
+            @click="verifyPassengerAttendance"
+          >
+            Reintentar
+          </button>
+        </div>
+
+        <div
           v-if="
             store.registrationType === 'internal' &&
             store.emailVerificationLoading
@@ -496,8 +534,12 @@ watch(
           class="mb-5 rounded-xl border border-rose-200 bg-rose-50 p-4"
         >
           <p class="text-sm font-bold text-rose-900">
-            Se aplicará una penalización de $500 MXN por boleto debido a dos
-            inasistencias previas registradas.
+            Se aplicará una penalización de $500 MXN por boleto
+            {{
+              internalNoShowPassengers.length
+                ? "por No show interno dentro de los últimos seis meses"
+                : "por dos inasistencias previas"
+            }}.
           </p>
           <p class="mt-2 text-sm text-rose-800">
             Pasajeros afectados:
@@ -514,6 +556,24 @@ watch(
               totalPenaltyAmount.toLocaleString("es-MX")
             }}
             MXN y la ficha de pago se enviará junto con los boletos.
+          </p>
+          <p
+            v-if="internalNoShowPassengers.length"
+            class="mt-2 text-sm text-rose-800"
+          >
+            El No show interno limita la inscripción durante seis meses; se
+            puede reservar dentro de ese periodo cubriendo esta penalización.
+            {{
+              attendanceChecks[
+                internalNoShowPassengers[0].email?.trim().toLowerCase()
+              ]?.internal_no_show_until
+                ? `La restricción termina el ${
+                    attendanceChecks[
+                      internalNoShowPassengers[0].email?.trim().toLowerCase()
+                    ].internal_no_show_until
+                  }.`
+                : ""
+            }}
           </p>
         </div>
 
