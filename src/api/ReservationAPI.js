@@ -33,13 +33,36 @@ export default {
     return api.get("/payment/coupon", { params: { code } });
   },
 
-  reserveTrip(payload) {
+  reserveTrip(payload, passengerDocuments = {}) {
     const idempotencyKey = getReservationIdempotencyKey();
 
-    return api.post("/reservation", payload, {
+    const formData = new FormData();
+
+    formData.append("payload", JSON.stringify(payload));
+
+    payload.passengers.forEach((passenger, index) => {
+      const seat = String(passenger.seat_id);
+      const documents = passengerDocuments[seat];
+
+      if (!(documents?.front instanceof File)) {
+        throw new Error(`Falta el frente del INE del pasajero ${index + 1}.`);
+      }
+
+      if (!(documents?.back instanceof File)) {
+        throw new Error(`Falta el reverso del INE del pasajero ${index + 1}.`);
+      }
+
+      formData.append(`ine_front_${index}`, documents.front);
+
+      formData.append(`ine_back_${index}`, documents.back);
+    });
+
+    return api.post("/reservation", formData, {
       headers: {
         "Idempotency-Key": idempotencyKey,
+        "Content-Type": undefined,
       },
+      transformRequest: [(data) => data],
     });
   },
 

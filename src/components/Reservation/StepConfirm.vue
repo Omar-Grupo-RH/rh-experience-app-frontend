@@ -25,7 +25,9 @@ const penalizedPassengers = computed(() =>
 const internalNoShowPassengers = computed(() =>
   penalizedPassengers.value.filter((passenger) => {
     const email = passenger.email?.trim().toLowerCase();
-    return email && attendanceChecks.value[email]?.requires_internal_no_show_penalty;
+    return (
+      email && attendanceChecks.value[email]?.requires_internal_no_show_penalty
+    );
   }),
 );
 
@@ -251,12 +253,23 @@ async function startCheckout() {
     return;
   }
 
+  if (!store.canContinueDocuments) {
+    toast?.open?.({
+      message: "Debes completar los INE de todos los pasajeros.",
+      type: "error",
+    });
+    return;
+  }
+
   const payload = buildPayload();
 
   try {
     loading.value = true;
 
-    const { data } = await ReservationAPI.reserveTrip(payload);
+    const { data } = await ReservationAPI.reserveTrip(
+      payload,
+      store.passengerDocuments,
+    );
 
     if (!data.success) {
       clearReservationIdempotencyKey();
