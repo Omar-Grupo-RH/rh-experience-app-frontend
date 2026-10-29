@@ -300,27 +300,62 @@ async function downloadWaiver() {
 
   downloadingWaiver.value = true;
 
+  let url = null;
+
   try {
     const pdf = await IdentityAdminAPI.getWaiverPdf(props.passenger.id);
 
-    const url = URL.createObjectURL(pdf);
-    const link = document.createElement("a");
+    if (!(pdf instanceof Blob) || !pdf.size) {
+      throw new Error("El PDF recibido está vacío o no es válido.");
+    }
+
+    url = URL.createObjectURL(pdf);
+
+    // Usamos window.document para evitar conflictos
+    // con la variable reactiva document de Vue.
+    const link = window.document.createElement("a");
 
     link.href = url;
     link.download = `responsiva-pasajero-${props.passenger.id}.pdf`;
 
-    document.body.appendChild(link);
+    window.document.body.appendChild(link);
     link.click();
     link.remove();
 
+    // Conservamos el Blob temporalmente para permitir
+    // que el navegador complete la descarga.
     setTimeout(() => URL.revokeObjectURL(url), 60000);
+    url = null;
   } catch (err) {
-    await Swal.fire(
-      "Responsiva no disponible",
-      "Este pasajero todavía no tiene una carta firmada o no se pudo recuperar.",
-      "warning",
-    );
+    console.error("Error descargando responsiva:", err);
+
+    let message =
+      err.response?.data?.message ||
+      err.message ||
+      "No se pudo descargar la carta responsiva.";
+
+    // Axios devuelve los errores JSON como Blob cuando
+    // la petición utiliza responseType: "blob".
+    if (err.response?.data instanceof Blob) {
+      try {
+        const body = JSON.parse(await err.response.data.text());
+
+        message = body.message || message;
+      } catch {
+        // Conservar el mensaje original.
+      }
+    }
+
+    await Swal.fire({
+      icon: "error",
+      title: "No se pudo descargar la responsiva",
+      text: message,
+      footer: err.response?.status
+        ? `Código HTTP: ${err.response.status}`
+        : undefined,
+    });
   } finally {
+    if (url) URL.revokeObjectURL(url);
     downloadingWaiver.value = false;
   }
 }

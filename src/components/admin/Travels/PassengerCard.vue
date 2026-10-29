@@ -480,7 +480,7 @@ const attendanceStatus = computed(
                   <path d="M5.5 16c.8-1.5 1.8-2 3-2s2.2.5 3 2" />
                   <path d="M14 10h4M14 14h4" />
                 </svg>
-                Ver INE
+                Ver INE y Responsiva
               </button>
 
               <!-- Reagendar pasajero -->

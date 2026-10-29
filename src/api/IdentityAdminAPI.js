@@ -46,26 +46,26 @@ export default {
     formData.append("ine_front", frontFile);
     formData.append("ine_back", backFile);
 
-    const { data } = await api.post("/admin/identity/replace", formData, {
-      // El navegador/Axios genera el boundary.
-      headers: { "Content-Type": undefined },
-    });
+    const { data } = await api.post("/admin/identity/replace", formData);
 
     return data;
   },
 
   async getWaiverPdf(passengerId) {
     const response = await api.get("/admin/identity/waiver", {
-      params: { passenger_id: passengerId },
+      params: {
+        passenger_id: passengerId,
+      },
       responseType: "blob",
-      headers: { Accept: "application/pdf" },
+      headers: {
+        Accept: "application/pdf",
+      },
     });
 
-    if (!response.data.type.includes("application/pdf")) {
-      throw new Error("El servidor no devolvió un PDF válido.");
+    if (!response.data || !response.data.type.includes("application/pdf")) {
+      throw new Error("El servidor no devolvió una carta responsiva válida.");
     }
 
     return response.data;
   },
-  
 };
