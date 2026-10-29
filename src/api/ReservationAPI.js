@@ -33,10 +33,33 @@ export default {
     return api.get("/payment/coupon", { params: { code } });
   },
 
-  reserveTrip(payload, passengerDocuments = {}) {
+  reserveTrip(payload, passengerDocuments = {}, passengerWaivers = {}) {
     const idempotencyKey = getReservationIdempotencyKey();
 
     const formData = new FormData();
+
+    payload.passengers.forEach((passenger, index) => {
+      const seat = String(passenger.seat_id);
+      const waiver = passengerWaivers[seat];
+
+      if (
+        waiver?.version !== "2026-10-29-v1" ||
+        waiver?.accepted !== true ||
+        typeof waiver?.signature !== "string" ||
+        !waiver.signature.startsWith("data:image/png;base64,")
+      ) {
+        throw new Error(
+          `Falta firmar la responsiva del pasajero ${index + 1}.`,
+        );
+      }
+
+      passenger.waiver = {
+        version: waiver.version,
+        accepted: true,
+        signature: waiver.signature,
+        signed_for: waiver.signed_for,
+      };
+    });
 
     formData.append("payload", JSON.stringify(payload));
 

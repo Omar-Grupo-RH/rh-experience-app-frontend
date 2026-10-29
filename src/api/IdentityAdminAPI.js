@@ -53,4 +53,19 @@ export default {
 
     return data;
   },
+
+  async getWaiverPdf(passengerId) {
+    const response = await api.get("/admin/identity/waiver", {
+      params: { passenger_id: passengerId },
+      responseType: "blob",
+      headers: { Accept: "application/pdf" },
+    });
+
+    if (!response.data.type.includes("application/pdf")) {
+      throw new Error("El servidor no devolvió un PDF válido.");
+    }
+
+    return response.data;
+  },
+  
 };

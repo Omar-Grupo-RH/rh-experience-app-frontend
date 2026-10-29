@@ -8,6 +8,25 @@ import { validatePassengers } from "@/composables/usePassengerValidation";
 import CodesAPI from "@/api/CodesAPI";
 import ReservationAPI from "@/api/ReservationAPI";
 
+const WAIVER_VERSION = "2026-10-29-v1";
+
+const INE_MAX_SIZE = 8 * 1024 * 1024;
+const INE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+const emptyRegistrationData = () => ({
+  area_code: "",
+  alliance_name: "",
+  alliance_code: "",
+  development: "",
+  stage: "",
+  lot_number: "",
+  advisor_name: "",
+  advisor_code: "",
+  origin: "",
+  origin_alliance_name: "",
+  prize_code: "",
+});
+
 export const useReservaStore = defineStore("reserva", () => {
   const seats = useSeatsStore();
   const evts = useEventsStore();
@@ -17,13 +36,21 @@ export const useReservaStore = defineStore("reserva", () => {
 
   const { events } = storeToRefs(evts);
 
-  const toast = inject("toast");
+  const toast = inject("toast", null);
+
+  // =========================================================
+  // ESTADO GENERAL
+  // =========================================================
 
   const step = ref(1);
   const aceptedTerms = ref(false);
   const modal = ref(false);
 
   const validationErrors = ref([]);
+
+  // =========================================================
+  // INSCRIPCIÓN
+  // =========================================================
 
   const validatingRegistrationCode = ref(false);
   const registrationCodeValid = ref(null);
@@ -34,23 +61,10 @@ export const useReservaStore = defineStore("reserva", () => {
   const loadingAllianceCodes = ref(false);
 
   const registrationType = ref("");
+  const registrationData = ref(emptyRegistrationData());
 
   const emailVerification = ref(null);
   const emailVerificationLoading = ref(false);
-
-  const registrationData = ref({
-    area_code: "",
-    alliance_name: "",
-    alliance_code: "",
-    development: "",
-    stage: "",
-    lot_number: "",
-    advisor_name: "",
-    advisor_code: "",
-    origin: "",
-    origin_alliance_name: "",
-    prize_code: "",
-  });
 
   const registrationTypes = [
     {
@@ -100,27 +114,27 @@ export const useReservaStore = defineStore("reserva", () => {
     },
   ];
 
-  const currentRegistrationType = computed(() => {
-    return registrationTypes.find(
-      (type) => type.value === registrationType.value,
-    );
-  });
+  const currentRegistrationType = computed(() =>
+    registrationTypes.find((type) => type.value === registrationType.value),
+  );
 
-  const hasUnlimitedPassengers = computed(() => {
-    return registrationType.value === "family_friend";
-  });
+  const hasUnlimitedPassengers = computed(
+    () => registrationType.value === "family_friend",
+  );
 
-  const requiresExtraPassenger = computed(() => {
-    return ["prize", "family_friend"].includes(registrationType.value);
-  });
+  const requiresExtraPassenger = computed(() =>
+    ["prize", "family_friend"].includes(registrationType.value),
+  );
 
   const maxPassengers = computed(() => {
     if (hasUnlimitedPassengers.value) return Infinity;
-
     if (registrationType.value === "prize") return 2;
-
     return 1;
   });
+
+  // =========================================================
+  // COSTOS
+  // =========================================================
 
   const paidTicketsCount = computed(() => {
     const seatsCount = selectedSeats.value.length;
@@ -144,13 +158,12 @@ export const useReservaStore = defineStore("reserva", () => {
     return 0;
   });
 
-  const freeTicketsCount = computed(() => {
-    return Math.max(0, selectedSeats.value.length - paidTicketsCount.value);
-  });
+  const freeTicketsCount = computed(() =>
+    Math.max(0, selectedSeats.value.length - paidTicketsCount.value),
+  );
 
   const registrationPricePerPerson = computed(() => {
     if (registrationType.value === "prospect") return 1500;
-
     if (registrationType.value === "family_friend") return 500;
 
     if (registrationType.value === "internal") {
@@ -162,30 +175,29 @@ export const useReservaStore = defineStore("reserva", () => {
     return 0;
   });
 
-  const registrationTotal = computed(() => {
-    return paidTicketsCount.value * registrationPricePerPerson.value;
-  });
+  const registrationTotal = computed(
+    () => paidTicketsCount.value * registrationPricePerPerson.value,
+  );
 
-  const requiresPayment = computed(() => {
-    return registrationTotal.value > 0;
-  });
+  const requiresPayment = computed(() => registrationTotal.value > 0);
 
-  const isFreeRegistration = computed(() => {
-    return !requiresPayment.value;
-  });
+  const isFreeRegistration = computed(() => !requiresPayment.value);
 
-  const canContinueRegistrationType = computed(() => {
-    return Boolean(registrationType.value);
-  });
+  // =========================================================
+  // VALIDACIÓN DE INSCRIPCIÓN
+  // =========================================================
+
+  const canContinueRegistrationType = computed(() =>
+    Boolean(registrationType.value),
+  );
 
   const canContinueRegistrationValidation = computed(() => {
     const data = registrationData.value;
 
-    if (registrationType.value === "internal") {
-      return Boolean(data.area_code.trim());
-    }
-
-    if (registrationType.value === "family_friend") {
+    if (
+      registrationType.value === "internal" ||
+      registrationType.value === "family_friend"
+    ) {
       return Boolean(data.area_code.trim());
     }
 
@@ -221,15 +233,11 @@ export const useReservaStore = defineStore("reserva", () => {
     return false;
   });
 
-  const requiresBackendCodeValidation = computed(() => {
-    return [
-      "internal",
-      "alliance",
-      "prize",
-      "prospect",
-      "family_friend",
-    ].includes(registrationType.value);
-  });
+  const requiresBackendCodeValidation = computed(() =>
+    ["internal", "alliance", "prize", "prospect", "family_friend"].includes(
+      registrationType.value,
+    ),
+  );
 
   const registrationCodeToValidate = computed(() => {
     const data = registrationData.value;
@@ -268,19 +276,17 @@ export const useReservaStore = defineStore("reserva", () => {
     return null;
   });
 
-  const maxStep = computed(() => {
-    if (registrationType.value === "family_friend") return 5;
+  // El flujo termina siempre en el paso 7.
+  // family_friend omite el paso 2.
+  const maxStep = computed(() => 7);
 
-    return 7;
-  });
-
-  const allianceOptions = computed(() => {
-    return allianceCodes.value.map((item) => ({
+  const allianceOptions = computed(() =>
+    allianceCodes.value.map((item) => ({
       id: item.id,
       name: item.name,
       code: item.code,
-    }));
-  });
+    })),
+  );
 
   async function loadAllianceCodes() {
     try {
@@ -329,7 +335,6 @@ export const useReservaStore = defineStore("reserva", () => {
     if (!requiresBackendCodeValidation.value) {
       registrationCodeValid.value = true;
       registrationCodeMessage.value = "";
-
       return true;
     }
 
@@ -377,7 +382,6 @@ export const useReservaStore = defineStore("reserva", () => {
           registrationCodeMessage.value || "El código ingresado no es válido.",
         type: "error",
       });
-
       return;
     }
 
@@ -393,51 +397,33 @@ export const useReservaStore = defineStore("reserva", () => {
 
   function setRegistrationType(type) {
     registrationType.value = type;
-
-    registrationData.value = {
-      area_code: "",
-      alliance_name: "",
-      alliance_code: "",
-      development: "",
-      stage: "",
-      lot_number: "",
-      advisor_name: "",
-      advisor_code: "",
-      origin: "",
-      origin_alliance_name: "",
-      prize_code: "",
-    };
+    registrationData.value = emptyRegistrationData();
 
     resetRegistrationCodeValidation();
     resetEmailVerification();
+
+    clearAllPassengerDocuments();
+    clearAllPassengerWaivers();
 
     seats.resetSeats();
   }
 
   function resetRegistration() {
     registrationType.value = "";
-
-    registrationData.value = {
-      area_code: "",
-      alliance_name: "",
-      alliance_code: "",
-      development: "",
-      stage: "",
-      lot_number: "",
-      advisor_name: "",
-      advisor_code: "",
-      origin: "",
-      origin_alliance_name: "",
-      prize_code: "",
-    };
+    registrationData.value = emptyRegistrationData();
 
     resetRegistrationCodeValidation();
     resetEmailVerification();
   }
 
+  // =========================================================
+  // ASIENTOS
+  // =========================================================
+
   function toggleReservationSeat(id) {
     const seat = String(id);
-    const isAlreadySelected = selectedSeats.value.includes(seat);
+
+    const isAlreadySelected = selectedSeats.value.map(String).includes(seat);
 
     if (isAlreadySelected) {
       seats.toggleSeat(seat);
@@ -463,71 +449,220 @@ export const useReservaStore = defineStore("reserva", () => {
     seats.toggleSeat(seat);
   }
 
+  // =========================================================
+  // VALIDACIÓN DE PASAJEROS
+  // =========================================================
+
   const _passengersValidation = validatePassengers(passengers, selectedSeats);
 
   const allAdults = computed(() => _passengersValidation.value.allAdults);
 
-  const requiredFieldsFilled = computed(() => {
-    return _passengersValidation.value.requiredFilled;
-  });
+  const requiredFieldsFilled = computed(
+    () => _passengersValidation.value.requiredFilled,
+  );
+
+  const canContinuePassengers = computed(
+    () => allAdults.value && requiredFieldsFilled.value,
+  );
 
   const validationState = computed(() => ({
     allAdults: allAdults.value,
     requiredFieldsFilled: requiredFieldsFilled.value,
-    canContinuePassengers: false,
+    canContinuePassengers: canContinuePassengers.value,
     lastErrors: validationErrors.value.slice(),
   }));
 
-  const canContinuePassengers = computed(() => {
-    const ok = allAdults.value && requiredFieldsFilled.value;
+  const canPay = computed(() => aceptedTerms.value);
 
-    validationState.value.canContinuePassengers = ok;
+  // =========================================================
+  // IDENTIFICACIONES INE
+  // =========================================================
 
-    return ok;
-  });
-
-  const canPay = computed(() => {
-    return aceptedTerms.value;
-  });
-
-  // Identificaciones por asiento: { [seat]: { front: File|null, back: File|null } }
+  // {
+  //   [seat]: {
+  //     front: File | null,
+  //     back: File | null
+  //   }
+  // }
   const passengerDocuments = ref({});
+
+  function isValidIneFile(file) {
+    return (
+      typeof File !== "undefined" &&
+      file instanceof File &&
+      INE_TYPES.includes(file.type) &&
+      file.size > 0 &&
+      file.size <= INE_MAX_SIZE
+    );
+  }
 
   function setPassengerDocument(seat, side, file) {
     if (!["front", "back"].includes(side)) return;
 
     const key = String(seat);
-    const current = passengerDocuments.value[key] || { front: null, back: null };
+
+    const current = passengerDocuments.value[key] || {
+      front: null,
+      back: null,
+    };
 
     passengerDocuments.value = {
       ...passengerDocuments.value,
-      [key]: { ...current, [side]: file || null },
+      [key]: {
+        ...current,
+        [side]: isValidIneFile(file) ? file : null,
+      },
     };
   }
 
   function getPassengerDocuments(seat) {
-    return passengerDocuments.value[String(seat)] || { front: null, back: null };
+    return (
+      passengerDocuments.value[String(seat)] || {
+        front: null,
+        back: null,
+      }
+    );
   }
 
   function isPassengerDocumentationComplete(seat) {
     const docs = getPassengerDocuments(seat);
-    return Boolean(docs.front && docs.back);
+
+    return isValidIneFile(docs.front) && isValidIneFile(docs.back);
   }
+
+  function clearPassengerDocuments(seat) {
+    const updated = { ...passengerDocuments.value };
+    delete updated[String(seat)];
+
+    passengerDocuments.value = updated;
+  }
+
+  function clearAllPassengerDocuments() {
+    passengerDocuments.value = {};
+  }
+
+  // =========================================================
+  // CARTAS RESPONSIVAS
+  // =========================================================
+
+  // Cada firma se relaciona con un asiento y con una
+  // versión específica del documento.
+  const passengerWaivers = ref({});
+
+  function getPassengerWaiver(seat) {
+    return passengerWaivers.value[String(seat)] || null;
+  }
+
+  function setPassengerWaiver(seat, data) {
+    const key = String(seat);
+
+    if (!data || typeof data !== "object") {
+      clearPassengerWaiver(key);
+      return;
+    }
+
+    passengerWaivers.value = {
+      ...passengerWaivers.value,
+      [key]: {
+        ...data,
+      },
+    };
+  }
+
+  function clearPassengerWaiver(seat) {
+    const updated = { ...passengerWaivers.value };
+    delete updated[String(seat)];
+
+    passengerWaivers.value = updated;
+  }
+
+  function clearAllPassengerWaivers() {
+    passengerWaivers.value = {};
+  }
+
+  function getPassengerWaiverFingerprint(passenger) {
+    const code = String(passenger?.phone_country_code || "52").replace(
+      /\D/g,
+      "",
+    );
+
+    const number = String(passenger?.phone || "").replace(/\D/g, "");
+
+    return JSON.stringify({
+      version: WAIVER_VERSION,
+      trip_id: String(selectedTripId.value ?? ""),
+      seat: String(passenger?.seat ?? ""),
+      full_name: [passenger?.first_name, passenger?.last_name]
+        .filter(Boolean)
+        .join(" ")
+        .trim(),
+      email: String(passenger?.email || "")
+        .trim()
+        .toLowerCase(),
+      phone: `+${code} ${number}`,
+    });
+  }
+
+  function isPassengerWaiverComplete(passenger) {
+    if (!passenger?.seat) return false;
+
+    const waiver = getPassengerWaiver(passenger.seat);
+
+    if (
+      waiver?.version !== WAIVER_VERSION ||
+      waiver?.accepted !== true ||
+      typeof waiver?.signature !== "string" ||
+      !waiver.signature.startsWith("data:image/png;base64,")
+    ) {
+      return false;
+    }
+
+    return waiver.fingerprint === getPassengerWaiverFingerprint(passenger);
+  }
+
+  // =========================================================
+  // VALIDACIÓN CONJUNTA DE DOCUMENTACIÓN
+  // =========================================================
 
   const canContinueDocuments = computed(() => {
     const list = passengers.value || [];
+    const selected = selectedSeats.value.map(String);
 
-    return (
-      list.length > 0 &&
-      list.every((p) => isPassengerDocumentationComplete(p.seat))
-    );
+    if (
+      !canContinuePassengers.value ||
+      list.length === 0 ||
+      list.length !== selected.length
+    ) {
+      return false;
+    }
+
+    return list.every((passenger) => {
+      const seat = String(passenger.seat);
+
+      return (
+        selected.includes(seat) &&
+        isPassengerDocumentationComplete(seat) &&
+        isPassengerWaiverComplete(passenger)
+      );
+    });
   });
 
-  const pendingDocumentsCount = computed(() => {
-    return (passengers.value || []).filter(
-      (p) => !isPassengerDocumentationComplete(p.seat),
-    ).length;
-  });
+  const pendingDocumentsCount = computed(
+    () =>
+      (passengers.value || []).filter(
+        (passenger) =>
+          !isPassengerDocumentationComplete(passenger.seat) ||
+          !isPassengerWaiverComplete(passenger),
+      ).length,
+  );
+
+  const completedDocumentsCount = computed(
+    () => (passengers.value || []).length - pendingDocumentsCount.value,
+  );
+
+  // =========================================================
+  // EVENTOS Y VALIDACIÓN DE EMAIL
+  // =========================================================
 
   async function loadEvents() {
     try {
@@ -553,7 +688,6 @@ export const useReservaStore = defineStore("reserva", () => {
       const { data } = await ReservationAPI.passengerByEmail(email);
 
       emailVerification.value = data;
-
       return data;
     } catch (error) {
       const fallback = error?.response?.data || {
@@ -563,34 +697,50 @@ export const useReservaStore = defineStore("reserva", () => {
       };
 
       emailVerification.value = fallback;
-
       return fallback;
     } finally {
       emailVerificationLoading.value = false;
     }
   }
 
-  const next = () => {
+  // =========================================================
+  // NAVEGACIÓN
+  // =========================================================
+
+  function next() {
+    // Invitados extra omiten la inscripción del paso 2.
     if (registrationType.value === "family_friend" && step.value === 1) {
+      if (!canContinueRegistrationType.value) return;
+
       step.value = 3;
       return;
     }
 
-    if (step.value === 6 && !canContinueDocuments.value) {
+    // Validar datos de pasajeros antes de documentación.
+    if (step.value === 5 && !canContinuePassengers.value) {
       toast?.open?.({
-        message:
-          "Debes subir el frente y reverso de la identificación de cada pasajero.",
+        message: "Completa correctamente los datos de todos los pasajeros.",
         type: "error",
       });
       return;
     }
 
-    if (step.value < 7) {
+    // INE y responsiva son obligatorios.
+    if (step.value === 6 && !canContinueDocuments.value) {
+      toast?.open?.({
+        message:
+          "Cada pasajero debe subir ambos lados del INE, leer y aceptar la carta responsiva y firmarla.",
+        type: "error",
+      });
+      return;
+    }
+
+    if (step.value < maxStep.value) {
       step.value++;
     }
-  };
+  }
 
-  const prev = () => {
+  function prev() {
     if (registrationType.value === "family_friend" && step.value === 3) {
       step.value = 1;
       return;
@@ -599,14 +749,20 @@ export const useReservaStore = defineStore("reserva", () => {
     if (step.value > 1) {
       step.value--;
     }
-  };
+  }
+
+  // =========================================================
+  // REINICIO
+  // =========================================================
 
   function reset() {
     step.value = 1;
     aceptedTerms.value = false;
     modal.value = false;
     validationErrors.value = [];
-    passengerDocuments.value = {};
+
+    clearAllPassengerDocuments();
+    clearAllPassengerWaivers();
 
     resetRegistration();
     resetRegistrationCodeValidation();
@@ -614,10 +770,14 @@ export const useReservaStore = defineStore("reserva", () => {
     seats.resetSeats();
   }
 
+  // =========================================================
+  // WATCHERS
+  // =========================================================
+
   watch(
     _passengersValidation,
-    (v) => {
-      validationErrors.value = v.errors.slice();
+    (value) => {
+      validationErrors.value = value.errors.slice();
     },
     { immediate: true },
   );
@@ -635,24 +795,58 @@ export const useReservaStore = defineStore("reserva", () => {
     },
   );
 
-  // Descartar documentos de asientos que ya no están seleccionados
+  // Descartar archivos y responsivas de asientos
+  // que ya no pertenecen a la reservación.
   watch(
     () => selectedSeats.value.map(String),
     (currentSeats) => {
-      const kept = Object.fromEntries(
+      const allowed = new Set(currentSeats);
+
+      const keptDocuments = Object.fromEntries(
         Object.entries(passengerDocuments.value).filter(([seat]) =>
-          currentSeats.includes(seat),
+          allowed.has(seat),
         ),
       );
 
-      if (
-        Object.keys(kept).length !==
-        Object.keys(passengerDocuments.value).length
-      ) {
-        passengerDocuments.value = kept;
-      }
+      const keptWaivers = Object.fromEntries(
+        Object.entries(passengerWaivers.value).filter(([seat]) =>
+          allowed.has(seat),
+        ),
+      );
+
+      passengerDocuments.value = keptDocuments;
+      passengerWaivers.value = keptWaivers;
     },
   );
+
+  // Invalidar una firma si cambian los datos
+  // personales, asiento o viaje asociados a ella.
+  const passengerFingerprints = computed(() =>
+    (passengers.value || []).map((passenger) => ({
+      seat: String(passenger.seat),
+      fingerprint: getPassengerWaiverFingerprint(passenger),
+    })),
+  );
+
+  watch(passengerFingerprints, (current) => {
+    const validBySeat = new Map(
+      current.map((item) => [item.seat, item.fingerprint]),
+    );
+
+    const kept = Object.fromEntries(
+      Object.entries(passengerWaivers.value).filter(([seat, waiver]) => {
+        return (
+          validBySeat.has(seat) && waiver?.fingerprint === validBySeat.get(seat)
+        );
+      }),
+    );
+
+    if (
+      Object.keys(kept).length !== Object.keys(passengerWaivers.value).length
+    ) {
+      passengerWaivers.value = kept;
+    }
+  });
 
   watch(
     () => passengers.value?.[0]?.email,
@@ -663,38 +857,62 @@ export const useReservaStore = defineStore("reserva", () => {
     },
   );
 
+  // =========================================================
+  // PROPIEDADES Y MÉTODOS PÚBLICOS
+  // =========================================================
+
   return {
+    // Navegación
     step,
+    maxStep,
+    next,
+    prev,
+    reset,
+
+    // Viajes y asientos
     selectedSeats,
     selectedTripId,
     date,
     passengers,
     events,
+    setDate: seats.setDate,
+    loadEvents,
+    toggleSeat: toggleReservationSeat,
+    seatsSold,
+
+    // Confirmación
     aceptedTerms,
     modal,
+    canPay,
 
+    // Inscripción
     registrationType,
     registrationData,
     registrationTypes,
+    currentRegistrationType,
+    setRegistrationType,
+    resetRegistration,
 
+    // Validación de códigos
     validatingRegistrationCode,
     registrationCodeValid,
     registrationCodeMessage,
     registrationCodeData,
+    canContinueRegistrationType,
+    canContinueRegistrationValidation,
+    requiresBackendCodeValidation,
+    registrationCodeToValidate,
+    validateRegistrationCode,
+    validateRegistrationAndNext,
+    resetRegistrationCodeValidation,
 
-    canContinuePassengers,
-    canPay,
+    // Alianzas
+    allianceCodes,
+    allianceOptions,
+    loadingAllianceCodes,
+    loadAllianceCodes,
 
-    passengerDocuments,
-    setPassengerDocument,
-    getPassengerDocuments,
-    isPassengerDocumentationComplete,
-    canContinueDocuments,
-    pendingDocumentsCount,
-    allAdults,
-    validationErrors,
-
-    currentRegistrationType,
+    // Costos y tipos de pasajeros
     isFreeRegistration,
     requiresPayment,
     requiresExtraPassenger,
@@ -705,35 +923,39 @@ export const useReservaStore = defineStore("reserva", () => {
     paidTicketsCount,
     freeTicketsCount,
 
-    canContinueRegistrationType,
-    canContinueRegistrationValidation,
-    requiresBackendCodeValidation,
-    registrationCodeToValidate,
-    maxStep,
+    // Validaciones de pasajeros
+    canContinuePassengers,
+    requiredFieldsFilled,
+    validationState,
+    allAdults,
+    validationErrors,
 
-    allianceCodes,
-    allianceOptions,
-    loadingAllianceCodes,
+    // Documentación INE
+    passengerDocuments,
+    setPassengerDocument,
+    getPassengerDocuments,
+    isPassengerDocumentationComplete,
+    clearPassengerDocuments,
+    clearAllPassengerDocuments,
 
+    // Cartas responsivas
+    passengerWaivers,
+    setPassengerWaiver,
+    getPassengerWaiver,
+    clearPassengerWaiver,
+    clearAllPassengerWaivers,
+    getPassengerWaiverFingerprint,
+    isPassengerWaiverComplete,
+
+    // Validación conjunta
+    canContinueDocuments,
+    pendingDocumentsCount,
+    completedDocumentsCount,
+
+    // Validación de correo
     emailVerification,
     emailVerificationLoading,
     verifyEmailRegister,
-
-    loadAllianceCodes,
-    next,
-    prev,
-    reset,
-
-    setDate: seats.setDate,
-    loadEvents,
-    toggleSeat: toggleReservationSeat,
-    seatsSold,
-
-    setRegistrationType,
-    resetRegistration,
-    validateRegistrationCode,
-    validateRegistrationAndNext,
-    resetRegistrationCodeValidation,
     resetEmailVerification,
   };
 });

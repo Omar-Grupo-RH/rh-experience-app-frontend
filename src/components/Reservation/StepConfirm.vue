@@ -1,23 +1,32 @@
 <script setup>
 import { computed, ref, inject, onMounted, watch } from "vue";
+
 import { useReservaStore } from "@/stores/public/reservaStore";
+
 import { formatDateToSpanish } from "@/utils/formatDate";
+
 import PassengersItem from "@/components/Reservation/PassengersItem.vue";
+
 import ReservationAPI, {
   clearReservationIdempotencyKey,
 } from "@/api/ReservationAPI";
 
 const store = useReservaStore();
+
 const toast = inject("toast");
 
 const loading = ref(false);
+
 const checkingAttendance = ref(false);
+
 const attendanceVerificationError = ref("");
+
 const attendanceChecks = ref({});
 
 const penalizedPassengers = computed(() =>
   store.passengers.filter((passenger) => {
     const email = passenger.email?.trim().toLowerCase();
+
     return email && attendanceChecks.value[email]?.requires_no_show_penalty;
   }),
 );
@@ -25,6 +34,7 @@ const penalizedPassengers = computed(() =>
 const internalNoShowPassengers = computed(() =>
   penalizedPassengers.value.filter((passenger) => {
     const email = passenger.email?.trim().toLowerCase();
+
     return (
       email && attendanceChecks.value[email]?.requires_internal_no_show_penalty
     );
@@ -34,24 +44,32 @@ const internalNoShowPassengers = computed(() =>
 const effectivePaymentDetails = computed(() =>
   store.passengers.map((passenger, index) => {
     const email = passenger.email?.trim().toLowerCase();
+
     const hasPenalty = Boolean(
       email && attendanceChecks.value[email]?.requires_no_show_penalty,
     );
+
     const penaltyAmount = hasPenalty ? 500 : 0;
+
     let baseAmount = 0;
 
     if (store.registrationType === "prospect") baseAmount = 1500;
+
     if (store.registrationType === "family_friend") baseAmount = 500;
+
     if (store.registrationType === "internal") {
       baseAmount = store.emailVerification?.exists ? 500 : 0;
     }
+
     if (store.registrationType === "investor") {
       baseAmount = index > 0 ? 500 : 0;
     }
 
     return {
       baseAmount,
+
       penaltyAmount,
+
       amount: baseAmount + penaltyAmount,
     };
   }),
@@ -60,24 +78,31 @@ const effectivePaymentDetails = computed(() =>
 const effectivePaidTicketsCount = computed(
   () => effectivePaymentDetails.value.filter(({ amount }) => amount > 0).length,
 );
+
 const effectiveFreeTicketsCount = computed(
   () => store.passengers.length - effectivePaidTicketsCount.value,
 );
+
 const effectiveRegistrationTotal = computed(() =>
   effectivePaymentDetails.value.reduce(
     (total, { amount }) => total + amount,
+
     0,
   ),
 );
+
 const totalPenaltyAmount = computed(() =>
   effectivePaymentDetails.value.reduce(
     (total, { penaltyAmount }) => total + penaltyAmount,
+
     0,
   ),
 );
+
 const effectivePricePerPerson = computed(() =>
   effectivePaymentDetails.value.reduce(
     (highest, { amount }) => Math.max(highest, amount),
+
     0,
   ),
 );
@@ -92,6 +117,7 @@ function buildRegistrationPayload(store) {
   if (store.registrationType === "internal") {
     return {
       ...base,
+
       area_code: data.area_code,
     };
   }
@@ -99,7 +125,9 @@ function buildRegistrationPayload(store) {
   if (store.registrationType === "alliance") {
     return {
       ...base,
+
       alliance_name: data.alliance_name,
+
       alliance_code: data.alliance_code,
     };
   }
@@ -107,6 +135,7 @@ function buildRegistrationPayload(store) {
   if (store.registrationType === "prize") {
     return {
       ...base,
+
       prize_code: data.prize_code,
     };
   }
@@ -114,8 +143,11 @@ function buildRegistrationPayload(store) {
   if (store.registrationType === "investor") {
     return {
       ...base,
+
       development: data.development,
+
       stage: data.stage,
+
       lot_number: data.lot_number,
     };
   }
@@ -123,9 +155,13 @@ function buildRegistrationPayload(store) {
   if (store.registrationType === "prospect") {
     const payload = {
       ...base,
+
       development: data.development,
+
       advisor_name: data.advisor_name,
+
       advisor_code: data.advisor_code,
+
       origin: data.origin,
     };
 
@@ -149,9 +185,13 @@ function buildPayload() {
   return {
     trip_data: {
       date: store.date,
+
       trip_id: store.selectedTripId,
+
       seats: store.selectedSeats,
+
       tickets_email: store.passengers[0]?.email,
+
       tickets_name: store.passengers[0]?.first_name || "Cliente",
     },
 
@@ -159,22 +199,35 @@ function buildPayload() {
 
     payment_summary: {
       requires_payment: store.requiresPayment,
+
       paid_tickets_count: store.paidTicketsCount,
+
       free_tickets_count: store.freeTicketsCount,
+
       price_per_ticket: store.registrationPricePerPerson,
+
       total_amount: store.registrationTotal,
     },
 
     passengers: store.passengers.map((p) => ({
       seat_id: p.seat,
+
       first_name: p.first_name,
+
       last_name: p.last_name,
+
       email: p.email,
+
       phone_country_code: p.phone_country_code,
+
       phone: p.phone,
+
       city: p.city,
+
       born_date: p.born_date,
+
       allergies: p.allergies,
+
       health_conditions: p.health_conditions,
     })),
   };
@@ -194,19 +247,24 @@ async function verifyPassengerAttendance() {
   const emails = [
     ...new Set(
       store.passengers
+
         .map((passenger) => passenger.email?.trim().toLowerCase())
+
         .filter(Boolean),
     ),
   ];
 
   if (!emails.length) {
     attendanceChecks.value = {};
+
     attendanceVerificationError.value = "";
+
     return;
   }
 
   try {
     checkingAttendance.value = true;
+
     attendanceVerificationError.value = "";
 
     const responses = await Promise.all(
@@ -218,6 +276,7 @@ async function verifyPassengerAttendance() {
     );
   } catch (error) {
     attendanceChecks.value = {};
+
     attendanceVerificationError.value =
       error?.response?.data?.message ||
       "No se pudo verificar el historial de asistencia. Intenta nuevamente.";
@@ -227,37 +286,46 @@ async function verifyPassengerAttendance() {
 }
 
 async function startCheckout() {
-  if (checkingAttendance.value) return;
+  if (loading.value || checkingAttendance.value) return;
 
   if (attendanceVerificationError.value) {
     toast?.open?.({
       message: attendanceVerificationError.value,
+
       type: "error",
     });
+
     return;
   }
 
   if (!store.canPay) {
     toast?.open?.({
       message: "Debes aceptar términos y condiciones.",
+
       type: "error",
     });
+
     return;
   }
 
   if (!store.canContinuePassengers) {
     toast?.open?.({
       message: "Revisa los datos de pasajeros.",
+
       type: "error",
     });
+
     return;
   }
 
   if (!store.canContinueDocuments) {
     toast?.open?.({
-      message: "Debes completar los INE de todos los pasajeros.",
+      message:
+        "Todos los pasajeros deben subir ambos lados del INE, leer, aceptar y firmar su carta responsiva.",
+
       type: "error",
     });
+
     return;
   }
 
@@ -268,7 +336,10 @@ async function startCheckout() {
 
     const { data } = await ReservationAPI.reserveTrip(
       payload,
+
       store.passengerDocuments,
+
+      store.passengerWaivers,
     );
 
     if (!data.success) {
@@ -276,6 +347,7 @@ async function startCheckout() {
 
       toast?.open?.({
         message: data.message || "No se pudo completar la reservación.",
+
         type: "error",
       });
 
@@ -286,6 +358,7 @@ async function startCheckout() {
 
     toast?.open?.({
       message: data.message || "Reservación completada exitosamente.",
+
       type: "success",
     });
 
@@ -302,6 +375,7 @@ async function startCheckout() {
         error.userMessage ||
         error.response?.data?.message ||
         "Ocurrió un error al procesar tu solicitud.",
+
       type: "error",
     });
   } finally {
@@ -312,12 +386,14 @@ async function startCheckout() {
 onMounted(async () => {
   await Promise.all([
     verifyInternalPassengerEmail(),
+
     verifyPassengerAttendance(),
   ]);
 });
 
 watch(
   () => store.passengers[0]?.email,
+
   async () => {
     await verifyInternalPassengerEmail();
   },
@@ -325,6 +401,7 @@ watch(
 
 watch(
   () => store.passengers.map((passenger) => passenger.email).join("|"),
+
   verifyPassengerAttendance,
 );
 </script>
@@ -411,6 +488,7 @@ watch(
                   stroke-width="2"
                   d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"
                 ></path>
+
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -520,6 +598,7 @@ watch(
           <p class="text-sm font-semibold text-rose-800">
             {{ attendanceVerificationError }}
           </p>
+
           <button
             type="button"
             class="w-fit rounded-lg bg-rose-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-800 disabled:opacity-50"
@@ -548,34 +627,42 @@ watch(
         >
           <p class="text-sm font-bold text-rose-900">
             Se aplicará una penalización de $500 MXN por boleto
+
             {{
               internalNoShowPassengers.length
                 ? "por No show interno dentro de los últimos seis meses"
                 : "por dos inasistencias previas"
             }}.
           </p>
+
           <p class="mt-2 text-sm text-rose-800">
             Pasajeros afectados:
+
             {{
               penalizedPassengers
+
                 .map(
                   (passenger) =>
                     `${passenger.first_name} ${passenger.last_name}`.trim() ||
                     passenger.email,
                 )
+
                 .join(", ")
             }}. Los $500 MXN son adicionales al precio normal de cada boleto. El
             recargo total por penalizaciones es de ${{
               totalPenaltyAmount.toLocaleString("es-MX")
             }}
+
             MXN y la ficha de pago se enviará junto con los boletos.
           </p>
+
           <p
             v-if="internalNoShowPassengers.length"
             class="mt-2 text-sm text-rose-800"
           >
             El No show interno limita la inscripción durante seis meses; se
             puede reservar dentro de ese periodo cubriendo esta penalización.
+
             {{
               attendanceChecks[
                 internalNoShowPassengers[0].email?.trim().toLowerCase()
@@ -727,6 +814,7 @@ watch(
                 class="font-medium text-gray-700 cursor-pointer select-none"
               >
                 He leído y acepto los
+
                 <button
                   type="button"
                   @click.prevent="store.modal = !store.modal"
@@ -745,7 +833,14 @@ watch(
 
         <div class="flex flex-col sm:flex-row-reverse gap-3 sm:gap-4 mt-6">
           <button
-            :disabled="!store.canPay || loading || checkingAttendance"
+            :disabled="
+              !store.canPay ||
+              !store.canContinuePassengers ||
+              !store.canContinueDocuments ||
+              loading ||
+              checkingAttendance ||
+              Boolean(attendanceVerificationError)
+            "
             @click="startCheckout"
             class="flex-1 px-6 py-3.5 bg-experience-blue text-white font-semibold rounded-xl shadow-sm transition-all flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-experience-blue"
           >

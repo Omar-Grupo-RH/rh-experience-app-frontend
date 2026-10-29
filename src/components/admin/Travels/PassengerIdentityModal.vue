@@ -293,6 +293,38 @@ async function updateStatus(status) {
   }
 }
 
+const downloadingWaiver = ref(false);
+
+async function downloadWaiver() {
+  if (!props.passenger?.id || downloadingWaiver.value) return;
+
+  downloadingWaiver.value = true;
+
+  try {
+    const pdf = await IdentityAdminAPI.getWaiverPdf(props.passenger.id);
+
+    const url = URL.createObjectURL(pdf);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `responsiva-pasajero-${props.passenger.id}.pdf`;
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (err) {
+    await Swal.fire(
+      "Responsiva no disponible",
+      "Este pasajero todavía no tiene una carta firmada o no se pudo recuperar.",
+      "warning",
+    );
+  } finally {
+    downloadingWaiver.value = false;
+  }
+}
+
 function close() {
   emit("close");
 }
@@ -537,13 +569,32 @@ onBeforeUnmount(() => {
             </div>
 
             <div
-              class="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4"
+              class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4"
             >
-              <p class="text-sm font-bold text-slate-800">Carta responsiva</p>
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 class="text-sm font-bold text-slate-800">
+                    Carta responsiva firmada
+                  </h3>
 
-              <p class="mt-1 text-sm text-slate-500">
-                Pendiente de integrar la plantilla y la firma electrónica.
-              </p>
+                  <p class="mt-1 text-xs text-slate-500">
+                    Documento individual asociado a este pasajero.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  :disabled="downloadingWaiver"
+                  class="rounded-lg bg-experience-blue px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                  @click="downloadWaiver"
+                >
+                  {{
+                    downloadingWaiver
+                      ? "Descargando..."
+                      : "Descargar responsiva PDF"
+                  }}
+                </button>
+              </div>
             </div>
           </template>
         </main>

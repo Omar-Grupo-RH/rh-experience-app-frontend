@@ -2,61 +2,68 @@
 import { computed } from "vue";
 import { useReservaStore } from "@/stores/public/reservaStore";
 import PassengerIdentity from "./PassengerIdentity.vue";
+import PassengerWaiver from "./PassengerWaiver.vue";
 
 const store = useReservaStore();
-
 const passengers = computed(() => store.passengers);
-const allDocumentsSelected = computed(() => store.canContinueDocuments);
+const allComplete = computed(() => store.canContinueDocuments);
 </script>
 
 <template>
   <section class="mx-auto max-w-5xl space-y-6 px-4 py-6">
     <div>
-      <h2 class="text-3xl font-bold text-experience-blue">
-        Documentación de pasajeros
+      <p class="text-sm font-semibold uppercase text-experience-blue">
+        Paso 6 · Documentación obligatoria
+      </p>
+
+      <h2 class="mt-2 text-3xl font-bold text-experience-blue">
+        Identificación y carta responsiva
       </h2>
 
       <p class="mt-2 text-slate-500">
-        Cada pasajero deberá proporcionar el frente y reverso de su
-        identificación oficial.
+        Cada pasajero debe proporcionar su INE, leer las condiciones y firmar
+        individualmente su carta responsiva.
       </p>
     </div>
 
     <div
       v-if="!passengers.length"
-      class="rounded-xl border border-dashed border-slate-300 p-6 text-center text-slate-500"
+      class="rounded-xl border border-dashed p-6 text-center"
     >
-      No hay pasajeros registrados. Regresa al paso anterior para agregarlos.
+      Regresa al paso anterior para agregar pasajeros.
     </div>
 
-    <PassengerIdentity
+    <div
       v-for="(passenger, index) in passengers"
-      :key="passenger.seat"
-      :passenger="passenger"
-      :index="index"
-    />
+      :key="String(passenger.seat)"
+      class="space-y-4"
+    >
+      <PassengerIdentity :passenger="passenger" :index="index" />
+
+      <PassengerWaiver :passenger="passenger" :index="index" />
+    </div>
 
     <div class="rounded-xl bg-slate-50 p-5">
-      <p class="font-semibold text-slate-800">Estado de documentación</p>
+      <p class="font-bold text-slate-800">Estado de documentación</p>
 
       <p
         class="mt-2 text-sm"
-        :class="allDocumentsSelected ? 'text-green-700' : 'text-amber-700'"
+        :class="allComplete ? 'text-green-700' : 'text-amber-700'"
       >
         {{
-          allDocumentsSelected
-            ? "Todas las identificaciones están cargadas."
-            : `Faltan identificaciones de ${store.pendingDocumentsCount} pasajero${
-                store.pendingDocumentsCount === 1 ? "" : "s"
-              }.`
+          allComplete
+            ? "Todos los INE y responsivas están completos."
+            : `Falta completar la documentación de
+               ${store.pendingDocumentsCount}
+               pasajero(s).`
         }}
       </p>
     </div>
 
-    <div class="flex w-full flex-col gap-3 md:flex-row">
+    <div class="flex flex-col gap-3 md:flex-row">
       <button
         type="button"
-        class="w-full cursor-pointer rounded-md bg-gray-200 px-4 py-2"
+        class="w-full rounded-md bg-gray-200 px-4 py-3"
         @click="store.prev"
       >
         Regresar
@@ -64,8 +71,8 @@ const allDocumentsSelected = computed(() => store.canContinueDocuments);
 
       <button
         type="button"
-        class="w-full cursor-pointer rounded-md bg-experience-blue px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
-        :disabled="!allDocumentsSelected"
+        class="w-full rounded-md bg-experience-blue px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+        :disabled="!allComplete"
         @click="store.next"
       >
         Siguiente
