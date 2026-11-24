@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="39" failures="0" errors="0" time="0.058978833">
+    <testsuite name="tests/unit/busLayout.test.js" timestamp="2026-11-03T23:52:48.600Z" hostname="Omars-MacBook-Air.local" tests="9" failures="0" errors="0" skipped="0" time="0.002867958">
+        <testcase classname="tests/unit/busLayout.test.js" name="normalizeBusCapacity &gt; acepta las capacidades permitidas" time="0.000889583">
+        </testcase>
+        <testcase classname="tests/unit/busLayout.test.js" name="normalizeBusCapacity &gt; convierte strings numéricos" time="0.000104292">
+        </testcase>
+        <testcase classname="tests/unit/busLayout.test.js" name="normalizeBusCapacity &gt; usa la capacidad por defecto para valores inválidos" time="0.000132416">
+        </testcase>
+        <testcase classname="tests/unit/busLayout.test.js" name="getBusRows &gt; siempre incluye la fila A de staff al inicio" time="0.000396083">
+        </testcase>
+        <testcase classname="tests/unit/busLayout.test.js" name="getBusRows &gt; la suma de asientos (sin staff) coincide con la capacidad" time="0.000105625">
+        </testcase>
+        <testcase classname="tests/unit/busLayout.test.js" name="getBusRows &gt; capacidad desconocida usa el layout por defecto (15)" time="0.000093">
+        </testcase>
+        <testcase classname="tests/unit/busLayout.test.js" name="getBusRows &gt; layout de 8 asientos tiene filas B, C y D" time="0.000083375">
+        </testcase>
+        <testcase classname="tests/unit/busLayout.test.js" name="getBusRows &gt; layout de 15 asientos tiene filas B a F" time="0.0000885">
+        </testcase>
+        <testcase classname="tests/unit/busLayout.test.js" name="STAFF_SEATS &gt; son los dos asientos de la fila A" time="0.000086542">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/unit/formatDate.test.js" timestamp="2026-11-03T23:52:48.601Z" hostname="Omars-MacBook-Air.local" tests="5" failures="0" errors="0" skipped="0" time="0.01984225">
+        <testcase classname="tests/unit/formatDate.test.js" name="formatDateToSpanish &gt; formatea una fecha ISO en español largo" time="0.018081959">
+        </testcase>
+        <testcase classname="tests/unit/formatDate.test.js" name="formatDateToSpanish &gt; devuelve cadena vacía sin fecha" time="0.000146458">
+        </testcase>
+        <testcase classname="tests/unit/formatDate.test.js" name="formatDateToSpanish &gt; no se desfasa un día por zona horaria" time="0.000195167">
+        </testcase>
+        <testcase classname="tests/unit/formatDate.test.js" name="formatDateToSpanishShort &gt; formatea una fecha ISO en español corto" time="0.000213625">
+        </testcase>
+        <testcase classname="tests/unit/formatDate.test.js" name="formatDateToSpanishShort &gt; devuelve cadena vacía sin fecha" time="0.000137208">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/unit/formatMoney.test.js" timestamp="2026-11-03T23:52:48.601Z" hostname="Omars-MacBook-Air.local" tests="3" failures="0" errors="0" skipped="0" time="0.021969875">
+        <testcase classname="tests/unit/formatMoney.test.js" name="currencyFormat &gt; formatea cantidades como pesos mexicanos" time="0.020172709">
+        </testcase>
+        <testcase classname="tests/unit/formatMoney.test.js" name="currencyFormat &gt; redondea a dos decimales" time="0.000496083">
+        </testcase>
+        <testcase classname="tests/unit/formatMoney.test.js" name="currencyFormat &gt; maneja negativos (reembolsos/penalizaciones)" time="0.000256791">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/unit/generateStars.test.js" timestamp="2026-11-03T23:52:48.602Z" hostname="Omars-MacBook-Air.local" tests="2" failures="0" errors="0" skipped="0" time="0.002380625">
+        <testcase classname="tests/unit/generateStars.test.js" name="generarEstrellas &gt; genera estrellas llenas según la calificación" time="0.000953667">
+        </testcase>
+        <testcase classname="tests/unit/generateStars.test.js" name="generarEstrellas &gt; siempre devuelve 5 caracteres" time="0.000639166">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/unit/seatsStore.test.js" timestamp="2026-11-03T23:52:48.602Z" hostname="Omars-MacBook-Air.local" tests="7" failures="0" errors="0" skipped="0" time="0.0055445">
+        <testcase classname="tests/unit/seatsStore.test.js" name="seatsStore &gt; inicia vacío" time="0.002156458">
+        </testcase>
+        <testcase classname="tests/unit/seatsStore.test.js" name="seatsStore &gt; toggleSeat agrega el asiento y crea su pasajero vacío" time="0.001221917">
+        </testcase>
+        <testcase classname="tests/unit/seatsStore.test.js" name="seatsStore &gt; toggleSeat sobre un asiento ya elegido lo quita junto con su pasajero" time="0.000289917">
+        </testcase>
+        <testcase classname="tests/unit/seatsStore.test.js" name="seatsStore &gt; conserva los datos capturados al agregar más asientos" time="0.000339917">
+        </testcase>
+        <testcase classname="tests/unit/seatsStore.test.js" name="seatsStore &gt; al quitar un asiento solo elimina al pasajero de ese asiento" time="0.00032325">
+        </testcase>
+        <testcase classname="tests/unit/seatsStore.test.js" name="seatsStore &gt; setDate asigna la fecha" time="0.000164459">
+        </testcase>
+        <testcase classname="tests/unit/seatsStore.test.js" name="seatsStore &gt; resetSeats limpia todo el estado" time="0.000215708">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/unit/usePassengerValidation.test.js" timestamp="2026-11-03T23:52:48.602Z" hostname="Omars-MacBook-Air.local" tests="13" failures="0" errors="0" skipped="0" time="0.006373625">
+        <testcase classname="tests/unit/usePassengerValidation.test.js" name="isValidDateStr &gt; acepta fechas ISO válidas" time="0.001039208">
+        </testcase>
+        <testcase classname="tests/unit/usePassengerValidation.test.js" name="isValidDateStr &gt; rechaza valores inválidos" time="0.000298334">
+        </testcase>
+        <testcase classname="tests/unit/usePassengerValidation.test.js" name="getAgeFromISO &gt; calcula la edad correcta" time="0.000958208">
+        </testcase>
+        <testcase classname="tests/unit/usePassengerValidation.test.js" name="getAgeFromISO &gt; quien cumple 18 mañana sigue siendo menor" time="0.00010225">
+        </testcase>
+        <testcase classname="tests/unit/usePassengerValidation.test.js" name="getAgeFromISO &gt; devuelve -1 para fechas inválidas" time="0.000091084">
+        </testcase>
+        <testcase classname="tests/unit/usePassengerValidation.test.js" name="EMAIL_RE &gt; valida formatos básicos de email" time="0.000173375">
+        </testcase>
+        <testcase classname="tests/unit/usePassengerValidation.test.js" name="validatePassengers &gt; falla sin asientos seleccionados" time="0.000860667">
+        </testcase>
+        <testcase classname="tests/unit/usePassengerValidation.test.js" name="validatePassengers &gt; falla si pasajeros y asientos no coinciden" time="0.000158417">
+        </testcase>
+        <testcase classname="tests/unit/usePassengerValidation.test.js" name="validatePassengers &gt; acepta pasajeros adultos con datos completos" time="0.00055525">
+        </testcase>
+        <testcase classname="tests/unit/usePassengerValidation.test.js" name="validatePassengers &gt; rechaza menores de edad" time="0.000179125">
+        </testcase>
+        <testcase classname="tests/unit/usePassengerValidation.test.js" name="validatePassengers &gt; rechaza campos obligatorios vacíos" time="0.000110417">
+        </testcase>
+        <testcase classname="tests/unit/usePassengerValidation.test.js" name="validatePassengers &gt; rechaza email con formato inválido" time="0.000095541">
+        </testcase>
+        <testcase classname="tests/unit/usePassengerValidation.test.js" name="validatePassengers &gt; es reactivo: corregir los datos vuelve válido el resultado" time="0.0002305">
+        </testcase>
+    </testsuite>
+</testsuites>

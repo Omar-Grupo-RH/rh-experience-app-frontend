@@ -275,16 +275,6 @@ const sections = [
         maxLabel: "Excelente",
       },
       {
-        id: "staff_andrea_rating",
-        type: "stars",
-        required: false,
-        question:
-          "¿Cómo calificas la explicación y acompañamiento de Andrea (Guía RH EXPERIENCE)?",
-        options: rating5,
-        minLabel: "1",
-        maxLabel: "5",
-      },
-      {
         id: "staff_jaqueline_rating",
         type: "stars",
         required: false,

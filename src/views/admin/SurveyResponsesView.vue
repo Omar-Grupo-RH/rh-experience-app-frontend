@@ -50,7 +50,6 @@ const answerLabels = {
   boat_recommendation: "Recomendación lancha",
 
   staff_before_info_rating: "Información antes del tour",
-  staff_andrea_rating: "Andrea",
   staff_jaqueline_rating: "Jaqueline",
   staff_during_info_rating: "Información durante el tour",
   staff_driver_rating: "Conductor",
@@ -80,7 +79,7 @@ function getChartColors(length) {
   });
 }
 
-const starQuestionKeys = ["staff_andrea_rating", "staff_jaqueline_rating"];
+const starQuestionKeys = ["staff_jaqueline_rating"];
 
 const surveySections = [
   {
@@ -221,12 +220,6 @@ const surveySections = [
         key: "staff_before_info_rating",
         label: "Información antes del tour",
         type: "pie",
-      },
-      {
-        key: "staff_andrea_rating",
-        label: "Andrea",
-        type: "stars",
-        max: 5,
       },
       {
         key: "staff_jaqueline_rating",
